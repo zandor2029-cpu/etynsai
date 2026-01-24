@@ -4,6 +4,7 @@ import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
 import AspectRatioSelect from "@/components/AspectRatioSelect";
+import WatermelonIcon from "@/components/WatermelonIcon";
 
 const NanoBananaPro = () => {
   const [prompt, setPrompt] = useState("");
@@ -35,8 +36,10 @@ const NanoBananaPro = () => {
             <span>Geração em 4K Ultra HD</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6 flex items-center justify-center gap-4">
             <span className="text-gradient-rgb">Nano Banana Pro 4K</span>
+            <WatermelonIcon size={64} className="hidden md:inline-block" />
+            <WatermelonIcon size={48} className="inline-block md:hidden" />
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
