@@ -13,29 +13,29 @@ interface ValidationResult {
 }
 
 const VALIDATION_PATTERNS = [
-  // Celebridades da indústria adulta
+  // Celebridades da indústria adulta - BLOQUEANTE
   {
-    pattern: /\b(mia khalifa|johnny sins|riley reid|sasha grey|lana rhoades|abella danger|alexis texas)\b/i,
+    pattern: /\b(mia khalifa|johnny sins|riley reid|sasha grey|lana rhoades|abella danger|alexis texas|brazzers|pornhub)\b/i,
     type: 'adult' as const,
     message: 'Seu prompt menciona uma celebridade da indústria adulta.',
     suggestion: 'Tente descrever uma pessoa fictícia com características específicas (ex: "mulher jovem de cabelos escuros").',
     blocking: true,
   },
-  // Celebridades e figuras públicas
+  // Celebridades e figuras públicas - NÃO BLOQUEANTE, apenas aviso
   {
-    pattern: /\b(taylor swift|beyonce|rihanna|elon musk|trump|biden|obama|kim kardashian|kanye|drake|cristiano ronaldo|messi|neymar|anitta|ivete sangalo|xuxa)\b/i,
+    pattern: /\b(taylor swift|beyonce|rihanna|elon musk|trump|biden|obama|kim kardashian|kanye|drake|cristiano ronaldo|messi|neymar|anitta|ivete sangalo|xuxa|madonna|lady gaga|ariana grande|selena gomez|jennifer lopez|shakira|brad pitt|leonardo dicaprio|tom cruise|will smith|keanu reeves|mark zuckerberg|jeff bezos|bill gates)\b/i,
     type: 'celebrity' as const,
     message: 'Seu prompt menciona uma celebridade ou figura pública.',
-    suggestion: 'Tente descrever características em vez de nomes (ex: "cantor pop com estilo moderno").',
-    blocking: true,
+    suggestion: 'Celebridades são permitidas em contextos normais. Evite situações comprometedoras, íntimas ou difamatórias para melhores resultados.',
+    blocking: false,
   },
-  // Personagens protegidos por direitos autorais
+  // Personagens protegidos por direitos autorais - NÃO BLOQUEANTE
   {
     pattern: /\b(mickey mouse|minnie|donald duck|goofy|mario bros?|luigi|pikachu|pokemon|batman|superman|spider-?man|iron man|thor|hulk|captain america|harry potter|hermione|dumbledore|naruto|goku|sonic|hello kitty|spongebob|bob esponja)\b/i,
     type: 'copyright' as const,
-    message: 'Seu prompt menciona um personagem protegido por direitos autorais.',
-    suggestion: 'Crie um personagem original inspirado no conceito (ex: "super-herói com poderes de aranha vestindo vermelho e azul").',
-    blocking: true,
+    message: 'Seu prompt menciona um personagem que pode ter restrições de direitos autorais.',
+    suggestion: 'Alguns personagens podem ter limitações. Se não funcionar, crie um personagem original inspirado no conceito.',
+    blocking: false,
   },
   // Conteúdo adulto explícito
   {
