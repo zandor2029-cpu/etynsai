@@ -1,5 +1,6 @@
 import { Check, Sparkles, Loader2, Crown } from 'lucide-react';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +8,7 @@ import { STRIPE_PLANS } from '@/config/plans';
 import GlassCard from '@/components/GlassCard';
 import WatermelonButton from '@/components/WatermelonButton';
 import AuthModal from '@/components/AuthModal';
+import { AnimatedSection, AnimatedBadge, AnimatedCard, StaggerContainer, StaggerItem } from '@/components/AnimatedSection';
 import { useToast } from '@/hooks/use-toast';
 
 const PlansPage = () => {
@@ -75,48 +77,57 @@ const PlansPage = () => {
     <div className="min-h-screen bg-animated-gradient bg-orbs pt-24 pb-12 px-4">
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
-        <div className="text-center mb-12 animate-fade-in">
-          <div className="inline-flex items-center gap-2 badge-rgb mb-4">
-            <Crown className="w-4 h-4" />
-            <span>Planos Premium</span>
-          </div>
+        <div className="text-center mb-12">
+          <AnimatedBadge delay={0}>
+            <div className="inline-flex items-center gap-2 badge-rgb mb-4">
+              <Crown className="w-4 h-4" />
+              <span>Planos Premium</span>
+            </div>
+          </AnimatedBadge>
           
-          <h1 className="text-4xl md:text-6xl font-display font-bold mb-6">
-            <span className="text-gradient-rgb">Escolha seu Plano</span>
-          </h1>
+          <AnimatedSection delay={0.1}>
+            <h1 className="text-4xl md:text-6xl font-display font-bold mb-6">
+              <span className="text-gradient-rgb">Escolha seu Plano</span>
+            </h1>
+          </AnimatedSection>
           
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Desbloqueie o poder completo da <span className="text-watermelon-green-light font-semibold">Watermelon IA</span>
-          </p>
+          <AnimatedSection delay={0.2}>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Desbloqueie o poder completo da <span className="text-watermelon-green-light font-semibold">Watermelon IA</span>
+            </p>
+          </AnimatedSection>
 
           {profile && (
-            <div className="mt-6 inline-flex items-center gap-3 px-4 py-2 glass-card rounded-full">
-              <span className="text-muted-foreground">Seu saldo:</span>
-              <span className="text-xl font-bold text-gradient-watermelon">{profile.credits} créditos</span>
-            </div>
+            <AnimatedSection delay={0.3}>
+              <div className="mt-6 inline-flex items-center gap-3 px-4 py-2 glass-card rounded-full">
+                <span className="text-muted-foreground">Seu saldo:</span>
+                <span className="text-xl font-bold text-gradient-watermelon">{profile.credits} créditos</span>
+              </div>
+            </AnimatedSection>
           )}
         </div>
 
         {/* Free tier info */}
-        <div className="text-center mb-10">
-          <GlassCard className="inline-block px-6 py-3">
-            <p className="text-muted-foreground">
-              🎁 <span className="text-watermelon-green font-semibold">10 créditos grátis</span> ao criar sua conta!
-            </p>
-          </GlassCard>
-        </div>
+        <AnimatedSection delay={0.35}>
+          <div className="text-center mb-10">
+            <GlassCard className="inline-block px-6 py-3">
+              <p className="text-muted-foreground">
+                🎁 <span className="text-watermelon-green font-semibold">10 créditos grátis</span> ao criar sua conta!
+              </p>
+            </GlassCard>
+          </div>
+        </AnimatedSection>
 
         {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {plans.map((plan, index) => {
+        <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" staggerDelay={0.1} delay={0.4}>
+          {plans.map((plan) => {
             const isCurrentPlan = subscription?.plan === plan.name;
             const isPopular = plan.popular;
             
             return (
-              <div
+              <StaggerItem
                 key={plan.name}
-                className={`relative animate-fade-in-up ${isPopular ? 'md:-mt-4 md:mb-4' : ''}`}
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className={`relative ${isPopular ? 'md:-mt-4 md:mb-4' : ''}`}
               >
                 {isPopular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
@@ -207,31 +218,33 @@ const PlansPage = () => {
                     </div>
                   </GlassCard>
                 </div>
-              </div>
+              </StaggerItem>
             );
           })}
-        </div>
+        </StaggerContainer>
 
         {/* Credit costs info */}
-        <div className="text-center">
-          <GlassCard className="inline-block px-8 py-6">
-            <h4 className="font-display font-bold text-foreground mb-4">Como funcionam os créditos?</h4>
-            <div className="flex flex-wrap justify-center gap-8">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-watermelon-green">3</div>
-                <div className="text-sm text-muted-foreground">créditos/imagem 4K</div>
+        <AnimatedSection delay={0.7}>
+          <div className="text-center">
+            <GlassCard className="inline-block px-8 py-6">
+              <h4 className="font-display font-bold text-foreground mb-4">Como funcionam os créditos?</h4>
+              <div className="flex flex-wrap justify-center gap-8">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-watermelon-green">3</div>
+                  <div className="text-sm text-muted-foreground">créditos/imagem 4K</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-watermelon-pink">10</div>
+                  <div className="text-sm text-muted-foreground">créditos/vídeo motion</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">∞</div>
+                  <div className="text-sm text-muted-foreground">créditos acumulam</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-watermelon-pink">10</div>
-                <div className="text-sm text-muted-foreground">créditos/vídeo motion</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground">∞</div>
-                <div className="text-sm text-muted-foreground">créditos acumulam</div>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
+            </GlassCard>
+          </div>
+        </AnimatedSection>
       </div>
 
       <AuthModal 
