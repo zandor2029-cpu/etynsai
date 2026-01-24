@@ -37,8 +37,6 @@ const NanoBananaPro = () => {
           
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6">
             <span className="text-gradient-rgb">Nano Banana Pro 4K</span>
-            <span className="ml-3 inline-block animate-float">🍌</span>
-            <span className="ml-1 inline-block animate-float delay-200">✨</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
