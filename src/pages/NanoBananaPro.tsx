@@ -212,15 +212,16 @@ const NanoBananaPro = () => {
             <GlassCard className="p-6 md:p-8 rounded-3xl">
               <div className="space-y-6">
                 {/* Demo GIF Space */}
-                <div className="w-full h-48 md:h-64 rounded-2xl bg-gradient-to-br from-watermelon-green/10 to-watermelon-pink/10 border border-dashed border-muted-foreground/30 flex items-center justify-center">
-                  <span className="text-muted-foreground text-sm">Espaço para GIF de demonstração</span>
+                <div className="w-full h-48 md:h-64 rounded-2xl bg-gradient-to-br from-watermelon-green/10 to-watermelon-pink/10 border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-2">
+                  <ImagePlus className="w-8 h-8 text-muted-foreground/50" />
+                  <span className="text-muted-foreground/70 text-sm font-medium">Espaço para GIF de demonstração</span>
                 </div>
 
                 {/* Prompt Field */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <Sparkles className="w-4 h-4 text-watermelon-green" />
-                    Prompt
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2.5 text-sm font-semibold text-foreground tracking-wide">
+                    <Sparkles className="w-4 h-4 text-watermelon-green flex-shrink-0" />
+                    <span>Prompt</span>
                   </label>
                   <textarea
                     value={prompt}
@@ -244,9 +245,10 @@ const NanoBananaPro = () => {
                 </div>
 
                 {/* Negative Prompt */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-muted-foreground">
-                    Negative Prompt <span className="text-xs font-normal">(opcional)</span>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground tracking-wide">
+                    <span>Negative Prompt</span>
+                    <span className="text-xs font-normal opacity-70">(opcional)</span>
                   </label>
                   <textarea
                     value={negativePrompt}
@@ -271,11 +273,11 @@ const NanoBananaPro = () => {
                   <AspectRatioSelect value={aspectRatio} onChange={setAspectRatio} />
 
                   {/* Resolution Indicator */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-muted-foreground">
-                      Resolução
+                  <div className="space-y-3">
+                    <label className="flex items-center text-sm font-semibold text-muted-foreground tracking-wide">
+                      <span>Resolução</span>
                     </label>
-                    <div className="input-glass flex items-center gap-3">
+                    <div className="input-glass flex items-center gap-3 h-[58px]">
                       <div className="p-2 rounded-lg bg-gradient-to-br from-watermelon-green/20 to-watermelon-pink/20">
                         <Zap className="w-5 h-5 text-watermelon-green-neon" />
                       </div>
@@ -305,8 +307,9 @@ const NanoBananaPro = () => {
                   </WatermelonButton>
                   
                   {!user && (
-                    <p className="text-center text-sm text-muted-foreground mt-3">
-                      🔐 Faça login para gerar imagens
+                    <p className="text-center text-sm text-muted-foreground mt-4 font-medium flex items-center justify-center gap-2">
+                      <span className="opacity-80">🔐</span>
+                      <span>Faça login para gerar imagens</span>
                     </p>
                   )}
                 </div>

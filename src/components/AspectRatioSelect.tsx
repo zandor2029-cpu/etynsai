@@ -17,15 +17,15 @@ const AspectRatioSelect = ({ value, onChange }: AspectRatioSelectProps) => {
   const selected = aspectRatios.find((r) => r.value === value) || aspectRatios[0];
 
   return (
-    <div className="relative space-y-2">
-      <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-        <Ratio className="w-4 h-4" />
-        Aspect Ratio
+    <div className="relative space-y-3">
+      <label className="flex items-center gap-2.5 text-sm font-semibold text-muted-foreground tracking-wide">
+        <Ratio className="w-4 h-4 flex-shrink-0" />
+        <span>Aspect Ratio</span>
       </label>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full input-glass flex items-center justify-between cursor-pointer group"
+        className="w-full input-glass flex items-center justify-between cursor-pointer group h-[58px]"
       >
         <span className="flex items-center gap-3">
           <span className="text-xl">{selected.icon}</span>
