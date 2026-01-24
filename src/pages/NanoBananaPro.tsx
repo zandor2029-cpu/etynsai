@@ -8,12 +8,14 @@ import AspectRatioSelect from "@/components/AspectRatioSelect";
 import WatermelonIcon from "@/components/WatermelonIcon";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
+import { PromptWarning } from "@/components/PromptWarning";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
 import { generateImage } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
+import { usePromptValidation } from "@/hooks/usePromptValidation";
 
 const NanoBananaPro = () => {
   const [prompt, setPrompt] = useState("");
@@ -26,12 +28,16 @@ const NanoBananaPro = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState("");
+  const [showWarnings, setShowWarnings] = useState(true);
   
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   
   const creditCost = getCreditCost('image');
   const currentCredits = profile?.credits ?? 0;
+  
+  // Validate prompt in real-time
+  const promptValidation = usePromptValidation(prompt);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -188,11 +194,23 @@ const NanoBananaPro = () => {
                   </label>
                   <textarea
                     value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
+                    onChange={(e) => {
+                      setPrompt(e.target.value);
+                      setShowWarnings(true);
+                    }}
                     placeholder="Descreva a imagem que você quer gerar… seja detalhado e criativo! 🎨"
                     className="textarea-glass w-full"
                     rows={4}
                   />
+                  
+                  {/* Prompt validation warnings */}
+                  {prompt.trim() && showWarnings && promptValidation.warnings.length > 0 && (
+                    <PromptWarning 
+                      warnings={promptValidation.warnings}
+                      hasBlockingWarning={promptValidation.hasBlockingWarning}
+                      onDismiss={() => setShowWarnings(false)}
+                    />
+                  )}
                 </div>
 
                 {/* Negative Prompt */}
