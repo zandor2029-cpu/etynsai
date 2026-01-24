@@ -386,7 +386,20 @@ const NanoBananaPro = () => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-4">
-                  <WatermelonButton variant="primary" size="md">
+                  <WatermelonButton 
+                    variant="primary" 
+                    size="md"
+                    onClick={() => {
+                      if (generatedImage) {
+                        const link = document.createElement('a');
+                        link.href = generatedImage;
+                        link.download = `nano-banana-${Date.now()}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }
+                    }}
+                  >
                     <Download className="w-4 h-4" />
                     Baixar Imagem
                   </WatermelonButton>
