@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Download, Video, Clapperboard, Play, Zap, AlertCircle, Check } from "lucide-react";
+import { Download, Video, Clapperboard, Play, Zap, AlertCircle, Check, Settings } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
 import FileUpload from "@/components/FileUpload";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
+import VideoResolutionSelect from "@/components/VideoResolutionSelect";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits } from "@/hooks/useCredits";
@@ -18,6 +19,7 @@ import { saveRender } from "@/hooks/useRenders";
 const KlingMotionControl = () => {
   const [characterImage, setCharacterImage] = useState<File | null>(null);
   const [instructions, setInstructions] = useState("");
+  const [resolution, setResolution] = useState<"480p" | "720p">("720p");
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressText, setProgressText] = useState("");
@@ -111,6 +113,7 @@ const KlingMotionControl = () => {
         characterImageUrl: imageUpload.url,
         prompt: instructions.trim() || undefined,
         duration: 5,
+        resolution: resolution,
       });
       
       clearInterval(progressInterval);
@@ -244,6 +247,18 @@ const KlingMotionControl = () => {
                     placeholder="Descreva o movimento desejado: andar para frente, acenar, dançar, expressão feliz…"
                     className="textarea-glass w-full"
                     rows={3}
+                  />
+                </div>
+
+                {/* Resolution Select */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                    <Settings className="w-4 h-4" />
+                    Resolução do Vídeo
+                  </label>
+                  <VideoResolutionSelect
+                    value={resolution}
+                    onChange={setResolution}
                   />
                 </div>
 

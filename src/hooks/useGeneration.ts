@@ -47,6 +47,7 @@ interface GenerateVideoParams {
   motionVideoUrl?: string;
   prompt?: string;
   duration?: number;
+  resolution?: "480p" | "720p";
 }
 
 interface GenerateVideoResult {
