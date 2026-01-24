@@ -1,15 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
-import { Image, Video, FolderOpen, Menu, X, Sparkles } from "lucide-react";
+import { Video, FolderOpen, Menu, X, Sparkles } from "lucide-react";
 import { useState } from "react";
+import BananaIcon from "./BananaIcon";
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { path: "/", label: "Nano Banana Pro 4K", icon: Image },
-    { path: "/motion-control", label: "Kling Motion Control", icon: Video },
-    { path: "/meus-renders", label: "Meus Renders", icon: FolderOpen },
+    { path: "/", label: "Nano Banana Pro 4K", icon: null, customIcon: BananaIcon },
+    { path: "/motion-control", label: "Kling Motion Control", icon: Video, customIcon: null },
+    { path: "/meus-renders", label: "Meus Renders", icon: FolderOpen, customIcon: null },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -56,7 +57,11 @@ const Navbar = () => {
                   to={item.path}
                   className={`nav-link flex items-center gap-2.5 ${isActive(item.path) ? "active" : ""}`}
                 >
-                  <item.icon className="w-4 h-4" />
+                  {item.customIcon ? (
+                    <item.customIcon size={20} animated={false} />
+                  ) : item.icon ? (
+                    <item.icon className="w-4 h-4" />
+                  ) : null}
                   <span className="font-semibold">{item.label}</span>
                 </Link>
               ))}
@@ -86,7 +91,11 @@ const Navbar = () => {
                   }`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-primary" : ""}`} />
+                  {item.customIcon ? (
+                    <item.customIcon size={24} animated={false} className={isActive(item.path) ? "" : "opacity-70"} />
+                  ) : item.icon ? (
+                    <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-primary" : ""}`} />
+                  ) : null}
                   <span className="font-semibold">{item.label}</span>
                   {isActive(item.path) && (
                     <span className="ml-auto text-xs badge-watermelon">Ativo</span>
