@@ -150,15 +150,30 @@
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-300 cursor-pointer;
+    @apply glass-card cursor-pointer;
   }
 
-  .glass-card-hover:hover {
-    transform: translateY(-2px);
-    border-color: hsl(145 80% 42% / 0.4);
+  /* Glow utility classes */
+  .glow-green {
     box-shadow: 
       0 8px 32px hsl(0 0% 0% / 0.4),
-      0 0 20px hsl(145 100% 50% / 0.1);
+      0 0 30px hsl(145 100% 50% / 0.25),
+      0 0 60px hsl(145 100% 50% / 0.1);
+  }
+
+  .glow-pink {
+    box-shadow: 
+      0 8px 32px hsl(0 0% 0% / 0.4),
+      0 0 30px hsl(330 100% 65% / 0.25),
+      0 0 60px hsl(330 100% 65% / 0.1);
+  }
+
+  .glow-rgb {
+    box-shadow: 
+      0 8px 32px hsl(0 0% 0% / 0.4),
+      0 0 20px hsl(145 100% 50% / 0.2),
+      0 0 40px hsl(330 100% 65% / 0.15),
+      0 0 60px hsl(350 90% 62% / 0.1);
   }
 
   /* RGB Animated Border */
