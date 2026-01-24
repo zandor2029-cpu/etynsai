@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Download, Video, Clapperboard, Play, Zap, AlertCircle, Check } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
@@ -6,6 +7,7 @@ import WatermelonLoader from "@/components/WatermelonLoader";
 import FileUpload from "@/components/FileUpload";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
+import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsForGeneration, getCreditCost, canAfford } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
@@ -147,88 +149,109 @@ const KlingMotionControl = () => {
     <div className="min-h-screen bg-animated-gradient bg-orbs pt-24 pb-12 px-4">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-12 animate-fade-in">
-          <div className="inline-flex items-center gap-2 badge-rgb mb-4">
-            <Play className="w-4 h-4" />
-            <span>Imagem para Vídeo com IA</span>
-          </div>
+        <div className="text-center mb-12">
+          <AnimatedBadge delay={0}>
+            <div className="inline-flex items-center gap-2 badge-rgb mb-4">
+              <Play className="w-4 h-4" />
+              <span>Imagem para Vídeo com IA</span>
+            </div>
+          </AnimatedBadge>
           
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6">
-            <span className="text-gradient-rgb">Gerador de Vídeo</span>
-            <span className="ml-3 inline-block animate-float">🎬</span>
-          </h1>
+          <AnimatedSection delay={0.1}>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6">
+              <span className="text-gradient-rgb">Gerador de Vídeo</span>
+              <motion.span 
+                className="ml-3 inline-block"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                🎬
+              </motion.span>
+            </h1>
+          </AnimatedSection>
           
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Transforme <span className="text-watermelon-pink font-semibold">imagens estáticas</span> em 
-            vídeos com <span className="text-watermelon-green-light font-semibold">movimentos realistas</span>
-          </p>
+          <AnimatedSection delay={0.2}>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Transforme <span className="text-watermelon-pink font-semibold">imagens estáticas</span> em 
+              vídeos com <span className="text-watermelon-green-light font-semibold">movimentos realistas</span>
+            </p>
+          </AnimatedSection>
           
           {/* Credit cost indicator */}
-          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
-            <Zap className="w-4 h-4 text-watermelon-pink" />
-            <span className="text-muted-foreground">Custo:</span>
-            <span className="font-bold text-watermelon-pink">{creditCost} créditos</span>
-            <span className="text-muted-foreground">por vídeo</span>
-          </div>
+          <AnimatedSection delay={0.3}>
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
+              <Zap className="w-4 h-4 text-watermelon-pink" />
+              <span className="text-muted-foreground">Custo:</span>
+              <span className="font-bold text-watermelon-pink">{creditCost} créditos</span>
+              <span className="text-muted-foreground">por vídeo</span>
+            </div>
+          </AnimatedSection>
         </div>
 
         {/* Main Input Card */}
-        <div className="rgb-border p-[2px] rounded-3xl animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-          <GlassCard className="p-6 md:p-8 rounded-3xl">
-            <div className="space-y-6">
-              {/* Image Upload */}
-              <FileUpload
-                label="Imagem para Animar"
-                accept="image"
-                onFileSelect={setCharacterImage}
-              />
-
-              {/* Movement Instructions */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                  <Clapperboard className="w-4 h-4" />
-                  Descrição do Movimento <span className="text-xs font-normal">(opcional)</span>
-                </label>
-                <textarea
-                  value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                  placeholder="Descreva o movimento desejado: andar para frente, acenar, dançar, expressão feliz…"
-                  className="textarea-glass w-full"
-                  rows={3}
+        <AnimatedSection delay={0.35}>
+          <div className="rgb-border p-[2px] rounded-3xl">
+            <GlassCard className="p-6 md:p-8 rounded-3xl">
+              <div className="space-y-6">
+                {/* Image Upload */}
+                <FileUpload
+                  label="Imagem para Animar"
+                  accept="image"
+                  onFileSelect={setCharacterImage}
                 />
-              </div>
 
-              {/* Generate Button */}
-              <div className="pt-4">
-                <WatermelonButton
-                  onClick={handleGenerate}
-                  loading={isGenerating}
-                  disabled={!canGenerateVideo || isGenerating}
-                  size="lg"
-                  className="w-full text-lg"
-                >
-                  {isGenerating ? "Gerando vídeo com IA..." : `Gerar Vídeo 🍉 (${creditCost} créditos)`}
-                </WatermelonButton>
-                
-                {!canGenerateVideo && (
-                  <p className="text-center text-sm text-muted-foreground mt-3">
-                    📎 Faça upload de uma imagem para começar
-                  </p>
-                )}
-                
-                {!user && canGenerateVideo && (
-                  <p className="text-center text-sm text-muted-foreground mt-3">
-                    🔐 Faça login para gerar vídeos
-                  </p>
-                )}
+                {/* Movement Instructions */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                    <Clapperboard className="w-4 h-4" />
+                    Descrição do Movimento <span className="text-xs font-normal">(opcional)</span>
+                  </label>
+                  <textarea
+                    value={instructions}
+                    onChange={(e) => setInstructions(e.target.value)}
+                    placeholder="Descreva o movimento desejado: andar para frente, acenar, dançar, expressão feliz…"
+                    className="textarea-glass w-full"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Generate Button */}
+                <div className="pt-4">
+                  <WatermelonButton
+                    onClick={handleGenerate}
+                    loading={isGenerating}
+                    disabled={!canGenerateVideo || isGenerating}
+                    size="lg"
+                    className="w-full text-lg"
+                  >
+                    {isGenerating ? "Gerando vídeo com IA..." : `Gerar Vídeo 🍉 (${creditCost} créditos)`}
+                  </WatermelonButton>
+                  
+                  {!canGenerateVideo && (
+                    <p className="text-center text-sm text-muted-foreground mt-3">
+                      📎 Faça upload de uma imagem para começar
+                    </p>
+                  )}
+                  
+                  {!user && canGenerateVideo && (
+                    <p className="text-center text-sm text-muted-foreground mt-3">
+                      🔐 Faça login para gerar vídeos
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          </GlassCard>
-        </div>
+            </GlassCard>
+          </div>
+        </AnimatedSection>
 
         {/* Loading State with Progress */}
         {isGenerating && (
-          <div className="mt-10 animate-fade-in">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mt-10"
+          >
             <GlassCard className="p-12 md:p-16">
               <div className="space-y-10">
                 <WatermelonLoader text="Gerando seu vídeo… 🎥" />
@@ -240,9 +263,11 @@ const KlingMotionControl = () => {
                     <span className="text-gradient-watermelon">{progress}%</span>
                   </div>
                   <div className="progress-watermelon">
-                    <div
+                    <motion.div
                       className="progress-watermelon-bar"
-                      style={{ width: `${progress}%` }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 0.5 }}
                     />
                   </div>
                   <p className="text-center text-xs text-muted-foreground mt-3">
@@ -251,12 +276,17 @@ const KlingMotionControl = () => {
                 </div>
               </div>
             </GlassCard>
-          </div>
+          </motion.div>
         )}
 
         {/* Error State */}
         {generationError && !isGenerating && (
-          <div className="mt-10 animate-fade-in">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="mt-10"
+          >
             <GlassCard className="p-8 border border-destructive/20">
               <div className="flex items-center gap-4 text-destructive">
                 <AlertCircle className="w-8 h-8" />
@@ -274,12 +304,17 @@ const KlingMotionControl = () => {
                 Tentar novamente
               </WatermelonButton>
             </GlassCard>
-          </div>
+          </motion.div>
         )}
 
         {/* Result */}
         {generatedVideo && !isGenerating && (
-          <div className="mt-10 animate-scale-in">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+            className="mt-10"
+          >
             <div className="rgb-border p-[2px] rounded-3xl">
               <GlassCard className="p-6 md:p-8 rounded-3xl">
                 <h2 className="text-xl md:text-2xl font-display font-bold mb-6 flex items-center gap-3">
@@ -307,15 +342,19 @@ const KlingMotionControl = () => {
                     Baixar Vídeo
                   </WatermelonButton>
                   {isSaved && (
-                    <div className="flex items-center gap-2 text-watermelon-green">
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-2 text-watermelon-green"
+                    >
                       <Check className="w-4 h-4" />
                       <span className="text-sm font-medium">Salvo em Meus Renders</span>
-                    </div>
+                    </motion.div>
                   )}
                 </div>
               </GlassCard>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 
