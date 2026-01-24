@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Save, Video, Clapperboard, Play, Zap, AlertCircle } from "lucide-react";
+import { Download, Video, Clapperboard, Play, Zap, AlertCircle, Check } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
@@ -11,6 +11,7 @@ import { useCreditsForGeneration, getCreditCost, canAfford } from "@/hooks/useCr
 import { useToast } from "@/hooks/use-toast";
 import { uploadFileForGeneration } from "@/hooks/useFileUpload";
 import { generateVideo } from "@/hooks/useGeneration";
+import { saveRender } from "@/hooks/useRenders";
 
 const KlingMotionControl = () => {
   const [characterImage, setCharacterImage] = useState<File | null>(null);
@@ -22,6 +23,8 @@ const KlingMotionControl = () => {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [currentPrompt, setCurrentPrompt] = useState("");
 
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -50,6 +53,8 @@ const KlingMotionControl = () => {
     setGenerationError(null);
     setProgress(0);
     setProgressText("Preparando arquivos...");
+    setIsSaved(false);
+    setCurrentPrompt(instructions.trim());
 
     try {
       // Upload character image
@@ -104,8 +109,21 @@ const KlingMotionControl = () => {
 
       if (result.success && result.videoUrl) {
         setGeneratedVideo(result.videoUrl);
+        
+        // Auto-save to renders
+        const saveResult = await saveRender({
+          type: 'video',
+          url: result.videoUrl,
+          prompt: currentPrompt || 'Vídeo gerado com IA',
+          model: 'wan-2.2-i2v-fast',
+        });
+        
+        if (saveResult.success) {
+          setIsSaved(true);
+        }
+        
         toast({
-          title: 'Vídeo gerado! 🎬',
+          title: 'Vídeo gerado e salvo! 🎬',
           description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
         });
       } else {
@@ -283,15 +301,17 @@ const KlingMotionControl = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-4 items-center">
                   <WatermelonButton variant="primary" size="md">
                     <Download className="w-4 h-4" />
                     Baixar Vídeo
                   </WatermelonButton>
-                  <WatermelonButton variant="secondary" size="md">
-                    <Save className="w-4 h-4" />
-                    Salvar nos Meus Renders
-                  </WatermelonButton>
+                  {isSaved && (
+                    <div className="flex items-center gap-2 text-watermelon-green">
+                      <Check className="w-4 h-4" />
+                      <span className="text-sm font-medium">Salvo em Meus Renders</span>
+                    </div>
+                  )}
                 </div>
               </GlassCard>
             </div>

@@ -1,4 +1,4 @@
-import { Download, ExternalLink, Image, Video, Sparkles } from "lucide-react";
+import { Download, ExternalLink, Image, Video, Sparkles, Trash2 } from "lucide-react";
 import GlassCard from "./GlassCard";
 
 interface RenderCardProps {
@@ -6,13 +6,15 @@ interface RenderCardProps {
   type: "image" | "video";
   thumbnail: string;
   createdAt: string;
+  prompt?: string;
   onOpen: (id: string) => void;
   onDownload: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-const RenderCard = ({ id, type, thumbnail, createdAt, onOpen, onDownload }: RenderCardProps) => {
+const RenderCard = ({ id, type, thumbnail, createdAt, prompt, onOpen, onDownload, onDelete }: RenderCardProps) => {
   const TypeIcon = type === "image" ? Image : Video;
-  const typeLabel = type === "image" ? "Imagem 4K" : "Vídeo Motion";
+  const typeLabel = type === "image" ? "Imagem" : "Vídeo";
 
   return (
     <GlassCard hover className="overflow-hidden group">
@@ -49,19 +51,30 @@ const RenderCard = ({ id, type, thumbnail, createdAt, onOpen, onDownload }: Rend
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
         
         {/* Action Buttons */}
-        <div className="absolute inset-0 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-500">
+        <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500">
           <button
             onClick={() => onOpen(id)}
-            className="p-3.5 rounded-xl bg-watermelon-green/90 hover:bg-watermelon-green text-white transition-all duration-300 hover:scale-110 shadow-glow-green"
+            className="p-3 rounded-xl bg-watermelon-green/90 hover:bg-watermelon-green text-white transition-all duration-300 hover:scale-110 shadow-glow-green"
+            title="Abrir"
           >
-            <ExternalLink className="w-5 h-5" />
+            <ExternalLink className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDownload(id)}
-            className="p-3.5 rounded-xl bg-watermelon-pink/90 hover:bg-watermelon-pink text-white transition-all duration-300 hover:scale-110 shadow-glow-pink"
+            className="p-3 rounded-xl bg-watermelon-pink/90 hover:bg-watermelon-pink text-white transition-all duration-300 hover:scale-110 shadow-glow-pink"
+            title="Baixar"
           >
-            <Download className="w-5 h-5" />
+            <Download className="w-4 h-4" />
           </button>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(id)}
+              className="p-3 rounded-xl bg-destructive/90 hover:bg-destructive text-white transition-all duration-300 hover:scale-110"
+              title="Deletar"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* RGB Border on Hover */}
@@ -85,12 +98,19 @@ const RenderCard = ({ id, type, thumbnail, createdAt, onOpen, onDownload }: Rend
       </div>
 
       {/* Info */}
-      <div className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-watermelon-green" />
-          <span className="text-sm font-semibold text-foreground">{typeLabel}</span>
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-watermelon-green" />
+            <span className="text-sm font-semibold text-foreground">{typeLabel}</span>
+          </div>
+          <p className="text-xs text-muted-foreground">{createdAt}</p>
         </div>
-        <p className="text-xs text-muted-foreground">{createdAt}</p>
+        {prompt && (
+          <p className="text-xs text-muted-foreground line-clamp-2" title={prompt}>
+            {prompt}
+          </p>
+        )}
       </div>
     </GlassCard>
   );

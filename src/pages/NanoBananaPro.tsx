@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Download, RefreshCw, Save, Zap, Wand2, AlertCircle } from "lucide-react";
+import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsForGeneration, getCreditCost, canAfford } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
 import { generateImage } from "@/hooks/useGeneration";
+import { saveRender } from "@/hooks/useRenders";
 
 const NanoBananaPro = () => {
   const [prompt, setPrompt] = useState("");
@@ -21,6 +22,8 @@ const NanoBananaPro = () => {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [currentPrompt, setCurrentPrompt] = useState("");
   
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -46,6 +49,8 @@ const NanoBananaPro = () => {
     setIsGenerating(true);
     setGeneratedImage(null);
     setGenerationError(null);
+    setIsSaved(false);
+    setCurrentPrompt(prompt.trim());
     
     // Use credits first
     const creditResult = await useCreditsForGeneration('image', `Geração: ${prompt.substring(0, 50)}...`);
@@ -74,8 +79,21 @@ const NanoBananaPro = () => {
     
     if (result.success && result.imageUrl) {
       setGeneratedImage(result.imageUrl);
+      
+      // Auto-save to renders
+      const saveResult = await saveRender({
+        type: 'image',
+        url: result.imageUrl,
+        prompt: currentPrompt,
+        model: 'gemini-2.5-flash-image',
+      });
+      
+      if (saveResult.success) {
+        setIsSaved(true);
+      }
+      
       toast({
-        title: 'Imagem gerada! 🍉',
+        title: 'Imagem gerada e salva! 🍉',
         description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
       });
     } else {
@@ -259,10 +277,12 @@ const NanoBananaPro = () => {
                     <RefreshCw className="w-4 h-4" />
                     Gerar Variação ({creditCost} créditos)
                   </WatermelonButton>
-                  <WatermelonButton variant="secondary" size="md">
-                    <Save className="w-4 h-4" />
-                    Salvar nos Meus Renders
-                  </WatermelonButton>
+                  {isSaved && (
+                    <div className="flex items-center gap-2 text-watermelon-green">
+                      <Check className="w-4 h-4" />
+                      <span className="text-sm font-medium">Salvo em Meus Renders</span>
+                    </div>
+                  )}
                 </div>
               </GlassCard>
             </div>

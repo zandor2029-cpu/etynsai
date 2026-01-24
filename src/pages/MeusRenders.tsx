@@ -1,63 +1,101 @@
-import { useState } from "react";
-import { FolderOpen, Image, Video, Filter, Sparkles, TrendingUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { FolderOpen, Image, Video, Filter, TrendingUp, Loader2 } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import RenderCard from "@/components/RenderCard";
-
-const mockRenders = [
-  {
-    id: "1",
-    type: "image" as const,
-    thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=400&fit=crop",
-    createdAt: "Hoje, 14:32",
-  },
-  {
-    id: "2",
-    type: "video" as const,
-    thumbnail: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    createdAt: "Hoje, 12:15",
-  },
-  {
-    id: "3",
-    type: "image" as const,
-    thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=400&fit=crop",
-    createdAt: "Ontem, 18:45",
-  },
-  {
-    id: "4",
-    type: "image" as const,
-    thumbnail: "https://images.unsplash.com/photo-1634017839464-5c339bbe3c35?w=400&h=400&fit=crop",
-    createdAt: "Ontem, 16:20",
-  },
-  {
-    id: "5",
-    type: "video" as const,
-    thumbnail: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    createdAt: "22 Jan, 10:00",
-  },
-  {
-    id: "6",
-    type: "image" as const,
-    thumbnail: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=400&h=400&fit=crop",
-    createdAt: "21 Jan, 09:30",
-  },
-];
+import AuthModal from "@/components/AuthModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { fetchUserRenders, deleteRender, type Render } from "@/hooks/useRenders";
+import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 type FilterType = "all" | "image" | "video";
 
 const MeusRenders = () => {
   const [filter, setFilter] = useState<FilterType>("all");
+  const [renders, setRenders] = useState<Render[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const filteredRenders = mockRenders.filter((render) => {
+  useEffect(() => {
+    if (user) {
+      loadRenders();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const loadRenders = async () => {
+    setIsLoading(true);
+    const result = await fetchUserRenders();
+    if (result.success && result.renders) {
+      setRenders(result.renders);
+    }
+    setIsLoading(false);
+  };
+
+  const filteredRenders = renders.filter((render) => {
     if (filter === "all") return true;
     return render.type === filter;
   });
 
-  const handleOpen = (id: string) => {
-    console.log("Abrir render:", id);
+  const formatDate = (dateString: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: ptBR });
+    } catch {
+      return dateString;
+    }
   };
 
-  const handleDownload = (id: string) => {
-    console.log("Baixar render:", id);
+  const handleOpen = (id: string) => {
+    const render = renders.find(r => r.id === id);
+    if (render) {
+      window.open(render.url, '_blank');
+    }
+  };
+
+  const handleDownload = async (id: string) => {
+    const render = renders.find(r => r.id === id);
+    if (render) {
+      try {
+        const response = await fetch(render.url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `render-${id}.${render.type === 'image' ? 'png' : 'mp4'}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch {
+        toast({
+          title: 'Erro ao baixar',
+          description: 'Não foi possível baixar o arquivo.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const result = await deleteRender(id);
+    if (result.success) {
+      setRenders(prev => prev.filter(r => r.id !== id));
+      toast({
+        title: 'Render deletado',
+        description: 'O render foi removido da sua galeria.',
+      });
+    } else {
+      toast({
+        title: 'Erro',
+        description: result.error || 'Não foi possível deletar o render.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const filterButtons: { value: FilterType; label: string; icon: React.ElementType }[] = [
@@ -65,6 +103,33 @@ const MeusRenders = () => {
     { value: "image", label: "Imagens", icon: Image },
     { value: "video", label: "Vídeos", icon: Video },
   ];
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-animated-gradient bg-orbs pt-24 pb-12 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <GlassCard className="p-16 text-center animate-fade-in">
+            <div className="inline-flex p-4 rounded-2xl bg-muted/50 mb-6">
+              <FolderOpen className="w-16 h-16 text-muted-foreground" />
+            </div>
+            <h3 className="text-2xl font-display font-bold mb-3 text-gradient-watermelon">
+              Faça login para ver seus renders
+            </h3>
+            <p className="text-muted-foreground max-w-md mx-auto mb-6">
+              Entre na sua conta para acessar sua galeria de criações 🍉
+            </p>
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="btn-watermelon px-6 py-3 rounded-xl font-bold"
+            >
+              Entrar
+            </button>
+          </GlassCard>
+        </div>
+        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-animated-gradient bg-orbs pt-24 pb-12 px-4">
@@ -117,7 +182,7 @@ const MeusRenders = () => {
                 <TrendingUp className="w-5 h-5 text-watermelon-green" />
               </div>
               <p className="text-3xl font-display font-bold text-gradient-watermelon">
-                {mockRenders.length}
+                {renders.length}
               </p>
             </div>
             <p className="text-sm text-muted-foreground font-medium">Total de Renders</p>
@@ -129,10 +194,10 @@ const MeusRenders = () => {
                 <Image className="w-5 h-5 text-watermelon-green-light" />
               </div>
               <p className="text-3xl font-display font-bold text-watermelon-green-light">
-                {mockRenders.filter((r) => r.type === "image").length}
+                {renders.filter((r) => r.type === "image").length}
               </p>
             </div>
-            <p className="text-sm text-muted-foreground font-medium">Imagens 4K</p>
+            <p className="text-sm text-muted-foreground font-medium">Imagens</p>
           </GlassCard>
           
           <GlassCard className="p-5 text-center group hover:glow-pink transition-all duration-500">
@@ -141,15 +206,22 @@ const MeusRenders = () => {
                 <Video className="w-5 h-5 text-watermelon-pink" />
               </div>
               <p className="text-3xl font-display font-bold text-watermelon-pink">
-                {mockRenders.filter((r) => r.type === "video").length}
+                {renders.filter((r) => r.type === "video").length}
               </p>
             </div>
-            <p className="text-sm text-muted-foreground font-medium">Vídeos Motion</p>
+            <p className="text-sm text-muted-foreground font-medium">Vídeos</p>
           </GlassCard>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-watermelon-green" />
+          </div>
+        )}
+
         {/* Renders Grid */}
-        {filteredRenders.length > 0 ? (
+        {!isLoading && filteredRenders.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRenders.map((render, index) => (
               <div
@@ -158,14 +230,22 @@ const MeusRenders = () => {
                 style={{ animationDelay: `${0.2 + index * 0.08}s` }}
               >
                 <RenderCard
-                  {...render}
+                  id={render.id}
+                  type={render.type}
+                  thumbnail={render.type === 'video' ? render.url : render.url}
+                  createdAt={formatDate(render.created_at)}
+                  prompt={render.prompt || undefined}
                   onOpen={handleOpen}
                   onDownload={handleDownload}
+                  onDelete={handleDelete}
                 />
               </div>
             ))}
           </div>
-        ) : (
+        )}
+
+        {/* Empty State */}
+        {!isLoading && filteredRenders.length === 0 && (
           <GlassCard className="p-16 text-center animate-fade-in">
             <div className="inline-flex p-4 rounded-2xl bg-muted/50 mb-6">
               <FolderOpen className="w-16 h-16 text-muted-foreground" />
