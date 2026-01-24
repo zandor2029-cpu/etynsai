@@ -134,23 +134,83 @@ serve(async (req) => {
     }
 
     // Log full response structure for debugging
+    const finishReason = data.choices?.[0]?.finish_reason;
     logStep('Response structure', { 
       hasMessage: !!message,
       hasImages: !!message?.images,
       imagesLength: message?.images?.length,
       contentType: typeof message?.content,
-      textContent: typeof message?.content === 'string' ? message.content.substring(0, 100) : null,
-      finishReason: data.choices?.[0]?.finish_reason
+      finishReason
     });
     
     if (!imageData) {
       // Check if there's a text response explaining why no image was generated
-      const textContent = typeof message?.content === 'string' ? message.content : null;
-      if (textContent) {
-        logStep('Model text response', { text: textContent.substring(0, 300) });
-        throw new Error(textContent.substring(0, 200) || 'O modelo não gerou uma imagem. Tente um prompt diferente.');
+      let textContent = '';
+      
+      if (typeof message?.content === 'string') {
+        textContent = message.content;
+      } else if (Array.isArray(message?.content)) {
+        const textPart = message.content.find((c: any) => c.type === 'text');
+        textContent = textPart?.text || '';
       }
-      throw new Error('Nenhuma imagem foi gerada. Tente reformular seu prompt.');
+      
+      logStep('Model text response', { text: textContent.substring(0, 500) });
+      
+      // Analyze the error and provide user-friendly message
+      let userFriendlyError = 'Não foi possível gerar a imagem. Tente reformular seu prompt.';
+      
+      const lowerText = textContent.toLowerCase();
+      const lowerPrompt = prompt.toLowerCase();
+      
+      // Check for content policy violations in model response
+      if (lowerText.includes('cannot') || lowerText.includes('sorry') || lowerText.includes('unable') ||
+          lowerText.includes('policy') || lowerText.includes('inappropriate') || lowerText.includes('harmful') ||
+          lowerText.includes('violate') || lowerText.includes('not allowed') || lowerText.includes('guidelines') ||
+          lowerText.includes("can't") || lowerText.includes('não posso')) {
+        
+        // Detect specific types of violations
+        if (lowerText.includes('copyright') || lowerText.includes('trademark') || 
+            lowerText.includes('celebrity') || lowerText.includes('public figure') ||
+            lowerText.includes('real person') || lowerText.includes('identifiable') ||
+            lowerText.includes('celebridade') || lowerText.includes('pessoa real')) {
+          userFriendlyError = '⚠️ Direitos autorais/imagem: Não é possível gerar imagens de celebridades, figuras públicas ou personagens protegidos por direitos autorais. Tente descrever uma pessoa fictícia ou um personagem original.';
+        } else if (lowerText.includes('sexual') || lowerText.includes('explicit') || 
+                   lowerText.includes('nude') || lowerText.includes('adult') ||
+                   lowerText.includes('nsfw') || lowerText.includes('pornograph')) {
+          userFriendlyError = '⚠️ Conteúdo adulto: O modelo não gera conteúdo sexual ou explícito. Por favor, use prompts apropriados para todas as idades.';
+        } else if (lowerText.includes('violence') || lowerText.includes('gore') || 
+                   lowerText.includes('blood') || lowerText.includes('weapon') ||
+                   lowerText.includes('violência') || lowerText.includes('arma')) {
+          userFriendlyError = '⚠️ Conteúdo violento: O modelo não gera imagens com violência explícita ou conteúdo perturbador.';
+        } else if (lowerText.includes('hate') || lowerText.includes('discriminat') || 
+                   lowerText.includes('offensive') || lowerText.includes('ódio')) {
+          userFriendlyError = '⚠️ Conteúdo ofensivo: O modelo não gera conteúdo de ódio ou discriminatório.';
+        } else if (lowerText.includes('child') || lowerText.includes('minor') || lowerText.includes('criança')) {
+          userFriendlyError = '⚠️ Proteção de menores: O modelo não gera certo tipo de conteúdo envolvendo menores de idade.';
+        } else {
+          userFriendlyError = `⚠️ Política de conteúdo: O modelo recusou gerar esta imagem. ${textContent.substring(0, 150)}`;
+        }
+      } else if (textContent.length > 0) {
+        // Model gave some explanation but it doesn't match known patterns
+        userFriendlyError = `O modelo respondeu: "${textContent.substring(0, 200)}"`;
+      }
+      
+      // Also check prompt itself for common problematic patterns
+      const problematicPatterns = [
+        { pattern: /(mia khalifa|johnny sins|riley reid|sasha grey|lana rhoades)/i, msg: 'celebridades da indústria adulta' },
+        { pattern: /(taylor swift|beyonce|elon musk|trump|biden|obama|kim kardashian|kanye|drake)/i, msg: 'figuras públicas/celebridades' },
+        { pattern: /(mickey mouse|mario bros|pikachu|batman|superman|spider-?man|iron man|harry potter)/i, msg: 'personagens protegidos por direitos autorais' },
+        { pattern: /\b(nude?|naked|sexy|bikini|lingerie|sem roupa|pelad[oa])\b/i, msg: 'conteúdo potencialmente adulto' },
+      ];
+      
+      for (const { pattern, msg } of problematicPatterns) {
+        if (pattern.test(lowerPrompt)) {
+          userFriendlyError = `⚠️ Seu prompt contém referência a ${msg}. O modelo tem restrições para gerar esse tipo de conteúdo. Tente descrever um personagem original ou cena fictícia.`;
+          break;
+        }
+      }
+      
+      throw new Error(userFriendlyError);
     }
 
     logStep('Image generated successfully');
