@@ -17,6 +17,7 @@ interface GenerateVideoRequest {
   motionVideoUrl?: string;
   prompt?: string;
   duration?: number;
+  resolution?: "480p" | "720p";
 }
 
 const logStep = (step: string, details?: Record<string, unknown>) => {
@@ -104,7 +105,7 @@ serve(async (req) => {
     logStep('User authenticated', { userId: user.id });
 
     // Parse request body
-    const { characterImageUrl, prompt, duration = 5 } = await req.json() as GenerateVideoRequest;
+    const { characterImageUrl, prompt, duration = 5, resolution = "720p" } = await req.json() as GenerateVideoRequest;
 
     if (!characterImageUrl) {
       throw new Error('Character image URL is required');
@@ -112,11 +113,17 @@ serve(async (req) => {
 
     logStep('Generating video', { 
       prompt: prompt?.substring(0, 50),
-      duration 
+      duration,
+      resolution
     });
 
     // Build enhanced prompt
     const enhancedPrompt = prompt?.trim() || 'Animate this character with natural, fluid movements';
+
+    // Determine resolution settings based on user choice
+    const resolutionConfig = resolution === "480p" 
+      ? { max_area: "480*832", sample_steps: 25 }  // 480p - mais barato
+      : { max_area: "720*1280", sample_steps: 30 }; // 720p - padrão
 
     // Create prediction with Replicate API - using official model (no version needed)
     const requestBody = {
@@ -124,7 +131,8 @@ serve(async (req) => {
       input: {
         image: characterImageUrl,
         prompt: enhancedPrompt,
-        sample_steps: 30,
+        max_area: resolutionConfig.max_area,
+        sample_steps: resolutionConfig.sample_steps,
       }
     };
 
