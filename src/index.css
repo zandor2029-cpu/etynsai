@@ -2,71 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Watermelon IA Design System */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Watermelon IA Design System - Premium Cartoon RGB Edition */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap');
 
 @layer base {
   :root {
-    /* Watermelon Color Palette */
-    --background: 150 20% 6%;
-    --foreground: 0 0% 98%;
+    /* 🍉 Watermelon Premium Palette */
+    
+    /* Background - Deep Watermelon Night */
+    --background: 340 25% 4%;
+    --foreground: 60 10% 98%;
 
-    --card: 150 15% 10%;
-    --card-foreground: 0 0% 98%;
+    /* Cards - Translucent Watermelon */
+    --card: 340 30% 8%;
+    --card-foreground: 60 10% 98%;
 
-    --popover: 150 15% 10%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 340 30% 10%;
+    --popover-foreground: 60 10% 98%;
 
-    /* Watermelon Green - Primary */
-    --primary: 142 70% 45%;
+    /* Primary - Watermelon Rind Green */
+    --primary: 145 80% 42%;
     --primary-foreground: 0 0% 100%;
 
-    /* Watermelon Pink/Red - Secondary */
-    --secondary: 350 80% 60%;
+    /* Secondary - Watermelon Flesh Pink/Red */
+    --secondary: 350 90% 62%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 150 10% 15%;
-    --muted-foreground: 150 10% 60%;
+    /* Muted - Soft Watermelon */
+    --muted: 340 20% 12%;
+    --muted-foreground: 340 15% 55%;
 
-    --accent: 350 70% 55%;
+    /* Accent - Hot Pink Watermelon */
+    --accent: 330 100% 65%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 90% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 150 15% 20%;
-    --input: 150 15% 18%;
-    --ring: 142 70% 45%;
+    --border: 340 25% 18%;
+    --input: 340 25% 15%;
+    --ring: 145 80% 42%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
-    /* Custom Watermelon Variables */
-    --watermelon-green: 142 70% 45%;
-    --watermelon-green-light: 142 60% 55%;
-    --watermelon-green-dark: 142 80% 30%;
-    --watermelon-pink: 350 80% 60%;
-    --watermelon-pink-light: 350 70% 70%;
-    --watermelon-red: 5 80% 55%;
-    --watermelon-seed: 30 10% 15%;
+    /* 🎨 Extended Watermelon Palette */
     
-    /* Gradients */
-    --gradient-watermelon: linear-gradient(135deg, hsl(var(--watermelon-green)) 0%, hsl(var(--watermelon-pink)) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(150 20% 8%) 0%, hsl(350 20% 8%) 100%);
+    /* Greens - Rind Spectrum */
+    --wm-green-dark: 145 85% 25%;
+    --wm-green: 145 80% 42%;
+    --wm-green-light: 145 75% 55%;
+    --wm-green-neon: 145 100% 50%;
     
-    /* Shadows */
-    --shadow-glow-green: 0 0 40px hsl(142 70% 45% / 0.3);
-    --shadow-glow-pink: 0 0 40px hsl(350 80% 60% / 0.3);
-    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+    /* Reds/Pinks - Flesh Spectrum */
+    --wm-red-dark: 350 85% 45%;
+    --wm-red: 350 90% 62%;
+    --wm-red-light: 350 85% 72%;
+    --wm-pink: 330 100% 65%;
+    --wm-pink-neon: 330 100% 70%;
+    --wm-coral: 15 90% 60%;
+    
+    /* Seeds - Dark Accents */
+    --wm-seed: 30 20% 8%;
+    --wm-seed-light: 30 15% 15%;
+    
+    /* Cream - Light Accents */
+    --wm-cream: 45 50% 95%;
+    --wm-cream-dark: 45 30% 85%;
 
-    --sidebar-background: 150 20% 6%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 142 70% 45%;
+    /* 🌈 RGB Gradient Colors */
+    --rgb-1: 145 100% 50%;
+    --rgb-2: 180 100% 50%;
+    --rgb-3: 330 100% 65%;
+    --rgb-4: 350 90% 62%;
+    --rgb-5: 15 100% 60%;
+
+    /* ✨ Glow Effects */
+    --glow-green: 0 0 30px hsl(145 100% 50% / 0.5), 0 0 60px hsl(145 100% 50% / 0.3), 0 0 100px hsl(145 100% 50% / 0.1);
+    --glow-pink: 0 0 30px hsl(330 100% 65% / 0.5), 0 0 60px hsl(330 100% 65% / 0.3), 0 0 100px hsl(330 100% 65% / 0.1);
+    --glow-red: 0 0 30px hsl(350 90% 62% / 0.5), 0 0 60px hsl(350 90% 62% / 0.3);
+    --glow-rgb: 0 0 20px hsl(145 100% 50% / 0.4), 0 0 40px hsl(330 100% 65% / 0.3), 0 0 60px hsl(350 90% 62% / 0.2);
+
+    /* Sidebar */
+    --sidebar-background: 340 25% 6%;
+    --sidebar-foreground: 60 10% 98%;
+    --sidebar-primary: 145 80% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 350 70% 55%;
+    --sidebar-accent: 330 100% 65%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 150 15% 20%;
-    --sidebar-ring: 142 70% 45%;
+    --sidebar-border: 340 25% 18%;
+    --sidebar-ring: 145 80% 42%;
   }
 }
 
@@ -76,125 +100,410 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Nunito', sans-serif;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
   }
 }
 
 @layer components {
-  /* Glass Card Effect */
+  /* 🍉 Glass Card - Watermelon Edition */
   .glass-card {
-    @apply bg-card/40 backdrop-blur-xl border border-white/10 rounded-2xl;
-    box-shadow: var(--shadow-card);
+    @apply relative rounded-2xl;
+    background: linear-gradient(
+      135deg,
+      hsl(340 30% 10% / 0.8) 0%,
+      hsl(340 25% 8% / 0.9) 100%
+    );
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(145 80% 42% / 0.15);
+    box-shadow: 
+      0 8px 32px hsl(340 25% 4% / 0.5),
+      inset 0 1px 0 hsl(60 10% 98% / 0.05),
+      0 0 0 1px hsl(350 90% 62% / 0.05);
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(145 80% 42% / 0.3) 0%,
+      transparent 50%,
+      hsl(350 90% 62% / 0.2) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-300;
+    @apply glass-card transition-all duration-500 cursor-pointer;
   }
 
   .glass-card-hover:hover {
-    @apply border-white/20 scale-[1.02];
-    box-shadow: var(--shadow-glow-green);
+    transform: translateY(-4px) scale(1.01);
+    border-color: hsl(145 80% 42% / 0.4);
+    box-shadow: 
+      0 20px 40px hsl(340 25% 4% / 0.6),
+      0 0 40px hsl(145 100% 50% / 0.15),
+      0 0 80px hsl(350 90% 62% / 0.1),
+      inset 0 1px 0 hsl(60 10% 98% / 0.1);
   }
 
-  /* Gradient Text */
+  /* 🌈 RGB Animated Border */
+  .rgb-border {
+    @apply relative rounded-2xl;
+    background: hsl(var(--card));
+  }
+
+  .rgb-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--wm-green-neon)),
+      hsl(var(--wm-pink-neon)),
+      hsl(var(--wm-red)),
+      hsl(var(--wm-coral)),
+      hsl(var(--wm-green-neon))
+    );
+    background-size: 300% 100%;
+    animation: rgb-flow 4s linear infinite;
+    z-index: -1;
+    opacity: 0.8;
+  }
+
+  .rgb-border::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: hsl(var(--card));
+    z-index: -1;
+  }
+
+  /* ✨ Gradient Text - Watermelon */
   .text-gradient-watermelon {
-    @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-watermelon);
+    @apply bg-clip-text text-transparent font-extrabold;
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--wm-green-light)) 0%,
+      hsl(var(--wm-green)) 25%,
+      hsl(var(--wm-pink)) 50%,
+      hsl(var(--wm-red)) 75%,
+      hsl(var(--wm-red-light)) 100%
+    );
+    background-size: 200% auto;
+    animation: gradient-text 5s ease infinite;
   }
 
-  /* Watermelon Button Styles */
+  .text-gradient-rgb {
+    @apply bg-clip-text text-transparent font-extrabold;
+    background-image: linear-gradient(
+      90deg,
+      hsl(var(--wm-green-neon)),
+      hsl(var(--wm-green-light)),
+      hsl(var(--wm-pink-neon)),
+      hsl(var(--wm-red)),
+      hsl(var(--wm-coral)),
+      hsl(var(--wm-green-neon))
+    );
+    background-size: 300% auto;
+    animation: rgb-text 3s linear infinite;
+  }
+
+  /* 🍉 Watermelon Button - Premium Edition */
   .btn-watermelon {
-    @apply relative overflow-hidden px-8 py-4 rounded-xl font-semibold text-white;
-    background: var(--gradient-watermelon);
-    transition: all 0.3s ease;
+    @apply relative overflow-hidden px-8 py-4 rounded-2xl font-bold text-white;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--wm-green)) 0%,
+      hsl(var(--wm-green-light)) 30%,
+      hsl(var(--wm-pink)) 70%,
+      hsl(var(--wm-red)) 100%
+    );
+    background-size: 200% 200%;
+    animation: btn-gradient 4s ease infinite;
+    box-shadow: 
+      0 4px 15px hsl(145 80% 42% / 0.3),
+      0 8px 30px hsl(350 90% 62% / 0.2),
+      inset 0 1px 0 hsl(60 10% 98% / 0.2);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .btn-watermelon::before {
     content: '';
     @apply absolute inset-0 opacity-0 transition-opacity duration-300;
-    background: linear-gradient(135deg, hsl(var(--watermelon-green-light)) 0%, hsl(var(--watermelon-pink-light)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--wm-green-neon)) 0%,
+      hsl(var(--wm-pink-neon)) 50%,
+      hsl(var(--wm-red-light)) 100%
+    );
+  }
+
+  .btn-watermelon::after {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(60 10% 98% / 0.3),
+      transparent
+    );
+    transform: translateX(-100%) rotate(45deg);
+    transition: transform 0.6s;
   }
 
   .btn-watermelon:hover::before {
     @apply opacity-100;
   }
 
+  .btn-watermelon:hover::after {
+    transform: translateX(100%) rotate(45deg);
+  }
+
   .btn-watermelon:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow-green), var(--shadow-glow-pink);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+      0 8px 25px hsl(145 100% 50% / 0.4),
+      0 15px 40px hsl(330 100% 65% / 0.3),
+      0 0 60px hsl(145 100% 50% / 0.2),
+      0 0 100px hsl(350 90% 62% / 0.15);
   }
 
   .btn-watermelon:active {
-    transform: translateY(0);
+    transform: translateY(-1px) scale(1.01);
   }
 
   .btn-watermelon span {
     @apply relative z-10;
   }
 
-  /* Animated Background */
-  .bg-animated-gradient {
-    background: linear-gradient(-45deg, 
-      hsl(150 20% 6%), 
-      hsl(150 25% 10%), 
-      hsl(350 20% 8%), 
-      hsl(350 25% 10%)
-    );
-    background-size: 400% 400%;
-    animation: gradient-shift 15s ease infinite;
+  /* 🎨 Secondary Button */
+  .btn-secondary {
+    @apply relative overflow-hidden px-6 py-3 rounded-xl font-bold;
+    background: linear-gradient(135deg, hsl(var(--wm-red)) 0%, hsl(var(--wm-pink)) 100%);
+    color: white;
+    box-shadow: 0 4px 15px hsl(350 90% 62% / 0.3);
+    transition: all 0.3s ease;
   }
 
-  /* Input Styles */
+  .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 25px hsl(350 90% 62% / 0.4),
+      0 0 40px hsl(330 100% 65% / 0.2);
+  }
+
+  /* 📝 Input Styles - Watermelon Glass */
   .input-glass {
-    @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300;
+    @apply relative w-full rounded-xl px-5 py-4 text-foreground placeholder:text-muted-foreground transition-all duration-300;
+    background: linear-gradient(
+      135deg,
+      hsl(340 25% 10% / 0.8) 0%,
+      hsl(340 20% 8% / 0.9) 100%
+    );
+    border: 1px solid hsl(145 80% 42% / 0.2);
+    box-shadow: inset 0 2px 4px hsl(340 25% 4% / 0.3);
+  }
+
+  .input-glass:focus {
+    outline: none;
+    border-color: hsl(var(--wm-green-light));
+    box-shadow: 
+      0 0 0 3px hsl(145 80% 42% / 0.15),
+      0 0 20px hsl(145 100% 50% / 0.1),
+      inset 0 2px 4px hsl(340 25% 4% / 0.3);
   }
 
   .textarea-glass {
-    @apply input-glass resize-none min-h-[120px];
+    @apply input-glass resize-none min-h-[140px];
   }
 
-  /* Loading Animation Container */
-  .loading-watermelon {
-    @apply relative w-16 h-16;
-  }
-
-  /* Nav Link Styles */
+  /* 🔗 Nav Link - Watermelon Style */
   .nav-link {
-    @apply relative px-4 py-2 text-muted-foreground hover:text-foreground transition-colors duration-300;
+    @apply relative px-4 py-2 text-muted-foreground hover:text-foreground transition-all duration-300 rounded-xl;
+  }
+
+  .nav-link::before {
+    content: '';
+    @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300;
+    background: linear-gradient(
+      135deg,
+      hsl(145 80% 42% / 0.1) 0%,
+      hsl(350 90% 62% / 0.1) 100%
+    );
+  }
+
+  .nav-link:hover::before {
+    @apply opacity-100;
   }
 
   .nav-link::after {
     content: '';
-    @apply absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-primary to-secondary transition-all duration-300;
+    @apply absolute bottom-0 left-1/2 w-0 h-0.5 transition-all duration-300 rounded-full;
+    background: linear-gradient(90deg, hsl(var(--wm-green)), hsl(var(--wm-pink)));
     transform: translateX(-50%);
   }
 
   .nav-link:hover::after,
   .nav-link.active::after {
-    @apply w-full;
+    @apply w-3/4;
   }
 
   .nav-link.active {
     @apply text-foreground;
   }
+
+  .nav-link.active::before {
+    @apply opacity-100;
+  }
+
+  /* 🌊 Background Patterns */
+  .bg-watermelon-gradient {
+    background: 
+      radial-gradient(ellipse at 0% 0%, hsl(145 80% 42% / 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 100% 0%, hsl(330 100% 65% / 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, hsl(350 90% 62% / 0.12) 0%, transparent 50%),
+      linear-gradient(180deg, hsl(340 25% 4%) 0%, hsl(340 30% 6%) 100%);
+  }
+
+  .bg-animated-gradient {
+    background: 
+      radial-gradient(ellipse at 20% 20%, hsl(145 80% 42% / 0.2) 0%, transparent 40%),
+      radial-gradient(ellipse at 80% 30%, hsl(330 100% 65% / 0.15) 0%, transparent 40%),
+      radial-gradient(ellipse at 40% 80%, hsl(350 90% 62% / 0.15) 0%, transparent 40%),
+      radial-gradient(ellipse at 90% 90%, hsl(145 100% 50% / 0.1) 0%, transparent 40%),
+      linear-gradient(180deg, hsl(340 25% 4%) 0%, hsl(340 30% 8%) 50%, hsl(340 25% 5%) 100%);
+    background-attachment: fixed;
+  }
+
+  /* 🔮 Floating Orbs Background */
+  .bg-orbs::before,
+  .bg-orbs::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .bg-orbs::before {
+    width: 600px;
+    height: 600px;
+    background: hsl(var(--wm-green) / 0.3);
+    top: -200px;
+    left: -200px;
+    animation: orb-float-1 20s ease-in-out infinite;
+  }
+
+  .bg-orbs::after {
+    width: 500px;
+    height: 500px;
+    background: hsl(var(--wm-pink) / 0.25);
+    bottom: -150px;
+    right: -150px;
+    animation: orb-float-2 25s ease-in-out infinite;
+  }
+
+  /* 🏷️ Badge Styles */
+  .badge-watermelon {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold;
+    background: linear-gradient(135deg, hsl(var(--wm-green) / 0.2), hsl(var(--wm-pink) / 0.2));
+    border: 1px solid hsl(var(--wm-green) / 0.3);
+    color: hsl(var(--wm-green-light));
+  }
+
+  .badge-rgb {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold text-white;
+    background: linear-gradient(90deg, 
+      hsl(var(--wm-green)), 
+      hsl(var(--wm-pink)), 
+      hsl(var(--wm-red))
+    );
+    background-size: 200% 100%;
+    animation: rgb-flow 3s linear infinite;
+  }
+
+  /* 📊 Progress Bar */
+  .progress-watermelon {
+    @apply h-3 rounded-full overflow-hidden;
+    background: hsl(var(--muted));
+  }
+
+  .progress-watermelon-bar {
+    @apply h-full rounded-full transition-all duration-500;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--wm-green)) 0%,
+      hsl(var(--wm-green-light)) 25%,
+      hsl(var(--wm-pink)) 50%,
+      hsl(var(--wm-red)) 75%,
+      hsl(var(--wm-coral)) 100%
+    );
+    background-size: 200% 100%;
+    animation: rgb-flow 2s linear infinite;
+    box-shadow: 0 0 20px hsl(var(--wm-green) / 0.5);
+  }
 }
 
 @layer utilities {
-  /* Custom Animations */
-  @keyframes gradient-shift {
-    0% { background-position: 0% 50%; }
+  /* 🎬 Keyframe Animations */
+  
+  @keyframes gradient-text {
+    0%, 100% { background-position: 0% center; }
+    50% { background-position: 100% center; }
+  }
+
+  @keyframes rgb-text {
+    0% { background-position: 0% center; }
+    100% { background-position: 300% center; }
+  }
+
+  @keyframes rgb-flow {
+    0% { background-position: 0% center; }
+    100% { background-position: 300% center; }
+  }
+
+  @keyframes btn-gradient {
+    0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes orb-float-1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(100px, 50px) scale(1.1); }
+    50% { transform: translate(50px, 100px) scale(0.9); }
+    75% { transform: translate(-50px, 50px) scale(1.05); }
+  }
+
+  @keyframes orb-float-2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(-80px, -40px) scale(1.1); }
+    50% { transform: translate(-40px, -80px) scale(0.95); }
+    75% { transform: translate(40px, -40px) scale(1.05); }
   }
 
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-15px); }
   }
 
   @keyframes spin-slow {
@@ -204,25 +513,83 @@
 
   @keyframes pulse-glow {
     0%, 100% { 
-      box-shadow: 0 0 20px hsl(142 70% 45% / 0.3), 0 0 40px hsl(350 80% 60% / 0.2);
+      box-shadow: 
+        0 0 20px hsl(145 100% 50% / 0.4),
+        0 0 40px hsl(330 100% 65% / 0.2),
+        0 0 60px hsl(350 90% 62% / 0.1);
     }
     50% { 
-      box-shadow: 0 0 40px hsl(142 70% 45% / 0.5), 0 0 60px hsl(350 80% 60% / 0.3);
+      box-shadow: 
+        0 0 40px hsl(145 100% 50% / 0.6),
+        0 0 80px hsl(330 100% 65% / 0.4),
+        0 0 120px hsl(350 90% 62% / 0.2);
     }
   }
 
   @keyframes wave {
     0%, 100% { transform: scaleY(1); }
-    50% { transform: scaleY(1.5); }
+    50% { transform: scaleY(2); }
   }
 
-  @keyframes bounce-subtle {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+  @keyframes bounce-melon {
+    0%, 100% { 
+      transform: translateY(0) rotate(0deg); 
+    }
+    25% { 
+      transform: translateY(-8px) rotate(-5deg); 
+    }
+    75% { 
+      transform: translateY(-4px) rotate(5deg); 
+    }
   }
 
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  @keyframes fade-in {
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes scale-in {
+    from { 
+      opacity: 0; 
+      transform: scale(0.9); 
+    }
+    to { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+  }
+
+  @keyframes neon-pulse {
+    0%, 100% {
+      text-shadow: 
+        0 0 5px hsl(var(--wm-green-neon)),
+        0 0 10px hsl(var(--wm-green-neon)),
+        0 0 20px hsl(var(--wm-green-neon)),
+        0 0 40px hsl(var(--wm-pink-neon));
+    }
+    50% {
+      text-shadow: 
+        0 0 10px hsl(var(--wm-green-neon)),
+        0 0 20px hsl(var(--wm-green-neon)),
+        0 0 40px hsl(var(--wm-green-neon)),
+        0 0 80px hsl(var(--wm-pink-neon));
+    }
+  }
+
+  /* Utility Classes */
   .animate-float {
-    animation: float 3s ease-in-out infinite;
+    animation: float 4s ease-in-out infinite;
   }
 
   .animate-spin-slow {
@@ -233,14 +600,54 @@
     animation: pulse-glow 2s ease-in-out infinite;
   }
 
-  .animate-bounce-subtle {
-    animation: bounce-subtle 2s ease-in-out infinite;
+  .animate-bounce-melon {
+    animation: bounce-melon 2s ease-in-out infinite;
   }
 
-  /* Stagger delays for animations */
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.4s ease-out forwards;
+  }
+
+  .animate-neon-pulse {
+    animation: neon-pulse 2s ease-in-out infinite;
+  }
+
+  /* Glow Effects */
+  .glow-green {
+    box-shadow: var(--glow-green);
+  }
+
+  .glow-pink {
+    box-shadow: var(--glow-pink);
+  }
+
+  .glow-rgb {
+    box-shadow: var(--glow-rgb);
+  }
+
+  /* Text Glow */
+  .text-glow-green {
+    text-shadow: 0 0 10px hsl(var(--wm-green-neon)), 0 0 20px hsl(var(--wm-green) / 0.5);
+  }
+
+  .text-glow-pink {
+    text-shadow: 0 0 10px hsl(var(--wm-pink-neon)), 0 0 20px hsl(var(--wm-pink) / 0.5);
+  }
+
+  /* Delays */
   .delay-100 { animation-delay: 100ms; }
   .delay-200 { animation-delay: 200ms; }
   .delay-300 { animation-delay: 300ms; }
   .delay-400 { animation-delay: 400ms; }
   .delay-500 { animation-delay: 500ms; }
+  .delay-600 { animation-delay: 600ms; }
+  .delay-700 { animation-delay: 700ms; }
 }
