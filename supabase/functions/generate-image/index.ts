@@ -10,8 +10,8 @@ const HIGGSFIELD_API_KEY = Deno.env.get('HIGGSFIELD_API_KEY');
 const HIGGSFIELD_API_SECRET = Deno.env.get('HIGGSFIELD_API_SECRET');
 const HIGGSFIELD_BASE_URL = 'https://platform.higgsfield.ai';
 
-// Model for image generation - Nano Banana Pro 4K
-const IMAGE_MODEL = 'nano-banana/v1/text-to-image';
+// Model for image generation - Higgsfield Soul (flagship text-to-image model)
+const IMAGE_MODEL = 'higgsfield-ai/soul/standard';
 
 interface GenerateImageRequest {
   prompt: string;
