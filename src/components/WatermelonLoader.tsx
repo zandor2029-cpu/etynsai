@@ -4,31 +4,55 @@ interface WatermelonLoaderProps {
 
 const WatermelonLoader = ({ text = "Carregando..." }: WatermelonLoaderProps) => {
   return (
-    <div className="flex flex-col items-center justify-center gap-6">
-      {/* Animated Watermelon */}
+    <div className="flex flex-col items-center justify-center gap-8">
+      {/* Animated Watermelon with RGB Glow */}
       <div className="relative">
-        <div className="text-6xl animate-spin-slow">🍉</div>
+        {/* Outer glow rings */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 animate-pulse-glow" />
+          <div className="w-32 h-32 rounded-full animate-pulse-glow" />
         </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div 
+            className="w-28 h-28 rounded-full opacity-50"
+            style={{
+              background: 'linear-gradient(135deg, hsl(145 100% 50% / 0.3), hsl(330 100% 65% / 0.3))',
+              animation: 'pulse-glow 2s ease-in-out infinite 0.5s',
+            }}
+          />
+        </div>
+        
+        {/* Main watermelon */}
+        <div className="text-7xl animate-bounce-melon relative z-10 drop-shadow-2xl">
+          🍉
+        </div>
+        
+        {/* Sparkles */}
+        <div className="absolute -top-2 -right-2 text-2xl animate-float delay-100">✨</div>
+        <div className="absolute -bottom-1 -left-2 text-xl animate-float delay-300">💫</div>
       </div>
       
-      {/* Wave Loading Bars */}
-      <div className="flex items-end gap-1 h-8">
-        {[...Array(5)].map((_, i) => (
+      {/* RGB Wave Loading Bars */}
+      <div className="flex items-end gap-1.5 h-10">
+        {[...Array(7)].map((_, i) => (
           <div
             key={i}
-            className="w-2 bg-gradient-to-t from-primary to-secondary rounded-full"
+            className="w-2 rounded-full"
             style={{
-              height: "100%",
-              animation: `wave 0.8s ease-in-out ${i * 0.1}s infinite`,
+              height: '100%',
+              background: `linear-gradient(180deg, 
+                hsl(${145 + i * 30} 80% 50%) 0%, 
+                hsl(${330 + i * 10} 90% 60%) 100%)`,
+              animation: `wave 0.8s ease-in-out ${i * 0.08}s infinite`,
+              boxShadow: `0 0 10px hsl(${145 + i * 30} 100% 50% / 0.5)`,
             }}
           />
         ))}
       </div>
       
-      {/* Loading Text */}
-      <p className="text-muted-foreground font-medium animate-pulse">{text}</p>
+      {/* Loading Text with Gradient */}
+      <p className="text-gradient-watermelon text-lg font-bold animate-pulse">
+        {text}
+      </p>
     </div>
   );
 };

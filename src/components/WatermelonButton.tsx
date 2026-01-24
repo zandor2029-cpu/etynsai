@@ -27,10 +27,22 @@ const WatermelonButton = ({
     lg: "px-8 py-4 text-lg",
   };
 
-  const variantClasses = {
-    primary: "btn-watermelon",
-    secondary: "bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-xl transition-all duration-300 hover:-translate-y-0.5",
-    outline: "border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-xl transition-all duration-300",
+  const getVariantClasses = () => {
+    switch (variant) {
+      case "primary":
+        return "btn-watermelon";
+      case "secondary":
+        return "btn-secondary";
+      case "outline":
+        return `
+          relative overflow-hidden px-6 py-3 rounded-xl font-bold
+          border-2 border-watermelon-green text-watermelon-green-light
+          hover:bg-watermelon-green/10 hover:border-watermelon-green-light
+          hover:shadow-glow-green transition-all duration-300
+        `;
+      default:
+        return "btn-watermelon";
+    }
   };
 
   return (
@@ -39,16 +51,16 @@ const WatermelonButton = ({
       onClick={onClick}
       disabled={disabled || loading}
       className={`
-        ${variantClasses[variant]}
+        ${getVariantClasses()}
         ${sizeClasses[size]}
-        font-semibold
-        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+        font-bold
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none
         ${className}
       `}
     >
-      <span className="flex items-center justify-center gap-2">
+      <span className="flex items-center justify-center gap-2.5">
         {loading && (
-          <span className="inline-block animate-spin-slow">🍉</span>
+          <span className="inline-block animate-spin-slow text-xl">🍉</span>
         )}
         {children}
       </span>
