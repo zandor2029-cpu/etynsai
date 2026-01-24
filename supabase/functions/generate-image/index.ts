@@ -118,12 +118,39 @@ serve(async (req) => {
     const data = await response.json();
     logStep('Response received', { hasChoices: !!data.choices });
 
-    // Extract image from response
-    const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    // Extract image from response - try multiple possible locations
+    const message = data.choices?.[0]?.message;
+    let imageData = message?.images?.[0]?.image_url?.url;
+    
+    // Try alternative response format (inline_data)
+    if (!imageData) {
+      imageData = message?.images?.[0]?.url;
+    }
+    
+    // Try content array format
+    if (!imageData && Array.isArray(message?.content)) {
+      const imageContent = message.content.find((c: any) => c.type === 'image_url' || c.type === 'image');
+      imageData = imageContent?.image_url?.url || imageContent?.url;
+    }
+
+    // Log full response structure for debugging
+    logStep('Response structure', { 
+      hasMessage: !!message,
+      hasImages: !!message?.images,
+      imagesLength: message?.images?.length,
+      contentType: typeof message?.content,
+      textContent: typeof message?.content === 'string' ? message.content.substring(0, 100) : null,
+      finishReason: data.choices?.[0]?.finish_reason
+    });
     
     if (!imageData) {
-      logStep('No image in response', { response: JSON.stringify(data).substring(0, 200) });
-      throw new Error('Nenhuma imagem foi gerada. Tente um prompt diferente.');
+      // Check if there's a text response explaining why no image was generated
+      const textContent = typeof message?.content === 'string' ? message.content : null;
+      if (textContent) {
+        logStep('Model text response', { text: textContent.substring(0, 300) });
+        throw new Error(textContent.substring(0, 200) || 'O modelo não gerou uma imagem. Tente um prompt diferente.');
+      }
+      throw new Error('Nenhuma imagem foi gerada. Tente reformular seu prompt.');
     }
 
     logStep('Image generated successfully');
