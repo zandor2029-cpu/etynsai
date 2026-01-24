@@ -121,10 +121,10 @@ const ReferenceImageUpload = ({
 
   return (
     <div className="space-y-3">
-      <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <ImagePlus className="w-4 h-4 text-watermelon-pink" />
-        Imagens de Referência
-        <span className="text-xs font-normal text-muted-foreground">(opcional - até {maxImages} imagens)</span>
+      <label className="flex items-center gap-2.5 text-sm font-semibold text-foreground tracking-wide">
+        <ImagePlus className="w-4 h-4 text-watermelon-pink flex-shrink-0" />
+        <span>Imagens de Referência</span>
+        <span className="text-xs font-normal text-muted-foreground opacity-70">(opcional - até {maxImages} imagens)</span>
       </label>
 
       {/* Image previews */}
