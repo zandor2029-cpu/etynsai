@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Save, Video, Clapperboard, Play, Zap } from "lucide-react";
+import { Download, Save, Video, Clapperboard, Play, Zap, AlertCircle } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
@@ -9,6 +9,8 @@ import AuthModal from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsForGeneration, getCreditCost, canAfford } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
+import { uploadFileForGeneration } from "@/hooks/useFileUpload";
+import { generateVideo } from "@/hooks/useGeneration";
 
 const KlingMotionControl = () => {
   const [characterImage, setCharacterImage] = useState<File | null>(null);
@@ -16,7 +18,9 @@ const KlingMotionControl = () => {
   const [instructions, setInstructions] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [progressText, setProgressText] = useState("");
   const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -25,10 +29,10 @@ const KlingMotionControl = () => {
 
   const creditCost = getCreditCost('video');
   const currentCredits = profile?.credits ?? 0;
-  const canGenerate = characterImage && motionVideo;
+  const canGenerateVideo = characterImage && motionVideo;
 
   const handleGenerate = async () => {
-    if (!canGenerate) return;
+    if (!canGenerateVideo || !characterImage || !motionVideo) return;
     
     // Check if user is logged in
     if (!user) {
@@ -44,39 +48,94 @@ const KlingMotionControl = () => {
     
     setIsGenerating(true);
     setGeneratedVideo(null);
+    setGenerationError(null);
     setProgress(0);
+    setProgressText("Preparando arquivos...");
 
-    // Use credits
-    const result = await useCreditsForGeneration('video', 'Geração de vídeo motion control');
-    
-    if (!result.success) {
+    try {
+      // Upload character image
+      setProgress(10);
+      setProgressText("Fazendo upload da imagem...");
+      const imageUpload = await uploadFileForGeneration(characterImage, user.id);
+      if (!imageUpload.success || !imageUpload.url) {
+        throw new Error(imageUpload.error || 'Falha ao fazer upload da imagem');
+      }
+
+      // Upload motion video
+      setProgress(25);
+      setProgressText("Fazendo upload do vídeo...");
+      const videoUpload = await uploadFileForGeneration(motionVideo, user.id);
+      if (!videoUpload.success || !videoUpload.url) {
+        throw new Error(videoUpload.error || 'Falha ao fazer upload do vídeo');
+      }
+
+      // Use credits
+      setProgress(35);
+      setProgressText("Processando créditos...");
+      const creditResult = await useCreditsForGeneration('video', 'Geração de vídeo motion control');
+      
+      if (!creditResult.success) {
+        throw new Error(creditResult.message);
+      }
+      
+      // Refresh profile to update credits display
+      await refreshProfile();
+
+      // Call generation API
+      setProgress(45);
+      setProgressText("Iniciando geração com IA...");
+      
+      const result = await generateVideo({
+        characterImageUrl: imageUpload.url,
+        motionVideoUrl: videoUpload.url,
+        prompt: instructions.trim() || undefined,
+        duration: 5,
+      });
+
+      // Simulate progress while waiting (the actual polling happens in edge function)
+      let currentProgress = 45;
+      const progressInterval = setInterval(() => {
+        currentProgress = Math.min(currentProgress + 5, 95);
+        setProgress(currentProgress);
+        if (currentProgress < 60) {
+          setProgressText("Analisando movimentos...");
+        } else if (currentProgress < 75) {
+          setProgressText("Aplicando ao personagem...");
+        } else if (currentProgress < 90) {
+          setProgressText("Renderizando frames...");
+        } else {
+          setProgressText("Finalizando vídeo...");
+        }
+      }, 3000);
+
+      // Wait a bit for the result to come back from edge function
+      await new Promise(r => setTimeout(r, 2000));
+      
+      clearInterval(progressInterval);
+      setProgress(100);
       setIsGenerating(false);
+
+      if (result.success && result.videoUrl) {
+        setGeneratedVideo(result.videoUrl);
+        toast({
+          title: 'Vídeo gerado! 🎬',
+          description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
+        });
+      } else {
+        throw new Error(result.error || 'Erro ao gerar vídeo');
+      }
+
+    } catch (error) {
+      setIsGenerating(false);
+      setProgress(0);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      setGenerationError(errorMessage);
       toast({
-        title: 'Erro',
-        description: result.message,
+        title: 'Erro na geração',
+        description: errorMessage,
         variant: 'destructive',
       });
-      return;
     }
-    
-    // Refresh profile to update credits display
-    await refreshProfile();
-
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsGenerating(false);
-          setGeneratedVideo("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4");
-          toast({
-            title: 'Vídeo gerado! 🎬',
-            description: `Foram utilizados ${creditCost} créditos. Saldo: ${result.newBalance}`,
-          });
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 400);
   };
 
   return (
@@ -146,20 +205,20 @@ const KlingMotionControl = () => {
                 <WatermelonButton
                   onClick={handleGenerate}
                   loading={isGenerating}
-                  disabled={!canGenerate || isGenerating}
+                  disabled={!canGenerateVideo || isGenerating}
                   size="lg"
                   className="w-full text-lg"
                 >
                   {isGenerating ? "Processando Motion Control..." : `Gerar Vídeo 🍉 (${creditCost} créditos)`}
                 </WatermelonButton>
                 
-                {!canGenerate && (
+                {!canGenerateVideo && (
                   <p className="text-center text-sm text-muted-foreground mt-3">
                     📎 Faça upload de uma imagem e um vídeo para começar
                   </p>
                 )}
                 
-                {!user && canGenerate && (
+                {!user && canGenerateVideo && (
                   <p className="text-center text-sm text-muted-foreground mt-3">
                     🔐 Faça login para gerar vídeos
                   </p>
@@ -189,13 +248,33 @@ const KlingMotionControl = () => {
                     />
                   </div>
                   <p className="text-center text-xs text-muted-foreground mt-3">
-                    {progress < 30 && "Analisando movimentos..."}
-                    {progress >= 30 && progress < 60 && "Aplicando ao personagem..."}
-                    {progress >= 60 && progress < 90 && "Renderizando frames..."}
-                    {progress >= 90 && "Finalizando vídeo..."}
+                    {progressText}
                   </p>
                 </div>
               </div>
+            </GlassCard>
+          </div>
+        )}
+
+        {/* Error State */}
+        {generationError && !isGenerating && (
+          <div className="mt-10 animate-fade-in">
+            <GlassCard className="p-8 border border-destructive/20">
+              <div className="flex items-center gap-4 text-destructive">
+                <AlertCircle className="w-8 h-8" />
+                <div>
+                  <h3 className="font-bold text-lg">Erro na geração</h3>
+                  <p className="text-muted-foreground">{generationError}</p>
+                </div>
+              </div>
+              <WatermelonButton
+                onClick={() => setGenerationError(null)}
+                variant="outline"
+                size="md"
+                className="mt-4"
+              >
+                Tentar novamente
+              </WatermelonButton>
             </GlassCard>
           </div>
         )}

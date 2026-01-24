@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Download, RefreshCw, Save, Zap, Wand2 } from "lucide-react";
+import { Sparkles, Download, RefreshCw, Save, Zap, Wand2, AlertCircle } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
@@ -10,6 +10,7 @@ import AuthModal from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsForGeneration, getCreditCost, canAfford } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
+import { generateImage } from "@/hooks/useGeneration";
 
 const NanoBananaPro = () => {
   const [prompt, setPrompt] = useState("");
@@ -17,6 +18,7 @@ const NanoBananaPro = () => {
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
@@ -43,15 +45,16 @@ const NanoBananaPro = () => {
     
     setIsGenerating(true);
     setGeneratedImage(null);
+    setGenerationError(null);
     
-    // Use credits
-    const result = await useCreditsForGeneration('image', `Geração: ${prompt.substring(0, 50)}...`);
+    // Use credits first
+    const creditResult = await useCreditsForGeneration('image', `Geração: ${prompt.substring(0, 50)}...`);
     
-    if (!result.success) {
+    if (!creditResult.success) {
       setIsGenerating(false);
       toast({
         title: 'Erro',
-        description: result.message,
+        description: creditResult.message,
         variant: 'destructive',
       });
       return;
@@ -60,15 +63,29 @@ const NanoBananaPro = () => {
     // Refresh profile to update credits display
     await refreshProfile();
     
-    // Simular geração de imagem
-    setTimeout(() => {
-      setIsGenerating(false);
-      setGeneratedImage("https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1024&h=1024&fit=crop");
+    // Call Higgsfield API via edge function
+    const result = await generateImage({
+      prompt: prompt.trim(),
+      negativePrompt: negativePrompt.trim() || undefined,
+      aspectRatio,
+    });
+    
+    setIsGenerating(false);
+    
+    if (result.success && result.imageUrl) {
+      setGeneratedImage(result.imageUrl);
       toast({
         title: 'Imagem gerada! 🍉',
-        description: `Foram utilizados ${creditCost} créditos. Saldo: ${result.newBalance}`,
+        description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
       });
-    }, 3000);
+    } else {
+      setGenerationError(result.error || 'Erro ao gerar imagem');
+      toast({
+        title: 'Erro na geração',
+        description: result.error || 'Ocorreu um erro ao gerar a imagem. Seus créditos foram utilizados.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -183,6 +200,29 @@ const NanoBananaPro = () => {
           <div className="mt-10 animate-fade-in">
             <GlassCard className="p-12 md:p-16">
               <WatermelonLoader text="Gerando sua imagem em 4K… 🎨" />
+            </GlassCard>
+          </div>
+        )}
+
+        {/* Error State */}
+        {generationError && !isGenerating && (
+          <div className="mt-10 animate-fade-in">
+            <GlassCard className="p-8 border border-destructive/20">
+              <div className="flex items-center gap-4 text-destructive">
+                <AlertCircle className="w-8 h-8" />
+                <div>
+                  <h3 className="font-bold text-lg">Erro na geração</h3>
+                  <p className="text-muted-foreground">{generationError}</p>
+                </div>
+              </div>
+              <WatermelonButton
+                onClick={() => setGenerationError(null)}
+                variant="outline"
+                size="md"
+                className="mt-4"
+              >
+                Tentar novamente
+              </WatermelonButton>
             </GlassCard>
           </div>
         )}
