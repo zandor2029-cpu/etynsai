@@ -5,6 +5,11 @@ import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
 import AspectRatioSelect from "@/components/AspectRatioSelect";
 import WatermelonIcon from "@/components/WatermelonIcon";
+import NoCreditsModal from "@/components/NoCreditsModal";
+import AuthModal from "@/components/AuthModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCreditsForGeneration, getCreditCost, canAfford } from "@/hooks/useCredits";
+import { useToast } from "@/hooks/use-toast";
 
 const NanoBananaPro = () => {
   const [prompt, setPrompt] = useState("");
@@ -12,17 +17,57 @@ const NanoBananaPro = () => {
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  
+  const { user, profile, refreshProfile } = useAuth();
+  const { toast } = useToast();
+  
+  const creditCost = getCreditCost('image');
+  const currentCredits = profile?.credits ?? 0;
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt.trim()) return;
+    
+    // Check if user is logged in
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    
+    // Check if user has enough credits
+    if (!canAfford(currentCredits, 'image')) {
+      setShowNoCreditsModal(true);
+      return;
+    }
     
     setIsGenerating(true);
     setGeneratedImage(null);
+    
+    // Use credits
+    const result = await useCreditsForGeneration('image', `Geração: ${prompt.substring(0, 50)}...`);
+    
+    if (!result.success) {
+      setIsGenerating(false);
+      toast({
+        title: 'Erro',
+        description: result.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Refresh profile to update credits display
+    await refreshProfile();
     
     // Simular geração de imagem
     setTimeout(() => {
       setIsGenerating(false);
       setGeneratedImage("https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1024&h=1024&fit=crop");
+      toast({
+        title: 'Imagem gerada! 🍉',
+        description: `Foram utilizados ${creditCost} créditos. Saldo: ${result.newBalance}`,
+      });
     }, 3000);
   };
 
@@ -46,6 +91,14 @@ const NanoBananaPro = () => {
             Gere imagens em <span className="text-watermelon-green-light font-semibold">qualidade profissional</span> com 
             IA de <span className="text-watermelon-pink font-semibold">última geração</span>
           </p>
+          
+          {/* Credit cost indicator */}
+          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
+            <Zap className="w-4 h-4 text-watermelon-green" />
+            <span className="text-muted-foreground">Custo:</span>
+            <span className="font-bold text-watermelon-green">{creditCost} créditos</span>
+            <span className="text-muted-foreground">por imagem</span>
+          </div>
         </div>
 
         {/* Main Generation Card */}
@@ -112,8 +165,14 @@ const NanoBananaPro = () => {
                   size="lg"
                   className="w-full text-lg"
                 >
-                  {isGenerating ? "Gerando sua obra-prima..." : "Gerar Imagem 🍉"}
+                  {isGenerating ? "Gerando sua obra-prima..." : `Gerar Imagem 🍉 (${creditCost} créditos)`}
                 </WatermelonButton>
+                
+                {!user && (
+                  <p className="text-center text-sm text-muted-foreground mt-3">
+                    🔐 Faça login para gerar imagens
+                  </p>
+                )}
               </div>
             </div>
           </GlassCard>
@@ -158,7 +217,7 @@ const NanoBananaPro = () => {
                   </WatermelonButton>
                   <WatermelonButton variant="outline" size="md" onClick={handleGenerate}>
                     <RefreshCw className="w-4 h-4" />
-                    Gerar Variação
+                    Gerar Variação ({creditCost} créditos)
                   </WatermelonButton>
                   <WatermelonButton variant="secondary" size="md">
                     <Save className="w-4 h-4" />
@@ -170,6 +229,19 @@ const NanoBananaPro = () => {
           </div>
         )}
       </div>
+
+      <NoCreditsModal
+        isOpen={showNoCreditsModal}
+        onClose={() => setShowNoCreditsModal(false)}
+        type="image"
+        creditsNeeded={creditCost}
+        currentCredits={currentCredits}
+      />
+      
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 };

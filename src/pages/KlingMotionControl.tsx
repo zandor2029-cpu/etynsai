@@ -1,9 +1,14 @@
 import { useState } from "react";
-import { Download, Save, Video, Clapperboard, Play } from "lucide-react";
+import { Download, Save, Video, Clapperboard, Play, Zap } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
 import FileUpload from "@/components/FileUpload";
+import NoCreditsModal from "@/components/NoCreditsModal";
+import AuthModal from "@/components/AuthModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCreditsForGeneration, getCreditCost, canAfford } from "@/hooks/useCredits";
+import { useToast } from "@/hooks/use-toast";
 
 const KlingMotionControl = () => {
   const [characterImage, setCharacterImage] = useState<File | null>(null);
@@ -12,15 +17,50 @@ const KlingMotionControl = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
+  const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
+  const { user, profile, refreshProfile } = useAuth();
+  const { toast } = useToast();
+
+  const creditCost = getCreditCost('video');
+  const currentCredits = profile?.credits ?? 0;
   const canGenerate = characterImage && motionVideo;
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!canGenerate) return;
+    
+    // Check if user is logged in
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    
+    // Check if user has enough credits
+    if (!canAfford(currentCredits, 'video')) {
+      setShowNoCreditsModal(true);
+      return;
+    }
     
     setIsGenerating(true);
     setGeneratedVideo(null);
     setProgress(0);
+
+    // Use credits
+    const result = await useCreditsForGeneration('video', 'Geração de vídeo motion control');
+    
+    if (!result.success) {
+      setIsGenerating(false);
+      toast({
+        title: 'Erro',
+        description: result.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Refresh profile to update credits display
+    await refreshProfile();
 
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -28,6 +68,10 @@ const KlingMotionControl = () => {
           clearInterval(interval);
           setIsGenerating(false);
           setGeneratedVideo("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4");
+          toast({
+            title: 'Vídeo gerado! 🎬',
+            description: `Foram utilizados ${creditCost} créditos. Saldo: ${result.newBalance}`,
+          });
           return 100;
         }
         return prev + 10;
@@ -54,6 +98,14 @@ const KlingMotionControl = () => {
             Transfira <span className="text-watermelon-pink font-semibold">movimentos reais</span> para 
             seus personagens com <span className="text-watermelon-green-light font-semibold">IA avançada</span>
           </p>
+          
+          {/* Credit cost indicator */}
+          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
+            <Zap className="w-4 h-4 text-watermelon-pink" />
+            <span className="text-muted-foreground">Custo:</span>
+            <span className="font-bold text-watermelon-pink">{creditCost} créditos</span>
+            <span className="text-muted-foreground">por vídeo</span>
+          </div>
         </div>
 
         {/* Main Input Card */}
@@ -98,12 +150,18 @@ const KlingMotionControl = () => {
                   size="lg"
                   className="w-full text-lg"
                 >
-                  {isGenerating ? "Processando Motion Control..." : "Gerar Vídeo 🍉"}
+                  {isGenerating ? "Processando Motion Control..." : `Gerar Vídeo 🍉 (${creditCost} créditos)`}
                 </WatermelonButton>
                 
                 {!canGenerate && (
                   <p className="text-center text-sm text-muted-foreground mt-3">
                     📎 Faça upload de uma imagem e um vídeo para começar
+                  </p>
+                )}
+                
+                {!user && canGenerate && (
+                  <p className="text-center text-sm text-muted-foreground mt-3">
+                    🔐 Faça login para gerar vídeos
                   </p>
                 )}
               </div>
@@ -181,6 +239,19 @@ const KlingMotionControl = () => {
           </div>
         )}
       </div>
+
+      <NoCreditsModal
+        isOpen={showNoCreditsModal}
+        onClose={() => setShowNoCreditsModal(false)}
+        type="video"
+        creditsNeeded={creditCost}
+        currentCredits={currentCredits}
+      />
+      
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 };
