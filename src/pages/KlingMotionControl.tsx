@@ -9,7 +9,7 @@ import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreditsForGeneration, getCreditCost, canAfford } from "@/hooks/useCredits";
+import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
 import { uploadFileForGeneration } from "@/hooks/useFileUpload";
 import { generateVideo } from "@/hooks/useGeneration";
@@ -27,6 +27,7 @@ const KlingMotionControl = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState("");
+  const [creditsDeducted, setCreditsDeducted] = useState(false);
 
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -57,6 +58,9 @@ const KlingMotionControl = () => {
     setProgressText("Preparando arquivos...");
     setIsSaved(false);
     setCurrentPrompt(instructions.trim());
+    setCreditsDeducted(false);
+
+    let creditsWereDeducted = false;
 
     try {
       // Upload character image
@@ -75,6 +79,10 @@ const KlingMotionControl = () => {
       if (!creditResult.success) {
         throw new Error(creditResult.message);
       }
+      
+      // Mark credits as deducted for potential refund
+      creditsWereDeducted = true;
+      setCreditsDeducted(true);
       
       // Refresh profile to update credits display
       await refreshProfile();
@@ -137,6 +145,30 @@ const KlingMotionControl = () => {
       setProgress(0);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setGenerationError(errorMessage);
+      
+      // Refund credits if they were deducted
+      if (creditsWereDeducted) {
+        try {
+          const refundResult = await refundCredits('video', `Reembolso: ${errorMessage}`);
+          if (refundResult.success) {
+            await refreshProfile();
+            toast({
+              title: 'Créditos reembolsados',
+              description: `Seus ${creditCost} créditos foram devolvidos devido à falha na geração.`,
+            });
+          } else {
+            toast({
+              title: 'Erro na geração',
+              description: `${errorMessage}. Não foi possível reembolsar automaticamente. Entre em contato com o suporte.`,
+              variant: 'destructive',
+            });
+            return;
+          }
+        } catch (refundError) {
+          console.error('Refund failed:', refundError);
+        }
+      }
+      
       toast({
         title: 'Erro na geração',
         description: errorMessage,
