@@ -6,12 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const HIGGSFIELD_API_KEY = Deno.env.get('HIGGSFIELD_API_KEY');
-const HIGGSFIELD_API_SECRET = Deno.env.get('HIGGSFIELD_API_SECRET');
-const HIGGSFIELD_BASE_URL = 'https://platform.higgsfield.ai';
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+const LOVABLE_AI_GATEWAY = 'https://ai.gateway.lovable.dev/v1/chat/completions';
 
-// Model for image generation - Higgsfield Soul (flagship text-to-image model)
-const IMAGE_MODEL = 'higgsfield-ai/soul/standard';
+// Model for image generation - Nano Banana (Gemini Image)
+const IMAGE_MODEL = 'google/gemini-2.5-flash-image-preview';
 
 interface GenerateImageRequest {
   prompt: string;
@@ -24,51 +23,6 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[GENERATE-IMAGE] ${step}${detailsStr}`);
 };
 
-// Poll for generation status
-async function pollForResult(requestId: string, maxAttempts = 60): Promise<{ url: string } | null> {
-  const statusUrl = `${HIGGSFIELD_BASE_URL}/requests/${requestId}/status`;
-  
-  for (let i = 0; i < maxAttempts; i++) {
-    try {
-      const response = await fetch(statusUrl, {
-        headers: {
-          'Authorization': `Key ${HIGGSFIELD_API_KEY}:${HIGGSFIELD_API_SECRET}`,
-          'Accept': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        logStep('Status check failed', { status: response.status });
-        await new Promise(r => setTimeout(r, 2000));
-        continue;
-      }
-
-      const data = await response.json();
-      logStep('Status check', { status: data.status, attempt: i + 1 });
-
-      if (data.status === 'completed') {
-        if (data.images && data.images.length > 0) {
-          return { url: data.images[0].url };
-        }
-        return null;
-      }
-
-      if (data.status === 'failed' || data.status === 'nsfw') {
-        logStep('Generation failed', { status: data.status });
-        return null;
-      }
-
-      // Still processing, wait and retry
-      await new Promise(r => setTimeout(r, 2000));
-    } catch (error) {
-      logStep('Poll error', { error: String(error) });
-      await new Promise(r => setTimeout(r, 2000));
-    }
-  }
-
-  return null;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -77,9 +31,9 @@ serve(async (req) => {
   try {
     logStep('Function invoked');
 
-    // Validate API credentials
-    if (!HIGGSFIELD_API_KEY || !HIGGSFIELD_API_SECRET) {
-      throw new Error('Higgsfield API credentials not configured');
+    // Validate API key
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Authenticate user
@@ -110,60 +64,75 @@ serve(async (req) => {
 
     logStep('Generating image', { prompt: prompt.substring(0, 50), aspectRatio });
 
-    // Build the request to Higgsfield API
-    const generateUrl = `${HIGGSFIELD_BASE_URL}/${IMAGE_MODEL}`;
+    // Build enhanced prompt with aspect ratio and quality instructions
+    let enhancedPrompt = prompt.trim();
     
-    const requestBody: Record<string, unknown> = {
-      prompt: prompt.trim(),
-      aspect_ratio: aspectRatio,
-      resolution: '1080p', // High quality
-    };
-
-    if (negativePrompt && negativePrompt.trim()) {
-      requestBody.negative_prompt = negativePrompt.trim();
+    // Add aspect ratio context
+    if (aspectRatio !== '1:1') {
+      enhancedPrompt += `. Image should be in ${aspectRatio} aspect ratio.`;
     }
+    
+    // Add negative prompt if provided
+    if (negativePrompt && negativePrompt.trim()) {
+      enhancedPrompt += ` Avoid: ${negativePrompt.trim()}.`;
+    }
+    
+    // Add quality instructions
+    enhancedPrompt += ' High quality, detailed, professional.';
 
-    logStep('Sending to Higgsfield', { model: IMAGE_MODEL });
+    logStep('Sending to Lovable AI Gateway', { model: IMAGE_MODEL });
 
-    const generateResponse = await fetch(generateUrl, {
+    const response = await fetch(LOVABLE_AI_GATEWAY, {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${HIGGSFIELD_API_KEY}:${HIGGSFIELD_API_SECRET}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        model: IMAGE_MODEL,
+        messages: [
+          {
+            role: 'user',
+            content: enhancedPrompt
+          }
+        ],
+        modalities: ['image', 'text']
+      }),
     });
 
-    if (!generateResponse.ok) {
-      const errorText = await generateResponse.text();
-      logStep('Higgsfield API error', { status: generateResponse.status, error: errorText });
+    if (!response.ok) {
+      const errorText = await response.text();
+      logStep('Lovable AI error', { status: response.status, error: errorText });
       
-      // Check for credit-related errors
-      if (generateResponse.status === 403 && errorText.includes('credits')) {
-        throw new Error('O serviço de geração está temporariamente indisponível. Tente novamente mais tarde.');
+      if (response.status === 429) {
+        throw new Error('Limite de requisições excedido. Tente novamente em alguns minutos.');
       }
       
-      throw new Error(`Erro no serviço de geração. Código: ${generateResponse.status}`);
+      if (response.status === 402) {
+        throw new Error('Créditos insuficientes no workspace Lovable. Adicione créditos para continuar.');
+      }
+      
+      throw new Error(`Erro na geração de imagem. Código: ${response.status}`);
     }
 
-    const generateData = await generateResponse.json();
-    logStep('Generation queued', { requestId: generateData.request_id, status: generateData.status });
+    const data = await response.json();
+    logStep('Response received', { hasChoices: !!data.choices });
 
-    // Poll for result
-    const result = await pollForResult(generateData.request_id);
-
-    if (!result) {
-      throw new Error('Image generation failed or timed out');
+    // Extract image from response
+    const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (!imageData) {
+      logStep('No image in response', { response: JSON.stringify(data).substring(0, 200) });
+      throw new Error('Nenhuma imagem foi gerada. Tente um prompt diferente.');
     }
 
-    logStep('Image generated successfully', { imageUrl: result.url.substring(0, 50) });
+    logStep('Image generated successfully');
 
     return new Response(
       JSON.stringify({
         success: true,
-        imageUrl: result.url,
-        requestId: generateData.request_id,
+        imageUrl: imageData,
+        model: IMAGE_MODEL,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -176,7 +145,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Erro desconhecido',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
