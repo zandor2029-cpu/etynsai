@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Download, ExternalLink, Image, Video, Sparkles, Trash2 } from "lucide-react";
 import GlassCard from "./GlassCard";
 
@@ -17,102 +18,134 @@ const RenderCard = ({ id, type, thumbnail, createdAt, prompt, onOpen, onDownload
   const typeLabel = type === "image" ? "Imagem" : "Vídeo";
 
   return (
-    <GlassCard hover className="overflow-hidden group">
-      {/* Thumbnail */}
-      <div className="relative aspect-square overflow-hidden">
-        {type === "image" ? (
-          <img
-            src={thumbnail}
-            alt="Render"
-            className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+    <motion.div
+      whileHover={{ y: -6, scale: 1.02 }}
+      transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      <GlassCard className="overflow-hidden group cursor-pointer">
+        {/* Thumbnail */}
+        <div className="relative aspect-square overflow-hidden">
+          {type === "image" ? (
+            <motion.img
+              src={thumbnail}
+              alt="Render"
+              className="w-full h-full object-cover"
+              whileHover={{ scale: 1.08 }}
+              transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+            />
+          ) : (
+            <video
+              src={thumbnail}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              muted
+              loop
+              playsInline
+              onMouseEnter={(e) => e.currentTarget.play()}
+              onMouseLeave={(e) => {
+                e.currentTarget.pause();
+                e.currentTarget.currentTime = 0;
+              }}
+            />
+          )}
+          
+          {/* Type Badge */}
+          <div className="absolute top-3 left-3 badge-watermelon text-xs">
+            <TypeIcon className="w-3 h-3" />
+            {typeLabel}
+          </div>
+          
+          {/* Gradient Overlay */}
+          <motion.div 
+            className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"
+            initial={{ opacity: 0 }}
+            whileHover={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
           />
-        ) : (
-          <video
-            src={thumbnail}
-            className="w-full h-full object-cover"
-            muted
-            loop
-            playsInline
-            onMouseEnter={(e) => e.currentTarget.play()}
-            onMouseLeave={(e) => {
-              e.currentTarget.pause();
-              e.currentTarget.currentTime = 0;
+          
+          {/* Action Buttons */}
+          <motion.div 
+            className="absolute inset-0 flex items-center justify-center gap-3"
+            initial={{ opacity: 0 }}
+            whileHover={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpen(id);
+              }}
+              className="p-3 rounded-xl bg-watermelon-green/90 text-white shadow-glow-green"
+              title="Abrir"
+              whileHover={{ scale: 1.15, backgroundColor: "hsl(145 80% 42%)" }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+            >
+              <ExternalLink className="w-4 h-4" />
+            </motion.button>
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDownload(id);
+              }}
+              className="p-3 rounded-xl bg-watermelon-pink/90 text-white shadow-glow-pink"
+              title="Baixar"
+              whileHover={{ scale: 1.15, backgroundColor: "hsl(330 100% 65%)" }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+            >
+              <Download className="w-4 h-4" />
+            </motion.button>
+            {onDelete && (
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(id);
+                }}
+                className="p-3 rounded-xl bg-destructive/90 text-white"
+                title="Deletar"
+                whileHover={{ scale: 1.15, backgroundColor: "hsl(0 90% 55%)" }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </motion.button>
+            )}
+          </motion.div>
+
+          {/* RGB Border Glow on Hover */}
+          <motion.div 
+            className="absolute inset-0 pointer-events-none rounded-t-xl"
+            initial={{ opacity: 0 }}
+            whileHover={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              boxShadow: "inset 0 0 20px hsl(145 100% 50% / 0.2), inset 0 0 40px hsl(330 100% 65% / 0.15)",
             }}
           />
-        )}
-        
-        {/* Type Badge */}
-        <div className="absolute top-3 left-3 badge-watermelon text-xs">
-          <TypeIcon className="w-3 h-3" />
-          {typeLabel}
         </div>
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-        
-        {/* Action Buttons */}
-        <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500">
-          <button
-            onClick={() => onOpen(id)}
-            className="p-3 rounded-xl bg-watermelon-green/90 hover:bg-watermelon-green text-white transition-all duration-300 hover:scale-110 shadow-glow-green"
-            title="Abrir"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onDownload(id)}
-            className="p-3 rounded-xl bg-watermelon-pink/90 hover:bg-watermelon-pink text-white transition-all duration-300 hover:scale-110 shadow-glow-pink"
-            title="Baixar"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-          {onDelete && (
-            <button
-              onClick={() => onDelete(id)}
-              className="p-3 rounded-xl bg-destructive/90 hover:bg-destructive text-white transition-all duration-300 hover:scale-110"
-              title="Deletar"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+
+        {/* Info */}
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <motion.div
+                whileHover={{ rotate: 15, scale: 1.2 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Sparkles className="w-4 h-4 text-watermelon-green" />
+              </motion.div>
+              <span className="text-sm font-semibold text-foreground">{typeLabel}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">{createdAt}</p>
+          </div>
+          {prompt && (
+            <p className="text-xs text-muted-foreground line-clamp-2" title={prompt}>
+              {prompt}
+            </p>
           )}
         </div>
-
-        {/* RGB Border on Hover */}
-        <div 
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-          style={{
-            background: 'linear-gradient(90deg, transparent, transparent)',
-            boxShadow: 'inset 0 0 0 2px transparent',
-          }}
-        >
-          <div 
-            className="absolute inset-0 rounded-t-xl"
-            style={{
-              background: 'linear-gradient(90deg, hsl(145 100% 50% / 0.3), hsl(330 100% 65% / 0.3), hsl(350 90% 62% / 0.3))',
-              mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              maskComposite: 'exclude',
-              padding: '2px',
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Info */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-watermelon-green" />
-            <span className="text-sm font-semibold text-foreground">{typeLabel}</span>
-          </div>
-          <p className="text-xs text-muted-foreground">{createdAt}</p>
-        </div>
-        {prompt && (
-          <p className="text-xs text-muted-foreground line-clamp-2" title={prompt}>
-            {prompt}
-          </p>
-        )}
-      </div>
-    </GlassCard>
+      </GlassCard>
+    </motion.div>
   );
 };
 
