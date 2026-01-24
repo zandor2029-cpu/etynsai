@@ -138,7 +138,13 @@ serve(async (req) => {
     if (!generateResponse.ok) {
       const errorText = await generateResponse.text();
       logStep('Higgsfield API error', { status: generateResponse.status, error: errorText });
-      throw new Error(`Higgsfield API error: ${generateResponse.status}`);
+      
+      // Check for credit-related errors
+      if (generateResponse.status === 403 && errorText.includes('credits')) {
+        throw new Error('O serviço de geração está temporariamente indisponível. Tente novamente mais tarde.');
+      }
+      
+      throw new Error(`Erro no serviço de geração. Código: ${generateResponse.status}`);
     }
 
     const generateData = await generateResponse.json();
