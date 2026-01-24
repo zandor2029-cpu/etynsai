@@ -9,12 +9,13 @@ interface UseCreditsResult {
   message: string;
 }
 
-export async function useCreditsForGeneration(
+// Use credits with custom amount (for video resolution options)
+export async function useCreditsWithAmount(
+  amount: number,
   type: GenerationType,
   description?: string,
   referenceId?: string
 ): Promise<UseCreditsResult> {
-  const cost = CREDIT_COSTS[type];
   const transactionType = type === 'image' ? 'image_generation' : 'video_generation';
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -28,7 +29,7 @@ export async function useCreditsForGeneration(
 
   const { data, error } = await supabase.rpc('use_credits', {
     p_user_id: user.id,
-    p_amount: cost,
+    p_amount: amount,
     p_type: transactionType,
     p_description: description || `Geração de ${type === 'image' ? 'imagem' : 'vídeo'}`,
     p_reference_id: referenceId,
@@ -51,13 +52,20 @@ export async function useCreditsForGeneration(
   };
 }
 
-// Refund credits when generation fails
-export async function refundCredits(
+export async function useCreditsForGeneration(
   type: GenerationType,
-  reason?: string
+  description?: string,
+  referenceId?: string
 ): Promise<UseCreditsResult> {
   const cost = CREDIT_COSTS[type];
+  return useCreditsWithAmount(cost, type, description, referenceId);
+}
 
+// Refund credits with custom amount
+export async function refundCreditsWithAmount(
+  amount: number,
+  reason?: string
+): Promise<UseCreditsResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return {
@@ -69,9 +77,9 @@ export async function refundCredits(
 
   const { data, error } = await supabase.rpc('add_credits', {
     p_user_id: user.id,
-    p_amount: cost,
+    p_amount: amount,
     p_type: 'admin_adjustment',
-    p_description: reason || `Reembolso: falha na geração de ${type === 'image' ? 'imagem' : 'vídeo'}`,
+    p_description: reason || 'Reembolso: falha na geração',
   });
 
   if (error) {
@@ -91,10 +99,23 @@ export async function refundCredits(
   };
 }
 
+// Refund credits when generation fails
+export async function refundCredits(
+  type: GenerationType,
+  reason?: string
+): Promise<UseCreditsResult> {
+  const cost = CREDIT_COSTS[type];
+  return refundCreditsWithAmount(cost, reason);
+}
+
 export function getCreditCost(type: GenerationType): number {
   return CREDIT_COSTS[type];
 }
 
 export function canAfford(credits: number, type: GenerationType): boolean {
   return credits >= CREDIT_COSTS[type];
+}
+
+export function canAffordAmount(credits: number, amount: number): boolean {
+  return credits >= amount;
 }

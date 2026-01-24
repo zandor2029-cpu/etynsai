@@ -6,19 +6,25 @@ interface VideoResolutionSelectProps {
   onChange: (value: "480p" | "720p") => void;
 }
 
+// Custos em créditos baseados nos planos
+export const VIDEO_CREDIT_COSTS = {
+  "480p": 7,  // ~$0.05 - mais econômico
+  "720p": 10, // ~$0.08 - padrão
+} as const;
+
 const resolutions = [
   { 
     value: "480p" as const, 
     label: "480p", 
     icon: Smartphone, 
-    desc: "Mais econômico (~$0.05)",
-    savings: "Economia de ~40%"
+    desc: `${VIDEO_CREDIT_COSTS["480p"]} créditos`,
+    savings: "Economia de 30%"
   },
   { 
     value: "720p" as const, 
     label: "720p", 
     icon: Monitor, 
-    desc: "Maior qualidade (~$0.08)",
+    desc: `${VIDEO_CREDIT_COSTS["720p"]} créditos`,
     savings: ""
   },
 ];
