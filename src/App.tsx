@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import KlingMotionControl from "./pages/KlingMotionControl";
 import MeusRenders from "./pages/MeusRenders";
 import PlansPage from "./pages/PlansPage";
+import HistoricoCreditos from "./pages/HistoricoCreditos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/motion-control" element={<KlingMotionControl />} />
             <Route path="/meus-renders" element={<MeusRenders />} />
             <Route path="/planos" element={<PlansPage />} />
+            <Route path="/historico" element={<HistoricoCreditos />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
