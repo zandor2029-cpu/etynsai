@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
+import NanoBananaPro from "./pages/NanoBananaPro";
 import KlingMotionControl from "./pages/KlingMotionControl";
 import MeusRenders from "./pages/MeusRenders";
 import PlansPage from "./pages/PlansPage";
@@ -24,6 +25,7 @@ const App = () => (
           <Navbar />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/nano-banana-pro" element={<NanoBananaPro />} />
             <Route path="/motion-control" element={<KlingMotionControl />} />
             <Route path="/meus-renders" element={<MeusRenders />} />
             <Route path="/planos" element={<PlansPage />} />
