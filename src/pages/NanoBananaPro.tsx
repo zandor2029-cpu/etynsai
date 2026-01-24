@@ -10,7 +10,7 @@ import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreditsForGeneration, getCreditCost, canAfford } from "@/hooks/useCredits";
+import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
 import { generateImage } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
@@ -54,55 +54,84 @@ const NanoBananaPro = () => {
     setIsSaved(false);
     setCurrentPrompt(prompt.trim());
     
-    // Use credits first
-    const creditResult = await useCreditsForGeneration('image', `Geração: ${prompt.substring(0, 50)}...`);
+    let creditsWereDeducted = false;
     
-    if (!creditResult.success) {
+    try {
+      // Use credits first
+      const creditResult = await useCreditsForGeneration('image', `Geração: ${prompt.substring(0, 50)}...`);
+      
+      if (!creditResult.success) {
+        throw new Error(creditResult.message);
+      }
+      
+      // Mark credits as deducted for potential refund
+      creditsWereDeducted = true;
+      
+      // Refresh profile to update credits display
+      await refreshProfile();
+      
+      // Call API via edge function
+      const result = await generateImage({
+        prompt: prompt.trim(),
+        negativePrompt: negativePrompt.trim() || undefined,
+        aspectRatio,
+      });
+      
       setIsGenerating(false);
-      toast({
-        title: 'Erro',
-        description: creditResult.message,
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    // Refresh profile to update credits display
-    await refreshProfile();
-    
-    // Call Higgsfield API via edge function
-    const result = await generateImage({
-      prompt: prompt.trim(),
-      negativePrompt: negativePrompt.trim() || undefined,
-      aspectRatio,
-    });
-    
-    setIsGenerating(false);
-    
-    if (result.success && result.imageUrl) {
-      setGeneratedImage(result.imageUrl);
       
-      // Auto-save to renders
-      const saveResult = await saveRender({
-        type: 'image',
-        url: result.imageUrl,
-        prompt: currentPrompt,
-        model: 'gemini-2.5-flash-image',
-      });
+      if (result.success && result.imageUrl) {
+        setGeneratedImage(result.imageUrl);
+        
+        // Auto-save to renders
+        const saveResult = await saveRender({
+          type: 'image',
+          url: result.imageUrl,
+          prompt: currentPrompt,
+          model: 'gemini-2.5-flash-image',
+        });
+        
+        if (saveResult.success) {
+          setIsSaved(true);
+        }
+        
+        toast({
+          title: 'Imagem gerada e salva! 🍉',
+          description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
+        });
+      } else {
+        throw new Error(result.error || 'Erro ao gerar imagem');
+      }
+    } catch (error) {
+      setIsGenerating(false);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      setGenerationError(errorMessage);
       
-      if (saveResult.success) {
-        setIsSaved(true);
+      // Refund credits if they were deducted
+      if (creditsWereDeducted) {
+        try {
+          const refundResult = await refundCredits('image', `Reembolso: ${errorMessage}`);
+          if (refundResult.success) {
+            await refreshProfile();
+            toast({
+              title: 'Créditos reembolsados',
+              description: `Seus ${creditCost} créditos foram devolvidos devido à falha na geração.`,
+            });
+          } else {
+            toast({
+              title: 'Erro na geração',
+              description: `${errorMessage}. Não foi possível reembolsar automaticamente. Entre em contato com o suporte.`,
+              variant: 'destructive',
+            });
+            return;
+          }
+        } catch (refundError) {
+          console.error('Refund failed:', refundError);
+        }
       }
       
       toast({
-        title: 'Imagem gerada e salva! 🍉',
-        description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
-      });
-    } else {
-      setGenerationError(result.error || 'Erro ao gerar imagem');
-      toast({
         title: 'Erro na geração',
-        description: result.error || 'Ocorreu um erro ao gerar a imagem. Seus créditos foram utilizados.',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

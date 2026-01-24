@@ -51,6 +51,46 @@ export async function useCreditsForGeneration(
   };
 }
 
+// Refund credits when generation fails
+export async function refundCredits(
+  type: GenerationType,
+  reason?: string
+): Promise<UseCreditsResult> {
+  const cost = CREDIT_COSTS[type];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return {
+      success: false,
+      newBalance: 0,
+      message: 'Usuário não autenticado',
+    };
+  }
+
+  const { data, error } = await supabase.rpc('add_credits', {
+    p_user_id: user.id,
+    p_amount: cost,
+    p_type: 'admin_adjustment',
+    p_description: reason || `Reembolso: falha na geração de ${type === 'image' ? 'imagem' : 'vídeo'}`,
+  });
+
+  if (error) {
+    console.error('Error refunding credits:', error);
+    return {
+      success: false,
+      newBalance: 0,
+      message: 'Erro ao reembolsar créditos',
+    };
+  }
+
+  const result = data?.[0];
+  return {
+    success: result?.success ?? false,
+    newBalance: result?.new_balance ?? 0,
+    message: result?.message ?? 'Erro desconhecido',
+  };
+}
+
 export function getCreditCost(type: GenerationType): number {
   return CREDIT_COSTS[type];
 }
