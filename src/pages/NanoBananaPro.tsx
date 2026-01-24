@@ -211,6 +211,11 @@ const NanoBananaPro = () => {
           <div className="rgb-border p-[2px] rounded-3xl">
             <GlassCard className="p-6 md:p-8 rounded-3xl">
               <div className="space-y-6">
+                {/* Demo GIF Space */}
+                <div className="w-full h-48 md:h-64 rounded-2xl bg-gradient-to-br from-watermelon-green/10 to-watermelon-pink/10 border border-dashed border-muted-foreground/30 flex items-center justify-center">
+                  <span className="text-muted-foreground text-sm">Espaço para GIF de demonstração</span>
+                </div>
+
                 {/* Prompt Field */}
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
