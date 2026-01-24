@@ -7,6 +7,22 @@ interface UseCreditsResult {
   success: boolean;
   newBalance: number;
   message: string;
+  skipped?: boolean; // Indicates if credits were skipped (e.g., Ultimate plan)
+}
+
+// Check if user has Ultimate subscription (images are free)
+export async function checkUnlimitedImages(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.functions.invoke('check-subscription');
+    if (error) {
+      console.error('Error checking subscription:', error);
+      return false;
+    }
+    return data?.plan === 'ultimate';
+  } catch (error) {
+    console.error('Error checking unlimited images:', error);
+    return false;
+  }
 }
 
 // Use credits with custom amount (for video resolution options)
@@ -14,8 +30,32 @@ export async function useCreditsWithAmount(
   amount: number,
   type: GenerationType,
   description?: string,
-  referenceId?: string
+  referenceId?: string,
+  skipForUltimate: boolean = false
 ): Promise<UseCreditsResult> {
+  // For images, check if user has Ultimate plan (unlimited images)
+  if (type === 'image' && skipForUltimate) {
+    const isUnlimited = await checkUnlimitedImages();
+    if (isUnlimited) {
+      // Get current balance without deducting
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('credits')
+          .eq('id', user.id)
+          .single();
+        
+        return {
+          success: true,
+          newBalance: profile?.credits ?? 0,
+          message: 'Imagens ilimitadas no plano Ultimate! 🚀',
+          skipped: true,
+        };
+      }
+    }
+  }
+
   const transactionType = type === 'image' ? 'image_generation' : 'video_generation';
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -55,10 +95,11 @@ export async function useCreditsWithAmount(
 export async function useCreditsForGeneration(
   type: GenerationType,
   description?: string,
-  referenceId?: string
+  referenceId?: string,
+  checkUnlimited: boolean = true
 ): Promise<UseCreditsResult> {
   const cost = CREDIT_COSTS[type];
-  return useCreditsWithAmount(cost, type, description, referenceId);
+  return useCreditsWithAmount(cost, type, description, referenceId, type === 'image' && checkUnlimited);
 }
 
 // Refund credits with custom amount

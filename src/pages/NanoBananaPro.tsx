@@ -12,7 +12,7 @@ import ReferenceImageUpload from "@/components/ReferenceImageUpload";
 import { PromptWarning } from "@/components/PromptWarning";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits } from "@/hooks/useCredits";
+import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits, checkUnlimitedImages } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
 import { generateImage } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
@@ -32,11 +32,12 @@ const NanoBananaPro = () => {
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [showWarnings, setShowWarnings] = useState(true);
   
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, subscription, refreshProfile } = useAuth();
   const { toast } = useToast();
   
   const creditCost = getCreditCost('image');
   const currentCredits = profile?.credits ?? 0;
+  const isUltimate = subscription?.plan === 'ultimate';
   
   // Validate prompt in real-time
   const promptValidation = usePromptValidation(prompt);
@@ -50,8 +51,8 @@ const NanoBananaPro = () => {
       return;
     }
     
-    // Check if user has enough credits
-    if (!canAfford(currentCredits, 'image')) {
+    // Check if user has enough credits (skip for Ultimate - unlimited images)
+    if (!isUltimate && !canAfford(currentCredits, 'image')) {
       setShowNoCreditsModal(true);
       return;
     }
@@ -63,17 +64,19 @@ const NanoBananaPro = () => {
     setCurrentPrompt(prompt.trim());
     
     let creditsWereDeducted = false;
+    let wasSkipped = false;
     
     try {
-      // Use credits first
+      // Use credits first (will be skipped for Ultimate plan)
       const creditResult = await useCreditsForGeneration('image', `Geração: ${prompt.substring(0, 50)}...`);
       
       if (!creditResult.success) {
         throw new Error(creditResult.message);
       }
       
-      // Mark credits as deducted for potential refund
-      creditsWereDeducted = true;
+      // Mark if credits were actually deducted (not skipped)
+      creditsWereDeducted = !creditResult.skipped;
+      wasSkipped = creditResult.skipped ?? false;
       
       // Refresh profile to update credits display
       await refreshProfile();
@@ -105,7 +108,9 @@ const NanoBananaPro = () => {
         
         toast({
           title: 'Imagem gerada e salva! 🍉',
-          description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
+          description: wasSkipped 
+            ? 'Imagens ilimitadas no plano Ultimate! 🚀' 
+            : `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
         });
       } else {
         throw new Error(result.error || 'Erro ao gerar imagem');
@@ -186,8 +191,17 @@ const NanoBananaPro = () => {
             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
               <Zap className="w-4 h-4 text-watermelon-green" />
               <span className="text-muted-foreground">Custo:</span>
-              <span className="font-bold text-watermelon-green">{creditCost} créditos</span>
-              <span className="text-muted-foreground">por imagem</span>
+              {isUltimate ? (
+                <>
+                  <span className="font-bold text-watermelon-green">ILIMITADO</span>
+                  <span className="text-xs text-muted-foreground">(Plano Ultimate)</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-bold text-watermelon-green">{creditCost} créditos</span>
+                  <span className="text-muted-foreground">por imagem</span>
+                </>
+              )}
             </div>
           </AnimatedSection>
         </div>
@@ -277,7 +291,12 @@ const NanoBananaPro = () => {
                     size="lg"
                     className="w-full text-lg"
                   >
-                    {isGenerating ? "Gerando sua obra-prima..." : `Gerar Imagem 🍉 (${creditCost} créditos)`}
+                    {isGenerating 
+                      ? "Gerando sua obra-prima..." 
+                      : isUltimate 
+                        ? "Gerar Imagem 🍉 (Ilimitado)" 
+                        : `Gerar Imagem 🍉 (${creditCost} créditos)`
+                    }
                   </WatermelonButton>
                   
                   {!user && (
@@ -373,7 +392,7 @@ const NanoBananaPro = () => {
                   </WatermelonButton>
                   <WatermelonButton variant="outline" size="md" onClick={handleGenerate}>
                     <RefreshCw className="w-4 h-4" />
-                    Gerar Variação ({creditCost} créditos)
+                    Gerar Variação {isUltimate ? '(Ilimitado)' : `(${creditCost} créditos)`}
                   </WatermelonButton>
                   {isSaved && (
                     <motion.div 
