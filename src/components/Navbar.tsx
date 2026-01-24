@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Video, FolderOpen, Menu, X, Sparkles, LogOut, Crown, User } from "lucide-react";
+import { Video, FolderOpen, Menu, X, Sparkles, LogOut, Crown, User, History } from "lucide-react";
 import { useState } from "react";
 import BananaIcon from "./BananaIcon";
 import CreditDisplay from "./CreditDisplay";
@@ -86,6 +86,17 @@ const Navbar = () => {
                   <Crown className="w-4 h-4" />
                   <span className="font-semibold">Planos</span>
                 </Link>
+                
+                {/* History Link - only for logged in users */}
+                {user && (
+                  <Link
+                    to="/historico"
+                    className={`nav-link flex items-center gap-2.5 ${isActive('/historico') ? "active" : ""}`}
+                  >
+                    <History className="w-4 h-4" />
+                    <span className="font-semibold">Histórico</span>
+                  </Link>
+                )}
               </div>
 
               {/* Right side - Auth & Credits */}
@@ -173,6 +184,22 @@ const Navbar = () => {
                   <Crown className="w-5 h-5" />
                   <span className="font-semibold">Planos</span>
                 </Link>
+
+                {/* History link mobile - only for logged in users */}
+                {user && (
+                  <Link
+                    to="/historico"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all mb-2 ${
+                      isActive('/historico') 
+                        ? "bg-gradient-to-r from-primary/20 to-secondary/20 text-foreground border border-primary/30" 
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    }`}
+                  >
+                    <History className="w-5 h-5" />
+                    <span className="font-semibold">Histórico</span>
+                  </Link>
+                )}
 
                 {/* Auth buttons mobile */}
                 <div className="mt-4 px-4 pt-4 border-t border-border">
