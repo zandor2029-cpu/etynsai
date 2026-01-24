@@ -9,9 +9,8 @@ const corsHeaders = {
 const REPLICATE_API_TOKEN = Deno.env.get('REPLICATE_API_TOKEN');
 const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
 
-// Model for video generation - Wan 2.2 I2V Fast
-const VIDEO_MODEL = 'wan-video/wan-2.2-i2v-fast';
-const VIDEO_MODEL_VERSION = 'b609b267d986d762a6d8679ac036d29e6d4454218df558db3aa4d0396ba55c59';
+// Model for video generation - Wan 2.2 I2V A14B (mais barato: $0.05-$0.11 por vídeo)
+const VIDEO_MODEL = 'wan-video/wan-2.2-i2v-a14b';
 
 interface GenerateVideoRequest {
   characterImageUrl: string;
@@ -119,18 +118,13 @@ serve(async (req) => {
     // Build enhanced prompt
     const enhancedPrompt = prompt?.trim() || 'Animate this character with natural, fluid movements';
 
-    // Create prediction with Replicate API (using correct parameter names)
+    // Create prediction with Replicate API - using official model (no version needed)
     const requestBody = {
-      version: VIDEO_MODEL_VERSION,
+      model: VIDEO_MODEL,
       input: {
         image: characterImageUrl,
         prompt: enhancedPrompt,
-        resolution: "720p",
-        aspect_ratio: "16:9",
-        num_frames: duration === 10 ? 121 : 81, // 81 frames for ~5s, 121 for ~7.5s at 16fps
-        frames_per_second: 16,
-        sample_shift: 12,
-        go_fast: true,
+        sample_steps: 30,
       }
     };
 
