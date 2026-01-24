@@ -7,10 +7,10 @@ import WatermelonLoader from "@/components/WatermelonLoader";
 import FileUpload from "@/components/FileUpload";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
-import VideoResolutionSelect from "@/components/VideoResolutionSelect";
+import VideoResolutionSelect, { VIDEO_CREDIT_COSTS } from "@/components/VideoResolutionSelect";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits } from "@/hooks/useCredits";
+import { useCreditsWithAmount, canAffordAmount, refundCreditsWithAmount } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
 import { uploadFileForGeneration } from "@/hooks/useFileUpload";
 import { generateVideo } from "@/hooks/useGeneration";
@@ -34,7 +34,7 @@ const KlingMotionControl = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
-  const creditCost = getCreditCost('video');
+  const creditCost = VIDEO_CREDIT_COSTS[resolution];
   const currentCredits = profile?.credits ?? 0;
   const canGenerateVideo = characterImage !== null;
 
@@ -48,7 +48,7 @@ const KlingMotionControl = () => {
     }
     
     // Check if user has enough credits
-    if (!canAfford(currentCredits, 'video')) {
+    if (!canAffordAmount(currentCredits, creditCost)) {
       setShowNoCreditsModal(true);
       return;
     }
@@ -73,10 +73,10 @@ const KlingMotionControl = () => {
         throw new Error(imageUpload.error || 'Falha ao fazer upload da imagem');
       }
 
-      // Use credits
+      // Use credits based on resolution
       setProgress(25);
       setProgressText("Processando créditos...");
-      const creditResult = await useCreditsForGeneration('video', 'Geração de vídeo com IA');
+      const creditResult = await useCreditsWithAmount(creditCost, 'video', `Geração de vídeo ${resolution}`);
       
       if (!creditResult.success) {
         throw new Error(creditResult.message);
@@ -152,7 +152,7 @@ const KlingMotionControl = () => {
       // Refund credits if they were deducted
       if (creditsWereDeducted) {
         try {
-          const refundResult = await refundCredits('video', `Reembolso: ${errorMessage}`);
+          const refundResult = await refundCreditsWithAmount(creditCost, `Reembolso: ${errorMessage}`);
           if (refundResult.success) {
             await refreshProfile();
             toast({
