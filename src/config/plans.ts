@@ -40,8 +40,8 @@ export const STRIPE_PLANS = {
     priceId: 'price_1StEveDRKf7UQFHVzVIO4NEC',
     popular: false,
     features: [
+      '🔥 IMAGENS ILIMITADAS',
       '1.200 créditos/mês',
-      '400 imagens em 4K',
       '120 vídeos motion',
       'Suporte VIP 24/7',
       'Renderização ultra-rápida',
