@@ -6,12 +6,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const HIGGSFIELD_API_KEY = Deno.env.get('HIGGSFIELD_API_KEY');
-const HIGGSFIELD_API_SECRET = Deno.env.get('HIGGSFIELD_API_SECRET');
-const HIGGSFIELD_BASE_URL = 'https://platform.higgsfield.ai';
+const REPLICATE_API_TOKEN = Deno.env.get('REPLICATE_API_TOKEN');
+const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
 
-// Model for video generation - Kling 2.1 Pro
-const VIDEO_MODEL = 'kling-video/v2.1/pro/image-to-video';
+// Model for video generation - Wan 2.2 I2V Fast (very fast and popular)
+const VIDEO_MODEL = 'wan-video/wan-2.2-i2v-fast';
+const VIDEO_MODEL_VERSION = 'f823e88927ac5d7bbd8c0a32886894ab8fa20a1b15e9eb29ede5a1ba1f3550b9';
 
 interface GenerateVideoRequest {
   characterImageUrl: string;
@@ -26,15 +26,13 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 };
 
 // Poll for generation status
-async function pollForResult(requestId: string, maxAttempts = 120): Promise<{ url: string } | null> {
-  const statusUrl = `${HIGGSFIELD_BASE_URL}/requests/${requestId}/status`;
-  
+async function pollForResult(predictionUrl: string, maxAttempts = 120): Promise<{ url: string } | null> {
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const response = await fetch(statusUrl, {
+      const response = await fetch(predictionUrl, {
         headers: {
-          'Authorization': `Key ${HIGGSFIELD_API_KEY}:${HIGGSFIELD_API_SECRET}`,
-          'Accept': 'application/json',
+          'Authorization': `Bearer ${REPLICATE_API_TOKEN}`,
+          'Content-Type': 'application/json',
         },
       });
 
@@ -47,15 +45,19 @@ async function pollForResult(requestId: string, maxAttempts = 120): Promise<{ ur
       const data = await response.json();
       logStep('Status check', { status: data.status, attempt: i + 1 });
 
-      if (data.status === 'completed') {
-        if (data.video && data.video.url) {
-          return { url: data.video.url };
+      if (data.status === 'succeeded') {
+        // Replicate returns output as string URL or array
+        const output = data.output;
+        if (typeof output === 'string') {
+          return { url: output };
+        } else if (Array.isArray(output) && output.length > 0) {
+          return { url: output[0] };
         }
         return null;
       }
 
-      if (data.status === 'failed' || data.status === 'nsfw') {
-        logStep('Generation failed', { status: data.status });
+      if (data.status === 'failed' || data.status === 'canceled') {
+        logStep('Generation failed', { status: data.status, error: data.error });
         return null;
       }
 
@@ -78,9 +80,9 @@ serve(async (req) => {
   try {
     logStep('Function invoked');
 
-    // Validate API credentials
-    if (!HIGGSFIELD_API_KEY || !HIGGSFIELD_API_SECRET) {
-      throw new Error('Higgsfield API credentials not configured');
+    // Validate API token
+    if (!REPLICATE_API_TOKEN) {
+      throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
     // Authenticate user
@@ -103,58 +105,68 @@ serve(async (req) => {
     logStep('User authenticated', { userId: user.id });
 
     // Parse request body
-    const { characterImageUrl, motionVideoUrl, prompt, duration = 5 } = await req.json() as GenerateVideoRequest;
+    const { characterImageUrl, prompt, duration = 5 } = await req.json() as GenerateVideoRequest;
 
     if (!characterImageUrl) {
       throw new Error('Character image URL is required');
     }
 
     logStep('Generating video', { 
-      hasMotionVideo: !!motionVideoUrl, 
       prompt: prompt?.substring(0, 50),
       duration 
     });
 
-    // Build the request to Higgsfield API
-    const generateUrl = `${HIGGSFIELD_BASE_URL}/${VIDEO_MODEL}`;
-    
-    const requestBody: Record<string, unknown> = {
-      image_url: characterImageUrl,
-      prompt: prompt || 'Animate this character with natural, fluid movements',
-      duration: Math.min(Math.max(duration, 5), 10), // Clamp between 5-10 seconds
+    // Build enhanced prompt
+    const enhancedPrompt = prompt?.trim() || 'Animate this character with natural, fluid movements';
+
+    // Create prediction with Replicate API
+    const requestBody = {
+      version: VIDEO_MODEL_VERSION,
+      input: {
+        image: characterImageUrl,
+        prompt: enhancedPrompt,
+        max_area: "720p",
+        frame_num: duration === 10 ? 81 : 41, // ~5s or ~10s at 8fps
+        sample_shift: 8,
+        sample_steps: 30,
+        sample_guide_scale: 5,
+      }
     };
 
-    // If motion video is provided, use motion control
-    if (motionVideoUrl) {
-      requestBody.motion_video_url = motionVideoUrl;
-    }
+    logStep('Sending to Replicate', { model: VIDEO_MODEL });
 
-    logStep('Sending to Higgsfield', { model: VIDEO_MODEL });
-
-    const generateResponse = await fetch(generateUrl, {
+    const createResponse = await fetch(REPLICATE_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${HIGGSFIELD_API_KEY}:${HIGGSFIELD_API_SECRET}`,
+        'Authorization': `Bearer ${REPLICATE_API_TOKEN}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
       },
       body: JSON.stringify(requestBody),
     });
 
-    if (!generateResponse.ok) {
-      const errorText = await generateResponse.text();
-      logStep('Higgsfield API error', { status: generateResponse.status, error: errorText });
-      throw new Error(`Higgsfield API error: ${generateResponse.status}`);
+    if (!createResponse.ok) {
+      const errorText = await createResponse.text();
+      logStep('Replicate API error', { status: createResponse.status, error: errorText });
+      
+      if (createResponse.status === 401) {
+        throw new Error('Token da API Replicate inválido ou expirado.');
+      }
+      
+      if (createResponse.status === 402) {
+        throw new Error('Créditos insuficientes no Replicate. Adicione créditos em replicate.com.');
+      }
+      
+      throw new Error(`Erro na geração de vídeo. Código: ${createResponse.status}`);
     }
 
-    const generateData = await generateResponse.json();
-    logStep('Generation queued', { requestId: generateData.request_id, status: generateData.status });
+    const prediction = await createResponse.json();
+    logStep('Prediction created', { id: prediction.id, status: prediction.status });
 
-    // Poll for result (video takes longer)
-    const result = await pollForResult(generateData.request_id);
+    // Poll for result
+    const result = await pollForResult(prediction.urls.get);
 
     if (!result) {
-      throw new Error('Video generation failed or timed out');
+      throw new Error('Geração de vídeo falhou ou expirou. Tente novamente.');
     }
 
     logStep('Video generated successfully', { videoUrl: result.url.substring(0, 50) });
@@ -163,7 +175,8 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         videoUrl: result.url,
-        requestId: generateData.request_id,
+        predictionId: prediction.id,
+        model: VIDEO_MODEL,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -176,7 +189,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Erro desconhecido',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
