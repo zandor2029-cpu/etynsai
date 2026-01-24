@@ -116,6 +116,39 @@ export type Database = {
         }
         Relationships: []
       }
+      renders: {
+        Row: {
+          created_at: string
+          id: string
+          model: string | null
+          prompt: string | null
+          thumbnail_url: string | null
+          type: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          model?: string | null
+          prompt?: string | null
+          thumbnail_url?: string | null
+          type: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          model?: string | null
+          prompt?: string | null
+          thumbnail_url?: string | null
+          type?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
