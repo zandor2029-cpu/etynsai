@@ -16,6 +16,7 @@ interface GenerateImageRequest {
   prompt: string;
   negativePrompt?: string;
   aspectRatio?: string;
+  referenceImages?: string[]; // URLs of reference images for image-to-image
 }
 
 const logStep = (step: string, details?: Record<string, unknown>) => {
@@ -56,19 +57,25 @@ serve(async (req) => {
     logStep('User authenticated', { userId: user.id });
 
     // Parse request body
-    const { prompt, negativePrompt, aspectRatio = '1:1' } = await req.json() as GenerateImageRequest;
+    const { prompt, negativePrompt, aspectRatio = '1:1', referenceImages } = await req.json() as GenerateImageRequest;
 
     if (!prompt || prompt.trim() === '') {
       throw new Error('Prompt is required');
     }
 
-    logStep('Generating image', { prompt: prompt.substring(0, 50), aspectRatio });
+    const hasReferenceImages = referenceImages && referenceImages.length > 0;
+    logStep('Generating image', { 
+      prompt: prompt.substring(0, 50), 
+      aspectRatio, 
+      hasReferenceImages,
+      referenceImageCount: referenceImages?.length || 0
+    });
 
     // Build enhanced prompt with aspect ratio and quality instructions
     let enhancedPrompt = prompt.trim();
     
-    // Add aspect ratio context
-    if (aspectRatio !== '1:1') {
+    // Add aspect ratio context (only for text-to-image)
+    if (!hasReferenceImages && aspectRatio !== '1:1') {
       enhancedPrompt += `. Image should be in ${aspectRatio} aspect ratio.`;
     }
     
@@ -80,7 +87,29 @@ serve(async (req) => {
     // Add quality instructions
     enhancedPrompt += ' High quality, detailed, professional.';
 
-    logStep('Sending to Lovable AI Gateway', { model: IMAGE_MODEL });
+    logStep('Sending to Lovable AI Gateway', { model: IMAGE_MODEL, hasReferenceImages });
+
+    // Build message content - either text-only or with reference images
+    let messageContent: any;
+    
+    if (hasReferenceImages) {
+      // Image-to-Image: include reference images in the message
+      messageContent = [
+        {
+          type: 'text',
+          text: enhancedPrompt
+        },
+        ...referenceImages.map((imageUrl: string) => ({
+          type: 'image_url',
+          image_url: {
+            url: imageUrl
+          }
+        }))
+      ];
+    } else {
+      // Text-to-Image: just the prompt
+      messageContent = enhancedPrompt;
+    }
 
     const response = await fetch(LOVABLE_AI_GATEWAY, {
       method: 'POST',
@@ -93,7 +122,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'user',
-            content: enhancedPrompt
+            content: messageContent
           }
         ],
         modalities: ['image', 'text']

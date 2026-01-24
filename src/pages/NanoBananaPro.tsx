@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check } from "lucide-react";
+import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ImagePlus } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
@@ -8,6 +8,7 @@ import AspectRatioSelect from "@/components/AspectRatioSelect";
 import WatermelonIcon from "@/components/WatermelonIcon";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
+import ReferenceImageUpload from "@/components/ReferenceImageUpload";
 import { PromptWarning } from "@/components/PromptWarning";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +22,7 @@ const NanoBananaPro = () => {
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState("1:1");
+  const [referenceImages, setReferenceImages] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -81,6 +83,7 @@ const NanoBananaPro = () => {
         prompt: prompt.trim(),
         negativePrompt: negativePrompt.trim() || undefined,
         aspectRatio,
+        referenceImages: referenceImages.length > 0 ? referenceImages : undefined,
       });
       
       setIsGenerating(false);
@@ -151,7 +154,7 @@ const NanoBananaPro = () => {
           <AnimatedBadge delay={0}>
             <div className="inline-flex items-center gap-2 badge-rgb mb-4">
               <Wand2 className="w-4 h-4" />
-              <span>Geração em 4K Ultra HD</span>
+              <span>{referenceImages.length > 0 ? 'Image-to-Image · 4K' : 'Geração em 4K Ultra HD'}</span>
             </div>
           </AnimatedBadge>
           
@@ -165,8 +168,16 @@ const NanoBananaPro = () => {
           
           <AnimatedSection delay={0.2}>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Gere imagens em <span className="text-watermelon-green-light font-semibold">qualidade profissional</span> com 
-              IA de <span className="text-watermelon-pink font-semibold">última geração</span>
+              {referenceImages.length > 0 ? (
+                <>
+                  <span className="text-watermelon-pink font-semibold">Image-to-Image:</span> Edite, mescle e transforme suas imagens com <span className="text-watermelon-green-light font-semibold">IA de última geração</span>
+                </>
+              ) : (
+                <>
+                  Gere imagens em <span className="text-watermelon-green-light font-semibold">qualidade profissional</span> com 
+                  IA de <span className="text-watermelon-pink font-semibold">última geração</span>
+                </>
+              )}
             </p>
           </AnimatedSection>
           
@@ -226,6 +237,14 @@ const NanoBananaPro = () => {
                     rows={2}
                   />
                 </div>
+
+                {/* Reference Images Upload */}
+                <ReferenceImageUpload
+                  images={referenceImages}
+                  onImagesChange={setReferenceImages}
+                  maxImages={2}
+                  disabled={isGenerating}
+                />
 
                 {/* Settings Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

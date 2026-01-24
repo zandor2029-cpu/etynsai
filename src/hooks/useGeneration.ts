@@ -4,6 +4,7 @@ interface GenerateImageParams {
   prompt: string;
   negativePrompt?: string;
   aspectRatio?: string;
+  referenceImages?: string[]; // URLs of reference images for image-to-image
 }
 
 interface GenerateImageResult {
