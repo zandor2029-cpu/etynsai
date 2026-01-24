@@ -14,7 +14,6 @@ import { generateVideo } from "@/hooks/useGeneration";
 
 const KlingMotionControl = () => {
   const [characterImage, setCharacterImage] = useState<File | null>(null);
-  const [motionVideo, setMotionVideo] = useState<File | null>(null);
   const [instructions, setInstructions] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -29,10 +28,10 @@ const KlingMotionControl = () => {
 
   const creditCost = getCreditCost('video');
   const currentCredits = profile?.credits ?? 0;
-  const canGenerateVideo = characterImage && motionVideo;
+  const canGenerateVideo = characterImage !== null;
 
   const handleGenerate = async () => {
-    if (!canGenerateVideo || !characterImage || !motionVideo) return;
+    if (!canGenerateVideo || !characterImage) return;
     
     // Check if user is logged in
     if (!user) {
@@ -61,18 +60,10 @@ const KlingMotionControl = () => {
         throw new Error(imageUpload.error || 'Falha ao fazer upload da imagem');
       }
 
-      // Upload motion video
-      setProgress(25);
-      setProgressText("Fazendo upload do vídeo...");
-      const videoUpload = await uploadFileForGeneration(motionVideo, user.id);
-      if (!videoUpload.success || !videoUpload.url) {
-        throw new Error(videoUpload.error || 'Falha ao fazer upload do vídeo');
-      }
-
       // Use credits
-      setProgress(35);
+      setProgress(25);
       setProgressText("Processando créditos...");
-      const creditResult = await useCreditsForGeneration('video', 'Geração de vídeo motion control');
+      const creditResult = await useCreditsForGeneration('video', 'Geração de vídeo com IA');
       
       if (!creditResult.success) {
         throw new Error(creditResult.message);
@@ -82,34 +73,30 @@ const KlingMotionControl = () => {
       await refreshProfile();
 
       // Call generation API
-      setProgress(45);
+      setProgress(35);
       setProgressText("Iniciando geração com IA...");
       
-      const result = await generateVideo({
-        characterImageUrl: imageUpload.url,
-        motionVideoUrl: videoUpload.url,
-        prompt: instructions.trim() || undefined,
-        duration: 5,
-      });
-
-      // Simulate progress while waiting (the actual polling happens in edge function)
-      let currentProgress = 45;
+      // Start progress simulation
+      let currentProgress = 35;
       const progressInterval = setInterval(() => {
-        currentProgress = Math.min(currentProgress + 5, 95);
+        currentProgress = Math.min(currentProgress + 3, 90);
         setProgress(currentProgress);
-        if (currentProgress < 60) {
-          setProgressText("Analisando movimentos...");
-        } else if (currentProgress < 75) {
-          setProgressText("Aplicando ao personagem...");
-        } else if (currentProgress < 90) {
+        if (currentProgress < 50) {
+          setProgressText("Analisando imagem...");
+        } else if (currentProgress < 65) {
+          setProgressText("Gerando movimentos...");
+        } else if (currentProgress < 80) {
           setProgressText("Renderizando frames...");
         } else {
           setProgressText("Finalizando vídeo...");
         }
-      }, 3000);
+      }, 4000);
 
-      // Wait a bit for the result to come back from edge function
-      await new Promise(r => setTimeout(r, 2000));
+      const result = await generateVideo({
+        characterImageUrl: imageUpload.url,
+        prompt: instructions.trim() || undefined,
+        duration: 5,
+      });
       
       clearInterval(progressInterval);
       setProgress(100);
@@ -145,17 +132,17 @@ const KlingMotionControl = () => {
         <div className="text-center mb-12 animate-fade-in">
           <div className="inline-flex items-center gap-2 badge-rgb mb-4">
             <Play className="w-4 h-4" />
-            <span>Motion Transfer AI</span>
+            <span>Imagem para Vídeo com IA</span>
           </div>
           
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6">
-            <span className="text-gradient-rgb">Kling Motion Control</span>
+            <span className="text-gradient-rgb">Gerador de Vídeo</span>
             <span className="ml-3 inline-block animate-float">🎬</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Transfira <span className="text-watermelon-pink font-semibold">movimentos reais</span> para 
-            seus personagens com <span className="text-watermelon-green-light font-semibold">IA avançada</span>
+            Transforme <span className="text-watermelon-pink font-semibold">imagens estáticas</span> em 
+            vídeos com <span className="text-watermelon-green-light font-semibold">movimentos realistas</span>
           </p>
           
           {/* Credit cost indicator */}
@@ -171,30 +158,23 @@ const KlingMotionControl = () => {
         <div className="rgb-border p-[2px] rounded-3xl animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
           <GlassCard className="p-6 md:p-8 rounded-3xl">
             <div className="space-y-6">
-              {/* Upload Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FileUpload
-                  label="Imagem do Personagem"
-                  accept="image"
-                  onFileSelect={setCharacterImage}
-                />
-                <FileUpload
-                  label="Vídeo de Movimento"
-                  accept="video"
-                  onFileSelect={setMotionVideo}
-                />
-              </div>
+              {/* Image Upload */}
+              <FileUpload
+                label="Imagem para Animar"
+                accept="image"
+                onFileSelect={setCharacterImage}
+              />
 
               {/* Movement Instructions */}
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                   <Clapperboard className="w-4 h-4" />
-                  Instruções de Movimento <span className="text-xs font-normal">(opcional)</span>
+                  Descrição do Movimento <span className="text-xs font-normal">(opcional)</span>
                 </label>
                 <textarea
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
-                  placeholder="Movimento suave, cinematográfico, natural, expressivo…"
+                  placeholder="Descreva o movimento desejado: andar para frente, acenar, dançar, expressão feliz…"
                   className="textarea-glass w-full"
                   rows={3}
                 />
@@ -209,12 +189,12 @@ const KlingMotionControl = () => {
                   size="lg"
                   className="w-full text-lg"
                 >
-                  {isGenerating ? "Processando Motion Control..." : `Gerar Vídeo 🍉 (${creditCost} créditos)`}
+                  {isGenerating ? "Gerando vídeo com IA..." : `Gerar Vídeo 🍉 (${creditCost} créditos)`}
                 </WatermelonButton>
                 
                 {!canGenerateVideo && (
                   <p className="text-center text-sm text-muted-foreground mt-3">
-                    📎 Faça upload de uma imagem e um vídeo para começar
+                    📎 Faça upload de uma imagem para começar
                   </p>
                 )}
                 
@@ -233,7 +213,7 @@ const KlingMotionControl = () => {
           <div className="mt-10 animate-fade-in">
             <GlassCard className="p-12 md:p-16">
               <div className="space-y-10">
-                <WatermelonLoader text="Aplicando motion control… 🎥" />
+                <WatermelonLoader text="Gerando seu vídeo… 🎥" />
                 
                 {/* Progress Bar */}
                 <div className="max-w-md mx-auto">
