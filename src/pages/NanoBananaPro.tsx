@@ -29,6 +29,8 @@ const NanoBananaPro = () => {
   const [referenceImages, setReferenceImages] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isImageLoading, setIsImageLoading] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -97,6 +99,8 @@ const NanoBananaPro = () => {
     
     setIsGenerating(true);
     setGeneratedImage(null);
+    setIsImageLoading(false);
+    setImageLoadError(null);
     setGenerationError(null);
     setIsSaved(false);
     setCurrentPrompt(prompt.trim());
@@ -132,6 +136,9 @@ const NanoBananaPro = () => {
       
       if (result.success && result.imageUrl) {
         setGeneratedImage(result.imageUrl);
+        // Pollinations gera sob demanda; mostramos loading até o <img> disparar onLoad
+        setIsImageLoading(true);
+        setImageLoadError(null);
         
         // Auto-save to renders
         const saveResult = await saveRender({
@@ -454,30 +461,43 @@ const NanoBananaPro = () => {
                   transition={{ duration: 0.3 }}
                 >
                   {/* Loading overlay while image loads */}
-                  <div 
-                    id="image-loading-overlay" 
-                    className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-watermelon-green/10 to-watermelon-pink/10 z-10"
-                  >
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-watermelon-green mx-auto mb-2"></div>
-                      <p className="text-sm text-muted-foreground">Carregando imagem...</p>
+                  {isImageLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-watermelon-green/10 to-watermelon-pink/10 z-10">
+                      <div className="text-center px-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-watermelon-green mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">Carregando imagem (pode levar alguns segundos)...</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {imageLoadError && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-10">
+                      <div className="text-center px-4">
+                        <p className="text-sm text-destructive font-medium mb-2">{imageLoadError}</p>
+                        {generatedImage && (
+                          <a
+                            href={generatedImage}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm underline text-foreground"
+                          >
+                            Abrir imagem em nova aba
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   <img
                     src={generatedImage}
                     alt="Imagem gerada"
                     className="w-full h-auto"
-                    onLoad={(e) => {
-                      // Hide loading overlay when image loads
-                      const overlay = document.getElementById('image-loading-overlay');
-                      if (overlay) overlay.style.display = 'none';
+                    onLoad={() => {
+                      setIsImageLoading(false);
+                      setImageLoadError(null);
                     }}
-                    onError={(e) => {
-                      // Show error if image fails to load
-                      const overlay = document.getElementById('image-loading-overlay');
-                      if (overlay) {
-                        overlay.innerHTML = '<p class="text-destructive text-sm">Erro ao carregar imagem. Tente gerar novamente.</p>';
-                      }
+                    onError={() => {
+                      setIsImageLoading(false);
+                      setImageLoadError('Erro ao carregar a imagem. Tente gerar novamente.');
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
