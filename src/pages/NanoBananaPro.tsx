@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ImagePlus } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
@@ -9,6 +9,7 @@ import WatermelonIcon from "@/components/WatermelonIcon";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
 import ReferenceImageUpload from "@/components/ReferenceImageUpload";
+import PromptAssistant from "@/components/PromptAssistant";
 import { PromptWarning } from "@/components/PromptWarning";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generateImage } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
 import { usePromptValidation } from "@/hooks/usePromptValidation";
+import { usePromptAssistant } from "@/hooks/usePromptAssistant";
 
 const NanoBananaPro = () => {
   const [prompt, setPrompt] = useState("");
@@ -31,6 +33,7 @@ const NanoBananaPro = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [showWarnings, setShowWarnings] = useState(true);
+  const [showAssistant, setShowAssistant] = useState(false);
   
   const { user, profile, subscription, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -41,6 +44,39 @@ const NanoBananaPro = () => {
   
   // Validate prompt in real-time
   const promptValidation = usePromptValidation(prompt);
+  
+  // Prompt assistant
+  const promptAssistant = usePromptAssistant();
+  
+  const handleEnhancePrompt = useCallback(() => {
+    if (prompt.trim().length >= 3) {
+      setShowAssistant(true);
+      promptAssistant.enhance(prompt, 'image');
+    }
+  }, [prompt, promptAssistant]);
+  
+  const handleApplyEnhanced = useCallback((enhanced: string) => {
+    setPrompt(enhanced);
+    setShowAssistant(false);
+    promptAssistant.clear();
+    toast({
+      title: "Prompt aplicado!",
+      description: "O prompt aprimorado foi aplicado.",
+    });
+  }, [promptAssistant, toast]);
+  
+  const handleApplySuggestion = useCallback((suggestion: string) => {
+    setPrompt(prev => `${prev.trim()}, ${suggestion}`);
+    toast({
+      title: "Sugestão adicionada!",
+      description: suggestion,
+    });
+  }, [toast]);
+  
+  const handleCloseAssistant = useCallback(() => {
+    setShowAssistant(false);
+    promptAssistant.clear();
+  }, [promptAssistant]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -219,23 +255,50 @@ const NanoBananaPro = () => {
 
                 {/* Prompt Field */}
                 <div className="space-y-2 md:space-y-3">
-                  <label className="flex items-center gap-2 md:gap-2.5 text-xs md:text-sm font-semibold text-foreground tracking-wide">
-                    <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-watermelon-green flex-shrink-0" />
-                    <span>Prompt</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 md:gap-2.5 text-xs md:text-sm font-semibold text-foreground tracking-wide">
+                      <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-watermelon-green flex-shrink-0" />
+                      <span>Prompt</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleEnhancePrompt}
+                      disabled={prompt.trim().length < 3 || promptAssistant.isLoading}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-watermelon-green/10 to-watermelon-pink/10 border border-watermelon-green/30 hover:border-watermelon-green/50 text-watermelon-green disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+                    >
+                      <Wand2 className="w-3 h-3" />
+                      <span className="hidden sm:inline">Melhorar com IA</span>
+                      <span className="sm:hidden">IA</span>
+                    </button>
+                  </div>
                   <textarea
                     value={prompt}
                     onChange={(e) => {
                       setPrompt(e.target.value);
                       setShowWarnings(true);
+                      if (showAssistant) {
+                        setShowAssistant(false);
+                        promptAssistant.clear();
+                      }
                     }}
                     placeholder="Descreva a imagem que você quer gerar… seja detalhado e criativo! 🎨"
                     className="textarea-glass w-full text-sm md:text-base"
                     rows={3}
                   />
                   
+                  {/* AI Prompt Assistant */}
+                  {showAssistant && (
+                    <PromptAssistant
+                      suggestions={promptAssistant.suggestions}
+                      isLoading={promptAssistant.isLoading}
+                      onApplyEnhanced={handleApplyEnhanced}
+                      onApplySuggestion={handleApplySuggestion}
+                      onClose={handleCloseAssistant}
+                    />
+                  )}
+                  
                   {/* Prompt validation warnings */}
-                  {prompt.trim() && showWarnings && promptValidation.warnings.length > 0 && (
+                  {prompt.trim() && showWarnings && !showAssistant && promptValidation.warnings.length > 0 && (
                     <PromptWarning 
                       warnings={promptValidation.warnings}
                       hasBlockingWarning={promptValidation.hasBlockingWarning}

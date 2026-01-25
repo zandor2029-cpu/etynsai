@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Download, Video, Clapperboard, Play, Zap, AlertCircle, Check, Settings } from "lucide-react";
+import { Download, Video, Clapperboard, Play, Zap, AlertCircle, Check, Settings, Wand2 } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
@@ -8,6 +8,7 @@ import FileUpload from "@/components/FileUpload";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
 import VideoResolutionSelect, { VIDEO_CREDIT_COSTS } from "@/components/VideoResolutionSelect";
+import PromptAssistant from "@/components/PromptAssistant";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsWithAmount, canAffordAmount, refundCreditsWithAmount } from "@/hooks/useCredits";
@@ -15,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { uploadFileForGeneration } from "@/hooks/useFileUpload";
 import { generateVideo } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
+import { usePromptAssistant } from "@/hooks/usePromptAssistant";
 
 const KlingMotionControl = () => {
   const [characterImage, setCharacterImage] = useState<File | null>(null);
@@ -30,6 +32,7 @@ const KlingMotionControl = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [creditsDeducted, setCreditsDeducted] = useState(false);
+  const [showAssistant, setShowAssistant] = useState(false);
 
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -37,6 +40,39 @@ const KlingMotionControl = () => {
   const creditCost = VIDEO_CREDIT_COSTS[resolution];
   const currentCredits = profile?.credits ?? 0;
   const canGenerateVideo = characterImage !== null;
+  
+  // Prompt assistant for video
+  const promptAssistant = usePromptAssistant();
+  
+  const handleEnhancePrompt = useCallback(() => {
+    if (instructions.trim().length >= 3) {
+      setShowAssistant(true);
+      promptAssistant.enhance(instructions, 'video');
+    }
+  }, [instructions, promptAssistant]);
+  
+  const handleApplyEnhanced = useCallback((enhanced: string) => {
+    setInstructions(enhanced);
+    setShowAssistant(false);
+    promptAssistant.clear();
+    toast({
+      title: "Prompt aplicado!",
+      description: "A descrição aprimorada foi aplicada.",
+    });
+  }, [promptAssistant, toast]);
+  
+  const handleApplySuggestion = useCallback((suggestion: string) => {
+    setInstructions(prev => `${prev.trim()}, ${suggestion}`);
+    toast({
+      title: "Sugestão adicionada!",
+      description: suggestion,
+    });
+  }, [toast]);
+  
+  const handleCloseAssistant = useCallback(() => {
+    setShowAssistant(false);
+    promptAssistant.clear();
+  }, [promptAssistant]);
 
   const handleGenerate = async () => {
     if (!canGenerateVideo || !characterImage) return;
@@ -237,17 +273,46 @@ const KlingMotionControl = () => {
 
                 {/* Movement Instructions */}
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                    <Clapperboard className="w-4 h-4" />
-                    Descrição do Movimento <span className="text-xs font-normal">(opcional)</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                      <Clapperboard className="w-4 h-4" />
+                      Descrição do Movimento <span className="text-xs font-normal">(opcional)</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleEnhancePrompt}
+                      disabled={instructions.trim().length < 3 || promptAssistant.isLoading}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-watermelon-green/10 to-watermelon-pink/10 border border-watermelon-green/30 hover:border-watermelon-green/50 text-watermelon-green disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+                    >
+                      <Wand2 className="w-3 h-3" />
+                      <span className="hidden sm:inline">Melhorar com IA</span>
+                      <span className="sm:hidden">IA</span>
+                    </button>
+                  </div>
                   <textarea
                     value={instructions}
-                    onChange={(e) => setInstructions(e.target.value)}
+                    onChange={(e) => {
+                      setInstructions(e.target.value);
+                      if (showAssistant) {
+                        setShowAssistant(false);
+                        promptAssistant.clear();
+                      }
+                    }}
                     placeholder="Descreva o movimento desejado: andar para frente, acenar, dançar, expressão feliz…"
                     className="textarea-glass w-full"
                     rows={3}
                   />
+                  
+                  {/* AI Prompt Assistant for Video */}
+                  {showAssistant && (
+                    <PromptAssistant
+                      suggestions={promptAssistant.suggestions}
+                      isLoading={promptAssistant.isLoading}
+                      onApplyEnhanced={handleApplyEnhanced}
+                      onApplySuggestion={handleApplySuggestion}
+                      onClose={handleCloseAssistant}
+                    />
+                  )}
                 </div>
 
                 {/* Resolution Select */}
