@@ -6,23 +6,32 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-const LOVABLE_AI_GATEWAY = 'https://ai.gateway.lovable.dev/v1/chat/completions';
-
-// Model for image generation - Nano Banana (Gemini Image)
-const IMAGE_MODEL = 'google/gemini-2.5-flash-image-preview';
+const REPLICATE_API_TOKEN = Deno.env.get('REPLICATE_API_TOKEN');
 
 interface GenerateImageRequest {
   prompt: string;
   negativePrompt?: string;
   aspectRatio?: string;
-  referenceImages?: string[]; // URLs of reference images for image-to-image
+  referenceImages?: string[];
 }
 
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[GENERATE-IMAGE] ${step}${detailsStr}`);
 };
+
+// Convert aspect ratio to width/height for FLUX
+function getImageDimensions(aspectRatio: string): { width: number; height: number } {
+  const dimensions: Record<string, { width: number; height: number }> = {
+    '1:1': { width: 1024, height: 1024 },
+    '16:9': { width: 1344, height: 768 },
+    '9:16': { width: 768, height: 1344 },
+    '4:3': { width: 1152, height: 896 },
+    '3:4': { width: 896, height: 1152 },
+    '21:9': { width: 1536, height: 640 },
+  };
+  return dimensions[aspectRatio] || dimensions['1:1'];
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -32,9 +41,8 @@ serve(async (req) => {
   try {
     logStep('Function invoked');
 
-    // Validate API key
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    if (!REPLICATE_API_TOKEN) {
+      throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
     // Authenticate user
@@ -64,191 +72,107 @@ serve(async (req) => {
     }
 
     const hasReferenceImages = referenceImages && referenceImages.length > 0;
-    logStep('Generating image', { 
+    logStep('Generating image with FLUX Schnell', { 
       prompt: prompt.substring(0, 50), 
       aspectRatio, 
       hasReferenceImages,
-      referenceImageCount: referenceImages?.length || 0
     });
 
-    // Build enhanced prompt with aspect ratio and quality instructions
+    // Build enhanced prompt
     let enhancedPrompt = prompt.trim();
     
-    // Add aspect ratio context (only for text-to-image)
-    if (!hasReferenceImages && aspectRatio !== '1:1') {
-      enhancedPrompt += `. Image should be in ${aspectRatio} aspect ratio.`;
-    }
-    
-    // Add negative prompt if provided
     if (negativePrompt && negativePrompt.trim()) {
-      enhancedPrompt += ` Avoid: ${negativePrompt.trim()}.`;
+      enhancedPrompt += `. Avoid: ${negativePrompt.trim()}.`;
     }
     
-    // Add quality instructions
     enhancedPrompt += ' High quality, detailed, professional.';
 
-    logStep('Sending to Lovable AI Gateway', { model: IMAGE_MODEL, hasReferenceImages });
+    const { width, height } = getImageDimensions(aspectRatio);
 
-    // Build message content - either text-only or with reference images
-    let messageContent: any;
+    // Use FLUX Schnell model via Replicate
+    const model = 'black-forest-labs/flux-schnell';
     
+    const replicateInput: Record<string, unknown> = {
+      prompt: enhancedPrompt,
+      num_outputs: 1,
+      aspect_ratio: aspectRatio,
+      output_format: 'png',
+      output_quality: 90,
+      go_fast: true,
+    };
+
+    // If reference images provided, use img2img approach
     if (hasReferenceImages) {
-      // Image-to-Image: include reference images in the message
-      messageContent = [
-        {
-          type: 'text',
-          text: enhancedPrompt
-        },
-        ...referenceImages.map((imageUrl: string) => ({
-          type: 'image_url',
-          image_url: {
-            url: imageUrl
-          }
-        }))
-      ];
-    } else {
-      // Text-to-Image: just the prompt
-      messageContent = enhancedPrompt;
+      replicateInput.image = referenceImages[0];
+      replicateInput.prompt_strength = 0.8;
     }
 
-    const response = await fetch(LOVABLE_AI_GATEWAY, {
+    logStep('Calling Replicate API', { model });
+
+    // Create prediction
+    const createResponse = await fetch('https://api.replicate.com/v1/models/' + model + '/predictions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${REPLICATE_API_TOKEN}`,
         'Content-Type': 'application/json',
+        'Prefer': 'wait',
       },
-      body: JSON.stringify({
-        model: IMAGE_MODEL,
-        messages: [
-          {
-            role: 'user',
-            content: messageContent
-          }
-        ],
-        modalities: ['image', 'text']
-      }),
+      body: JSON.stringify({ input: replicateInput }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      logStep('Lovable AI error', { status: response.status, error: errorText });
-      
-      if (response.status === 429) {
-        throw new Error('Limite de requisições excedido. Tente novamente em alguns minutos.');
-      }
-      
-      if (response.status === 402) {
-        throw new Error('Créditos insuficientes no workspace Lovable. Adicione créditos para continuar.');
-      }
-      
-      throw new Error(`Erro na geração de imagem. Código: ${response.status}`);
+    if (!createResponse.ok) {
+      const errorText = await createResponse.text();
+      logStep('Replicate API error', { status: createResponse.status, error: errorText });
+      throw new Error(`Erro na geração de imagem. Código: ${createResponse.status}`);
     }
 
-    const data = await response.json();
-    logStep('Response received', { hasChoices: !!data.choices });
+    const prediction = await createResponse.json();
+    logStep('Prediction received', { status: prediction.status, id: prediction.id });
 
-    // Extract image from response - try multiple possible locations
-    const message = data.choices?.[0]?.message;
-    let imageData = message?.images?.[0]?.image_url?.url;
+    // If prediction is still processing, poll for result
+    let result = prediction;
+    let attempts = 0;
+    const maxAttempts = 60; // 60 seconds max wait
+
+    while (result.status !== 'succeeded' && result.status !== 'failed' && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const statusResponse = await fetch(`https://api.replicate.com/v1/predictions/${result.id}`, {
+        headers: {
+          'Authorization': `Bearer ${REPLICATE_API_TOKEN}`,
+        },
+      });
+      
+      result = await statusResponse.json();
+      attempts++;
+      
+      if (attempts % 5 === 0) {
+        logStep('Polling prediction', { status: result.status, attempts });
+      }
+    }
+
+    if (result.status === 'failed') {
+      logStep('Prediction failed', { error: result.error });
+      throw new Error(result.error || 'Falha na geração da imagem');
+    }
+
+    if (result.status !== 'succeeded') {
+      throw new Error('Timeout na geração da imagem. Tente novamente.');
+    }
+
+    const imageUrl = Array.isArray(result.output) ? result.output[0] : result.output;
     
-    // Try alternative response format (inline_data)
-    if (!imageData) {
-      imageData = message?.images?.[0]?.url;
-    }
-    
-    // Try content array format
-    if (!imageData && Array.isArray(message?.content)) {
-      const imageContent = message.content.find((c: any) => c.type === 'image_url' || c.type === 'image');
-      imageData = imageContent?.image_url?.url || imageContent?.url;
+    if (!imageUrl) {
+      throw new Error('Nenhuma imagem foi gerada');
     }
 
-    // Log full response structure for debugging
-    const finishReason = data.choices?.[0]?.finish_reason;
-    logStep('Response structure', { 
-      hasMessage: !!message,
-      hasImages: !!message?.images,
-      imagesLength: message?.images?.length,
-      contentType: typeof message?.content,
-      finishReason
-    });
-    
-    if (!imageData) {
-      // Check if there's a text response explaining why no image was generated
-      let textContent = '';
-      
-      if (typeof message?.content === 'string') {
-        textContent = message.content;
-      } else if (Array.isArray(message?.content)) {
-        const textPart = message.content.find((c: any) => c.type === 'text');
-        textContent = textPart?.text || '';
-      }
-      
-      logStep('Model text response', { text: textContent.substring(0, 500) });
-      
-      // Analyze the error and provide user-friendly message
-      let userFriendlyError = 'Não foi possível gerar a imagem. Tente reformular seu prompt.';
-      
-      const lowerText = textContent.toLowerCase();
-      const lowerPrompt = prompt.toLowerCase();
-      
-      // Check for content policy violations in model response
-      if (lowerText.includes('cannot') || lowerText.includes('sorry') || lowerText.includes('unable') ||
-          lowerText.includes('policy') || lowerText.includes('inappropriate') || lowerText.includes('harmful') ||
-          lowerText.includes('violate') || lowerText.includes('not allowed') || lowerText.includes('guidelines') ||
-          lowerText.includes("can't") || lowerText.includes('não posso')) {
-        
-        // Detect specific types of violations
-        if (lowerText.includes('copyright') || lowerText.includes('trademark') || 
-            lowerText.includes('celebrity') || lowerText.includes('public figure') ||
-            lowerText.includes('real person') || lowerText.includes('identifiable') ||
-            lowerText.includes('celebridade') || lowerText.includes('pessoa real')) {
-          userFriendlyError = '⚠️ Direitos autorais/imagem: Não é possível gerar imagens de celebridades, figuras públicas ou personagens protegidos por direitos autorais. Tente descrever uma pessoa fictícia ou um personagem original.';
-        } else if (lowerText.includes('sexual') || lowerText.includes('explicit') || 
-                   lowerText.includes('nude') || lowerText.includes('adult') ||
-                   lowerText.includes('nsfw') || lowerText.includes('pornograph')) {
-          userFriendlyError = '⚠️ Conteúdo adulto: O modelo não gera conteúdo sexual ou explícito. Por favor, use prompts apropriados para todas as idades.';
-        } else if (lowerText.includes('violence') || lowerText.includes('gore') || 
-                   lowerText.includes('blood') || lowerText.includes('weapon') ||
-                   lowerText.includes('violência') || lowerText.includes('arma')) {
-          userFriendlyError = '⚠️ Conteúdo violento: O modelo não gera imagens com violência explícita ou conteúdo perturbador.';
-        } else if (lowerText.includes('hate') || lowerText.includes('discriminat') || 
-                   lowerText.includes('offensive') || lowerText.includes('ódio')) {
-          userFriendlyError = '⚠️ Conteúdo ofensivo: O modelo não gera conteúdo de ódio ou discriminatório.';
-        } else if (lowerText.includes('child') || lowerText.includes('minor') || lowerText.includes('criança')) {
-          userFriendlyError = '⚠️ Proteção de menores: O modelo não gera certo tipo de conteúdo envolvendo menores de idade.';
-        } else {
-          userFriendlyError = `⚠️ Política de conteúdo: O modelo recusou gerar esta imagem. ${textContent.substring(0, 150)}`;
-        }
-      } else if (textContent.length > 0) {
-        // Model gave some explanation but it doesn't match known patterns
-        userFriendlyError = `O modelo respondeu: "${textContent.substring(0, 200)}"`;
-      }
-      
-      // Also check prompt itself for common problematic patterns
-      const problematicPatterns = [
-        { pattern: /(mia khalifa|johnny sins|riley reid|sasha grey|lana rhoades)/i, msg: 'celebridades da indústria adulta' },
-        { pattern: /(taylor swift|beyonce|elon musk|trump|biden|obama|kim kardashian|kanye|drake)/i, msg: 'figuras públicas/celebridades' },
-        { pattern: /(mickey mouse|mario bros|pikachu|batman|superman|spider-?man|iron man|harry potter)/i, msg: 'personagens protegidos por direitos autorais' },
-        { pattern: /\b(nude?|naked|sexy|bikini|lingerie|sem roupa|pelad[oa])\b/i, msg: 'conteúdo potencialmente adulto' },
-      ];
-      
-      for (const { pattern, msg } of problematicPatterns) {
-        if (pattern.test(lowerPrompt)) {
-          userFriendlyError = `⚠️ Seu prompt contém referência a ${msg}. O modelo tem restrições para gerar esse tipo de conteúdo. Tente descrever um personagem original ou cena fictícia.`;
-          break;
-        }
-      }
-      
-      throw new Error(userFriendlyError);
-    }
-
-    logStep('Image generated successfully');
+    logStep('Image generated successfully', { url: imageUrl.substring(0, 50) });
 
     return new Response(
       JSON.stringify({
         success: true,
-        imageUrl: imageData,
-        model: IMAGE_MODEL,
+        imageUrl: imageUrl,
+        model: model,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
