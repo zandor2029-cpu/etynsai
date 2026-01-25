@@ -453,12 +453,34 @@ const NanoBananaPro = () => {
                   whileHover={{ scale: 1.01 }}
                   transition={{ duration: 0.3 }}
                 >
+                  {/* Loading overlay while image loads */}
+                  <div 
+                    id="image-loading-overlay" 
+                    className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-watermelon-green/10 to-watermelon-pink/10 z-10"
+                  >
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-watermelon-green mx-auto mb-2"></div>
+                      <p className="text-sm text-muted-foreground">Carregando imagem...</p>
+                    </div>
+                  </div>
                   <img
                     src={generatedImage}
                     alt="Imagem gerada"
                     className="w-full h-auto"
+                    onLoad={(e) => {
+                      // Hide loading overlay when image loads
+                      const overlay = document.getElementById('image-loading-overlay');
+                      if (overlay) overlay.style.display = 'none';
+                    }}
+                    onError={(e) => {
+                      // Show error if image fails to load
+                      const overlay = document.getElementById('image-loading-overlay');
+                      if (overlay) {
+                        overlay.innerHTML = '<p class="text-destructive text-sm">Erro ao carregar imagem. Tente gerar novamente.</p>';
+                      }
+                    }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 </motion.div>
 
                 {/* Action Buttons */}
