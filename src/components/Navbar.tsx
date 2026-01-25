@@ -243,18 +243,28 @@ const Navbar = () => {
                       >
                         <Link
                           to={item.path}
-                          className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
+                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden ${
                             isActive(item.path) 
                               ? "bg-gradient-to-r from-watermelon-green/15 to-watermelon-pink/15 border border-watermelon-green/30" 
                               : "hover:bg-muted/50"
                           }`}
                         >
+                          {/* Active indicator bar */}
+                          {isActive(item.path) && (
+                            <motion.div
+                              layoutId="mobile-nav-indicator"
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-watermelon-green to-watermelon-pink"
+                              initial={{ opacity: 0, scaleY: 0 }}
+                              animate={{ opacity: 1, scaleY: 1 }}
+                              transition={{ duration: 0.2 }}
+                            />
+                          )}
                           {item.customIcon ? (
                             <item.customIcon size={20} animated={false} className={isActive(item.path) ? "" : "opacity-70"} />
                           ) : item.icon ? (
                             <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-watermelon-green" : "text-muted-foreground"}`} />
                           ) : null}
-                          <span className={`font-medium text-sm flex-1 ${isActive(item.path) ? "text-foreground" : "text-muted-foreground"}`}>
+                          <span className={`font-medium text-sm flex-1 ${isActive(item.path) ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
                             {item.shortLabel}
                           </span>
                           <ChevronRight className={`w-4 h-4 ${isActive(item.path) ? "text-watermelon-green" : "text-muted-foreground/50"}`} />
@@ -270,14 +280,23 @@ const Navbar = () => {
                     >
                       <Link
                         to="/planos"
-                        className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
+                        className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden ${
                           isActive('/planos') 
                             ? "bg-gradient-to-r from-watermelon-green/15 to-watermelon-pink/15 border border-watermelon-green/30" 
                             : "hover:bg-muted/50"
                         }`}
                       >
+                        {isActive('/planos') && (
+                          <motion.div
+                            layoutId="mobile-nav-indicator"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-watermelon-green to-watermelon-pink"
+                            initial={{ opacity: 0, scaleY: 0 }}
+                            animate={{ opacity: 1, scaleY: 1 }}
+                            transition={{ duration: 0.2 }}
+                          />
+                        )}
                         <Crown className={`w-5 h-5 ${isActive('/planos') ? "text-watermelon-green" : "text-muted-foreground"}`} />
-                        <span className={`font-medium text-sm flex-1 ${isActive('/planos') ? "text-foreground" : "text-muted-foreground"}`}>
+                        <span className={`font-medium text-sm flex-1 ${isActive('/planos') ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
                           Planos
                         </span>
                         <ChevronRight className={`w-4 h-4 ${isActive('/planos') ? "text-watermelon-green" : "text-muted-foreground/50"}`} />
@@ -293,14 +312,23 @@ const Navbar = () => {
                       >
                         <Link
                           to="/historico"
-                          className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
+                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden ${
                             isActive('/historico') 
                               ? "bg-gradient-to-r from-watermelon-green/15 to-watermelon-pink/15 border border-watermelon-green/30" 
                               : "hover:bg-muted/50"
                           }`}
                         >
+                          {isActive('/historico') && (
+                            <motion.div
+                              layoutId="mobile-nav-indicator"
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-watermelon-green to-watermelon-pink"
+                              initial={{ opacity: 0, scaleY: 0 }}
+                              animate={{ opacity: 1, scaleY: 1 }}
+                              transition={{ duration: 0.2 }}
+                            />
+                          )}
                           <History className={`w-5 h-5 ${isActive('/historico') ? "text-watermelon-green" : "text-muted-foreground"}`} />
-                          <span className={`font-medium text-sm flex-1 ${isActive('/historico') ? "text-foreground" : "text-muted-foreground"}`}>
+                          <span className={`font-medium text-sm flex-1 ${isActive('/historico') ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
                             Histórico
                           </span>
                           <ChevronRight className={`w-4 h-4 ${isActive('/historico') ? "text-watermelon-green" : "text-muted-foreground/50"}`} />
