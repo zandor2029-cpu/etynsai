@@ -5,6 +5,7 @@ import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
 import AspectRatioSelect from "@/components/AspectRatioSelect";
+import ImageStyleSelect, { type ImageStyle } from "@/components/ImageStyleSelect";
 import WatermelonIcon from "@/components/WatermelonIcon";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
@@ -24,6 +25,7 @@ const NanoBananaPro = () => {
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState("1:1");
+  const [imageStyle, setImageStyle] = useState<ImageStyle>("flux");
   const [referenceImages, setReferenceImages] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -122,6 +124,7 @@ const NanoBananaPro = () => {
         prompt: prompt.trim(),
         negativePrompt: negativePrompt.trim() || undefined,
         aspectRatio,
+        style: imageStyle,
         referenceImages: referenceImages.length > 0 ? referenceImages : undefined,
       });
       
@@ -331,7 +334,10 @@ const NanoBananaPro = () => {
                 />
 
                 {/* Settings Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  {/* Image Style */}
+                  <ImageStyleSelect value={imageStyle} onChange={setImageStyle} disabled={isGenerating} />
+                  
                   {/* Aspect Ratio */}
                   <AspectRatioSelect value={aspectRatio} onChange={setAspectRatio} />
 
