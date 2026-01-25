@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ImagePlus } from "lucide-react";
+import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ImagePlus, ZoomIn } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
@@ -16,7 +16,7 @@ import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits, checkUnlimitedImages } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
-import { generateImage } from "@/hooks/useGeneration";
+import { generateImage, upscaleImage } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
 import { usePromptValidation } from "@/hooks/usePromptValidation";
 import { usePromptAssistant } from "@/hooks/usePromptAssistant";
@@ -38,6 +38,8 @@ const NanoBananaPro = () => {
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [showWarnings, setShowWarnings] = useState(true);
   const [showAssistant, setShowAssistant] = useState(false);
+  const [isUpscaling, setIsUpscaling] = useState(false);
+  const [isUpscaled, setIsUpscaled] = useState(false);
   
   const { user, profile, subscription, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -103,6 +105,7 @@ const NanoBananaPro = () => {
     setImageLoadError(null);
     setGenerationError(null);
     setIsSaved(false);
+    setIsUpscaled(false);
     setCurrentPrompt(prompt.trim());
     
     let creditsWereDeducted = false;
@@ -191,6 +194,88 @@ const NanoBananaPro = () => {
       
       toast({
         title: 'Erro na geração',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpscale = async () => {
+    if (!generatedImage || isUpscaling || isUpscaled) return;
+    
+    // Check if user is logged in
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    
+    // Check if user has enough credits (skip for Ultimate)
+    if (!isUltimate && !canAfford(currentCredits, 'image')) {
+      setShowNoCreditsModal(true);
+      return;
+    }
+    
+    setIsUpscaling(true);
+    
+    let creditsWereDeducted = false;
+    
+    try {
+      // Use credits (upscale costs same as image generation)
+      const creditResult = await useCreditsForGeneration('image', `Upscale: ${currentPrompt.substring(0, 30)}...`);
+      
+      if (!creditResult.success) {
+        throw new Error(creditResult.message);
+      }
+      
+      creditsWereDeducted = !creditResult.skipped;
+      await refreshProfile();
+      
+      // Call upscale API
+      const result = await upscaleImage({
+        imageUrl: generatedImage,
+        scale: 2,
+      });
+      
+      setIsUpscaling(false);
+      
+      if (result.success && result.imageUrl) {
+        setGeneratedImage(result.imageUrl);
+        setIsUpscaled(true);
+        setIsImageLoading(true);
+        
+        // Save upscaled version
+        await saveRender({
+          type: 'image',
+          url: result.imageUrl,
+          prompt: `[UPSCALE] ${currentPrompt}`,
+          model: 'gemini-upscale',
+        });
+        
+        toast({
+          title: 'Imagem melhorada! 🚀',
+          description: 'Resolução aumentada com sucesso.',
+        });
+      } else {
+        throw new Error(result.error || 'Erro ao melhorar imagem');
+      }
+    } catch (error) {
+      setIsUpscaling(false);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      
+      // Refund credits if they were deducted
+      if (creditsWereDeducted) {
+        try {
+          const refundResult = await refundCredits('image', `Reembolso upscale: ${errorMessage}`);
+          if (refundResult.success) {
+            await refreshProfile();
+          }
+        } catch (refundError) {
+          console.error('Refund failed:', refundError);
+        }
+      }
+      
+      toast({
+        title: 'Erro no upscale',
         description: errorMessage,
         variant: 'destructive',
       });
@@ -523,6 +608,35 @@ const NanoBananaPro = () => {
                     <Download className="w-4 h-4" />
                     Baixar Imagem
                   </WatermelonButton>
+                  
+                  {/* Upscale Button */}
+                  <WatermelonButton 
+                    variant={isUpscaled ? "outline" : "secondary"}
+                    size="md" 
+                    onClick={handleUpscale}
+                    disabled={isUpscaling || isUpscaled}
+                    className="w-full sm:w-auto text-sm md:text-base"
+                  >
+                    {isUpscaling ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                        Melhorando...
+                      </>
+                    ) : isUpscaled ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Já melhorada
+                      </>
+                    ) : (
+                      <>
+                        <ZoomIn className="w-4 h-4" />
+                        <span className="hidden sm:inline">Melhorar Resolução</span>
+                        <span className="sm:hidden">Upscale</span>
+                        <span className="text-xs opacity-80">{isUltimate ? '(∞)' : `(${creditCost})`}</span>
+                      </>
+                    )}
+                  </WatermelonButton>
+                  
                   <WatermelonButton 
                     variant="outline" 
                     size="md" 
@@ -534,6 +648,7 @@ const NanoBananaPro = () => {
                     <span className="sm:hidden">Variação</span>
                     <span className="text-xs opacity-80">{isUltimate ? '(∞)' : `(${creditCost})`}</span>
                   </WatermelonButton>
+                  
                   {isSaved && (
                     <motion.div 
                       initial={{ opacity: 0, x: -10 }}
