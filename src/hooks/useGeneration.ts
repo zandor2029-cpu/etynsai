@@ -44,6 +44,47 @@ export async function generateImage(params: GenerateImageParams): Promise<Genera
   }
 }
 
+interface UpscaleImageParams {
+  imageUrl: string;
+  scale?: number; // 2 or 4
+}
+
+interface UpscaleImageResult {
+  success: boolean;
+  imageUrl?: string;
+  scale?: number;
+  error?: string;
+}
+
+export async function upscaleImage(params: UpscaleImageParams): Promise<UpscaleImageResult> {
+  try {
+    const { data, error } = await supabase.functions.invoke('upscale-image', {
+      body: params,
+    });
+
+    if (error) {
+      console.error('Upscale image error:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (!data.success) {
+      return { success: false, error: data.error || 'Upscale failed' };
+    }
+
+    return {
+      success: true,
+      imageUrl: data.imageUrl,
+      scale: data.scale,
+    };
+  } catch (error) {
+    console.error('Upscale image error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
 interface GenerateVideoParams {
   characterImageUrl: string;
   motionVideoUrl?: string;
