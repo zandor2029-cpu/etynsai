@@ -1,17 +1,27 @@
 import { Link, useLocation } from "react-router-dom";
 import { Video, FolderOpen, Menu, X, Sparkles, LogOut, Crown, User, History, ChevronRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BananaIcon from "./BananaIcon";
 import CreditDisplay from "./CreditDisplay";
 import AuthModal from "./AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { user, profile, signOut } = useAuth();
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
+
+  const menuRef = useFocusTrap({
+    isActive: mobileMenuOpen,
+    onEscape: closeMobileMenu,
+  });
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -159,7 +169,10 @@ const Navbar = () => {
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="p-2 rounded-xl glass-card text-foreground hover:text-primary transition-all"
-                  aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+                  aria-label={mobileMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
+                  aria-expanded={mobileMenuOpen}
+                  aria-controls="mobile-navigation-menu"
+                  aria-haspopup="true"
                 >
                   <AnimatePresence mode="wait">
                     {mobileMenuOpen ? (
@@ -170,7 +183,7 @@ const Navbar = () => {
                         exit={{ rotate: 90, opacity: 0 }}
                         transition={{ duration: 0.15 }}
                       >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5" aria-hidden="true" />
                       </motion.div>
                     ) : (
                       <motion.div
@@ -180,7 +193,7 @@ const Navbar = () => {
                         exit={{ rotate: -90, opacity: 0 }}
                         transition={{ duration: 0.15 }}
                       >
-                        <Menu className="w-5 h-5" />
+                        <Menu className="w-5 h-5" aria-hidden="true" />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -201,11 +214,17 @@ const Navbar = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className="fixed inset-0 bg-background/80 backdrop-blur-sm lg:hidden"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={closeMobileMenu}
+                aria-hidden="true"
               />
               
               {/* Menu Panel */}
               <motion.div
+                ref={menuRef}
+                id="mobile-navigation-menu"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Menu de navegação"
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
@@ -233,7 +252,7 @@ const Navbar = () => {
                   )}
 
                   {/* Navigation Links */}
-                  <div className="space-y-1">
+                  <nav aria-label="Menu principal mobile" className="space-y-1" role="navigation">
                     {navItems.map((item, index) => (
                       <motion.div
                         key={item.path}
@@ -243,7 +262,8 @@ const Navbar = () => {
                       >
                         <Link
                           to={item.path}
-                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden ${
+                          aria-current={isActive(item.path) ? "page" : undefined}
+                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-watermelon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                             isActive(item.path) 
                               ? "bg-gradient-to-r from-watermelon-green/15 to-watermelon-pink/15 border border-watermelon-green/30" 
                               : "hover:bg-muted/50"
@@ -257,17 +277,18 @@ const Navbar = () => {
                               initial={{ opacity: 0, scaleY: 0 }}
                               animate={{ opacity: 1, scaleY: 1 }}
                               transition={{ duration: 0.2 }}
+                              aria-hidden="true"
                             />
                           )}
                           {item.customIcon ? (
-                            <item.customIcon size={20} animated={false} className={isActive(item.path) ? "" : "opacity-70"} />
+                            <item.customIcon size={20} animated={false} className={isActive(item.path) ? "" : "opacity-70"} aria-hidden="true" />
                           ) : item.icon ? (
-                            <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-watermelon-green" : "text-muted-foreground"}`} />
+                            <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-watermelon-green" : "text-muted-foreground"}`} aria-hidden="true" />
                           ) : null}
                           <span className={`font-medium text-sm flex-1 ${isActive(item.path) ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
                             {item.shortLabel}
                           </span>
-                          <ChevronRight className={`w-4 h-4 ${isActive(item.path) ? "text-watermelon-green" : "text-muted-foreground/50"}`} />
+                          <ChevronRight className={`w-4 h-4 ${isActive(item.path) ? "text-watermelon-green" : "text-muted-foreground/50"}`} aria-hidden="true" />
                         </Link>
                       </motion.div>
                     ))}
@@ -280,7 +301,8 @@ const Navbar = () => {
                     >
                       <Link
                         to="/planos"
-                        className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden ${
+                        aria-current={isActive('/planos') ? "page" : undefined}
+                        className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-watermelon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                           isActive('/planos') 
                             ? "bg-gradient-to-r from-watermelon-green/15 to-watermelon-pink/15 border border-watermelon-green/30" 
                             : "hover:bg-muted/50"
@@ -293,13 +315,14 @@ const Navbar = () => {
                             initial={{ opacity: 0, scaleY: 0 }}
                             animate={{ opacity: 1, scaleY: 1 }}
                             transition={{ duration: 0.2 }}
+                            aria-hidden="true"
                           />
                         )}
-                        <Crown className={`w-5 h-5 ${isActive('/planos') ? "text-watermelon-green" : "text-muted-foreground"}`} />
+                        <Crown className={`w-5 h-5 ${isActive('/planos') ? "text-watermelon-green" : "text-muted-foreground"}`} aria-hidden="true" />
                         <span className={`font-medium text-sm flex-1 ${isActive('/planos') ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
                           Planos
                         </span>
-                        <ChevronRight className={`w-4 h-4 ${isActive('/planos') ? "text-watermelon-green" : "text-muted-foreground/50"}`} />
+                        <ChevronRight className={`w-4 h-4 ${isActive('/planos') ? "text-watermelon-green" : "text-muted-foreground/50"}`} aria-hidden="true" />
                       </Link>
                     </motion.div>
 
@@ -312,7 +335,8 @@ const Navbar = () => {
                       >
                         <Link
                           to="/historico"
-                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden ${
+                          aria-current={isActive('/historico') ? "page" : undefined}
+                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-watermelon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                             isActive('/historico') 
                               ? "bg-gradient-to-r from-watermelon-green/15 to-watermelon-pink/15 border border-watermelon-green/30" 
                               : "hover:bg-muted/50"
@@ -325,20 +349,21 @@ const Navbar = () => {
                               initial={{ opacity: 0, scaleY: 0 }}
                               animate={{ opacity: 1, scaleY: 1 }}
                               transition={{ duration: 0.2 }}
+                              aria-hidden="true"
                             />
                           )}
-                          <History className={`w-5 h-5 ${isActive('/historico') ? "text-watermelon-green" : "text-muted-foreground"}`} />
+                          <History className={`w-5 h-5 ${isActive('/historico') ? "text-watermelon-green" : "text-muted-foreground"}`} aria-hidden="true" />
                           <span className={`font-medium text-sm flex-1 ${isActive('/historico') ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
                             Histórico
                           </span>
-                          <ChevronRight className={`w-4 h-4 ${isActive('/historico') ? "text-watermelon-green" : "text-muted-foreground/50"}`} />
+                          <ChevronRight className={`w-4 h-4 ${isActive('/historico') ? "text-watermelon-green" : "text-muted-foreground/50"}`} aria-hidden="true" />
                         </Link>
                       </motion.div>
                     )}
-                  </div>
+                  </nav>
 
                   {/* Divider */}
-                  <div className="my-4 border-t border-border" />
+                  <div className="my-4 border-t border-border" role="separator" />
 
                   {/* Auth Section */}
                   <motion.div
@@ -349,9 +374,10 @@ const Navbar = () => {
                     {user ? (
                       <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                        className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        aria-label="Sair da sua conta"
                       >
-                        <LogOut className="w-5 h-5" />
+                        <LogOut className="w-5 h-5" aria-hidden="true" />
                         <span className="font-medium text-sm">Sair da conta</span>
                       </button>
                     ) : (
@@ -360,9 +386,10 @@ const Navbar = () => {
                           setMobileMenuOpen(false);
                           setShowAuthModal(true);
                         }}
-                        className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-watermelon-green to-watermelon-pink text-white font-semibold text-sm shadow-lg"
+                        className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-watermelon-green to-watermelon-pink text-white font-semibold text-sm shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-watermelon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        aria-label="Entrar ou criar uma conta"
                       >
-                        <User className="w-4 h-4" />
+                        <User className="w-4 h-4" aria-hidden="true" />
                         Entrar / Criar Conta
                       </button>
                     )}
