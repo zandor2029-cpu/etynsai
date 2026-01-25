@@ -53,9 +53,9 @@ serve(async (req) => {
       throw new Error('Prompt is required');
     }
 
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    if (!GOOGLE_GEMINI_API_KEY) {
-      throw new Error('GOOGLE_GEMINI_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Build enhanced prompt based on style
@@ -91,100 +91,72 @@ serve(async (req) => {
       enhancedPrompt += ` Avoid: ${negativePrompt.trim()}.`;
     }
 
-    logStep('Generating image with Google Gemini', { prompt: enhancedPrompt.substring(0, 100), style, aspectRatio });
+    logStep('Generating image with Lovable AI', { prompt: enhancedPrompt.substring(0, 100), style, aspectRatio });
 
-    // Build content parts for Gemini
-    const contentParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+    // Build messages for the API
+    const messages: Array<{ role: string; content: string | Array<{ type: string; text?: string; image_url?: { url: string } }> }> = [];
 
     // If we have reference images, include them
     if (referenceImages && referenceImages.length > 0) {
-      contentParts.push({ text: `Use these reference images as inspiration. ${enhancedPrompt}` });
+      const contentParts: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
+        { type: 'text', text: `Use these reference images as inspiration. ${enhancedPrompt}` }
+      ];
       
       for (const imgUrl of referenceImages.slice(0, 2)) {
-        try {
-          // Fetch the image and convert to base64
-          const imgResponse = await fetch(imgUrl);
-          if (imgResponse.ok) {
-            const imgBuffer = await imgResponse.arrayBuffer();
-            const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
-            const contentType = imgResponse.headers.get('content-type') || 'image/png';
-            
-            contentParts.push({
-              inlineData: {
-                mimeType: contentType,
-                data: base64
-              }
-            });
-          }
-        } catch (e) {
-          logStep('Failed to fetch reference image', { url: imgUrl, error: String(e) });
-        }
+        contentParts.push({
+          type: 'image_url',
+          image_url: { url: imgUrl }
+        });
       }
+      
+      messages.push({ role: 'user', content: contentParts });
     } else {
-      contentParts.push({ text: enhancedPrompt });
+      messages.push({ role: 'user', content: enhancedPrompt });
     }
 
-    // Call Google Gemini API directly
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: contentParts
-          }],
-          generationConfig: {
-            responseModalities: ["TEXT", "IMAGE"]
-          }
-        }),
-      }
-    );
+    // Call Lovable AI Gateway with Gemini 2.5 Flash Image (cheapest image model)
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages,
+        modalities: ['image', 'text'],
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      logStep('Gemini API error', { status: response.status, error: errorText });
+      logStep('Lovable AI error', { status: response.status, error: errorText });
       
       if (response.status === 429) {
-        throw new Error('Limite de requisições excedido. Tente novamente em alguns segundos.');
+        throw new Error('Limite de requisições excedido. Aguarde alguns segundos e tente novamente.');
       }
-      if (response.status === 403) {
-        throw new Error('API key inválida ou sem permissão para gerar imagens.');
-      }
-      if (response.status === 400) {
-        throw new Error('Prompt inválido ou bloqueado. Tente reformular.');
+      if (response.status === 402) {
+        throw new Error('Saldo insuficiente no workspace. Adicione créditos em Settings → Workspace → Usage.');
       }
       throw new Error(`Erro na geração: ${response.status}`);
     }
 
     const data = await response.json();
-    logStep('Gemini response received', { 
-      hasCandidates: !!data.candidates,
-      candidateCount: data.candidates?.length 
-    });
+    logStep('Lovable AI response received', { hasChoices: !!data.choices });
 
     // Extract the generated image from response
+    const choice = data.choices?.[0];
+    const message = choice?.message;
+    
     let imageUrl: string | null = null;
     
-    const candidates = data.candidates;
-    if (candidates && candidates.length > 0) {
-      const parts = candidates[0]?.content?.parts;
-      if (parts) {
-        for (const part of parts) {
-          if (part.inlineData) {
-            // Convert base64 to data URL
-            const mimeType = part.inlineData.mimeType || 'image/png';
-            imageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
-            break;
-          }
-        }
-      }
+    // Check for images in the response
+    if (message?.images && message.images.length > 0) {
+      imageUrl = message.images[0]?.image_url?.url;
     }
 
     if (!imageUrl) {
-      logStep('No image in response', { data: JSON.stringify(data).substring(0, 500) });
+      logStep('No image in response', { message });
       throw new Error('A IA não conseguiu gerar uma imagem. Tente reformular o prompt.');
     }
 
@@ -233,7 +205,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         imageUrl: finalImageUrl,
-        model: 'gemini-2.0-flash-exp-image-generation',
+        model: 'gemini-2.5-flash-image',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
