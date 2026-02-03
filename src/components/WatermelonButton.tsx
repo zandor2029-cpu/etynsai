@@ -49,17 +49,19 @@ const WatermelonButton = ({
   const glowVariants = {
     rest: {
       boxShadow: variant === "primary" 
-        ? "0 2px 8px hsl(145 80% 42% / 0.3)"
+        ? "0 4px 12px hsl(145 80% 42% / 0.3)"
         : variant === "secondary"
-        ? "0 2px 8px hsl(330 100% 65% / 0.3)"
+        ? "0 4px 12px hsl(330 100% 65% / 0.3)"
         : "0 0 0 transparent",
+      scale: 1,
     },
     hover: {
       boxShadow: variant === "primary"
-        ? "0 8px 24px hsl(145 100% 50% / 0.5), 0 0 40px hsl(145 100% 50% / 0.25)"
+        ? "0 8px 30px hsl(145 100% 50% / 0.5), 0 0 50px hsl(145 100% 50% / 0.3), 0 0 80px hsl(145 100% 50% / 0.15)"
         : variant === "secondary"
-        ? "0 8px 24px hsl(330 100% 65% / 0.5), 0 0 40px hsl(330 100% 65% / 0.25)"
-        : "0 0 20px hsl(145 100% 50% / 0.3)",
+        ? "0 8px 30px hsl(330 100% 65% / 0.5), 0 0 50px hsl(330 100% 65% / 0.3), 0 0 80px hsl(330 100% 65% / 0.15)"
+        : "0 4px 25px hsl(145 100% 50% / 0.4)",
+      scale: 1.02,
     },
   };
 

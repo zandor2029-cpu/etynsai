@@ -1,5 +1,6 @@
 import { ChevronDown, Check, Ratio } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface AspectRatioSelectProps {
   value: string;
@@ -14,63 +15,112 @@ const aspectRatios = [
 
 const AspectRatioSelect = ({ value, onChange }: AspectRatioSelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const selected = aspectRatios.find((r) => r.value === value) || aspectRatios[0];
 
+  // Close on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div className="relative space-y-2 md:space-y-3">
+    <div className="relative space-y-2 md:space-y-3" ref={containerRef}>
       <label className="flex items-center gap-2 md:gap-2.5 text-xs md:text-sm font-semibold text-muted-foreground tracking-wide">
         <Ratio className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
         <span>Aspect Ratio</span>
       </label>
-      <button
+      <motion.button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full input-glass flex items-center justify-between cursor-pointer group h-[46px] md:h-[58px]"
+        whileHover={{ scale: 1.01, borderColor: "hsl(145 80% 42% / 0.3)" }}
+        whileTap={{ scale: 0.99 }}
+        transition={{ duration: 0.15 }}
       >
         <span className="flex items-center gap-2 md:gap-3">
-          <span className="text-lg md:text-xl">{selected.icon}</span>
+          <motion.span 
+            className="text-lg md:text-xl"
+            whileHover={{ scale: 1.2, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            {selected.icon}
+          </motion.span>
           <div className="text-left">
             <span className="font-semibold text-foreground text-sm md:text-base">{selected.label}</span>
             <p className="text-[10px] md:text-xs text-muted-foreground">{selected.desc}</p>
           </div>
         </span>
-        <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 text-muted-foreground transition-transform duration-300 ${isOpen ? "rotate-180 text-watermelon-green" : ""}`} />
-      </button>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+        >
+          <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 transition-colors ${isOpen ? "text-watermelon-green" : "text-muted-foreground"}`} />
+        </motion.div>
+      </motion.button>
 
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 md:mt-2 glass-card p-1.5 md:p-2 z-50 animate-fade-in rounded-xl md:rounded-2xl border border-watermelon-green/20 bg-background/95 backdrop-blur-md">
-          {aspectRatios.map((ratio) => (
-            <button
-              key={ratio.value}
-              type="button"
-              onClick={() => {
-                onChange(ratio.value);
-                setIsOpen(false);
-              }}
-              className={`
-                w-full flex items-center gap-3 md:gap-4 px-3 md:px-4 py-2.5 md:py-3.5 rounded-lg md:rounded-xl transition-all duration-300
-                ${ratio.value === value
-                  ? "bg-gradient-to-r from-watermelon-green/20 to-watermelon-pink/20 border border-watermelon-green/30"
-                  : "hover:bg-muted/50"
-                }
-              `}
-            >
-              <span className="text-xl md:text-2xl">{ratio.icon}</span>
-              <div className="text-left flex-1">
-                <span className={`font-semibold text-sm md:text-base ${ratio.value === value ? "text-watermelon-green-light" : "text-foreground"}`}>
-                  {ratio.label}
-                </span>
-                <p className="text-[10px] md:text-xs text-muted-foreground">{ratio.desc}</p>
-              </div>
-              {ratio.value === value && (
-                <div className="p-1 md:p-1.5 rounded-md md:rounded-lg bg-watermelon-green/20">
-                  <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-watermelon-green" />
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            className="absolute top-full left-0 right-0 mt-1.5 md:mt-2 glass-card p-1.5 md:p-2 z-50 rounded-xl md:rounded-2xl border border-watermelon-green/20 bg-background/95 backdrop-blur-md shadow-lg"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            {aspectRatios.map((ratio, index) => (
+              <motion.button
+                key={ratio.value}
+                type="button"
+                onClick={() => {
+                  onChange(ratio.value);
+                  setIsOpen(false);
+                }}
+                className={`
+                  w-full flex items-center gap-3 md:gap-4 px-3 md:px-4 py-2.5 md:py-3.5 rounded-lg md:rounded-xl transition-colors
+                  ${ratio.value === value
+                    ? "bg-gradient-to-r from-watermelon-green/20 to-watermelon-pink/20 border border-watermelon-green/30"
+                    : "hover:bg-muted/50"
+                  }
+                `}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ x: 4 }}
+              >
+                <motion.span 
+                  className="text-xl md:text-2xl"
+                  whileHover={{ scale: 1.2 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  {ratio.icon}
+                </motion.span>
+                <div className="text-left flex-1">
+                  <span className={`font-semibold text-sm md:text-base ${ratio.value === value ? "text-watermelon-green-light" : "text-foreground"}`}>
+                    {ratio.label}
+                  </span>
+                  <p className="text-[10px] md:text-xs text-muted-foreground">{ratio.desc}</p>
                 </div>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+                {ratio.value === value && (
+                  <motion.div 
+                    className="p-1 md:p-1.5 rounded-md md:rounded-lg bg-watermelon-green/20"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500 }}
+                  >
+                    <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-watermelon-green" />
+                  </motion.div>
+                )}
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
