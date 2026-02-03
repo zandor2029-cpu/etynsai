@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ImagePlus, ZoomIn } from "lucide-react";
+import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ZoomIn } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
@@ -13,6 +13,7 @@ import ReferenceImageUpload from "@/components/ReferenceImageUpload";
 import PromptAssistant from "@/components/PromptAssistant";
 import { PromptWarning } from "@/components/PromptWarning";
 import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
+import ExampleCarousel from "@/components/ExampleCarousel";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits, checkUnlimitedImages } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
@@ -285,67 +286,80 @@ const NanoBananaPro = () => {
   return (
     <div className="min-h-screen bg-animated-gradient bg-orbs pt-20 md:pt-24 pb-8 md:pb-12 px-3 md:px-4">
       <div className="container mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
-          <AnimatedBadge delay={0}>
-            <div className="inline-flex items-center gap-1.5 md:gap-2 badge-rgb mb-3 md:mb-4 text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2">
-              <Wand2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              <span>{referenceImages.length > 0 ? 'Image-to-Image · 4K' : 'Geração em 4K Ultra HD'}</span>
-            </div>
-          </AnimatedBadge>
-          
-          <AnimatedSection delay={0.1}>
-            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-display font-bold mb-4 md:mb-6 flex items-center justify-center gap-2 md:gap-4 px-2">
+        {/* Header - Improved hierarchy */}
+        <div className="text-center mb-10 md:mb-16">
+          {/* Title first - main focus */}
+          <AnimatedSection delay={0}>
+            <motion.h1 
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-3 md:mb-4 flex items-center justify-center gap-2 md:gap-4 px-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+            >
               <span className="text-gradient-rgb">Nano Banana Pro 4K</span>
-              <WatermelonIcon size={48} className="hidden md:inline-block" />
-              <WatermelonIcon size={28} className="inline-block md:hidden flex-shrink-0" />
-            </h1>
+              <motion.div
+                whileHover={{ rotate: 15, scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <WatermelonIcon size={48} className="hidden md:inline-block" />
+                <WatermelonIcon size={32} className="inline-block md:hidden flex-shrink-0" />
+              </motion.div>
+            </motion.h1>
           </AnimatedSection>
           
-          <AnimatedSection delay={0.2}>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
+          {/* Subtitle - secondary */}
+          <AnimatedSection delay={0.15}>
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed px-2 mb-4 md:mb-6">
               {referenceImages.length > 0 ? (
-                <>
-                  <span className="text-watermelon-pink font-semibold">Image-to-Image:</span> Edite, mescle e transforme suas imagens com <span className="text-watermelon-green-light font-semibold">IA de última geração</span>
-                </>
+                <>Edite e transforme suas imagens com IA</>
               ) : (
-                <>
-                  Gere imagens em <span className="text-watermelon-green-light font-semibold">qualidade profissional</span> com 
-                  IA de <span className="text-watermelon-pink font-semibold">última geração</span>
-                </>
+                <>Crie imagens incríveis em qualidade 4K Ultra HD</>
               )}
             </p>
           </AnimatedSection>
           
-          {/* Credit cost indicator */}
-          <AnimatedSection delay={0.3}>
-            <div className="mt-3 md:mt-4 inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 glass-card rounded-full text-xs md:text-sm">
-              <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-watermelon-green" />
-              <span className="text-muted-foreground">Custo:</span>
-              {isUltimate ? (
-                <>
-                  <span className="font-bold text-watermelon-green">ILIMITADO</span>
-                  <span className="text-[10px] md:text-xs text-muted-foreground">(Ultimate)</span>
-                </>
-              ) : (
-                <>
-                  <span className="font-bold text-watermelon-green">{creditCost} créditos</span>
-                  <span className="text-muted-foreground hidden sm:inline">por imagem</span>
-                </>
-              )}
+          {/* Badges row - tertiary info */}
+          <AnimatedSection delay={0.25}>
+            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+              {/* Mode badge */}
+              <motion.div 
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-watermelon-green/10 border border-watermelon-green/30 text-watermelon-green"
+                whileHover={{ scale: 1.05, borderColor: "hsl(145 80% 42% / 0.5)" }}
+                transition={{ duration: 0.2 }}
+              >
+                <Wand2 className="w-3 h-3" />
+                <span>{referenceImages.length > 0 ? 'Image-to-Image' : 'Text-to-Image'}</span>
+              </motion.div>
+              
+              {/* Credit cost */}
+              <motion.div 
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-muted/50 border border-border text-muted-foreground"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Zap className="w-3 h-3 text-watermelon-green" />
+                {isUltimate ? (
+                  <span className="text-watermelon-green font-semibold">Ilimitado</span>
+                ) : (
+                  <span><span className="text-foreground font-semibold">{creditCost}</span> créditos</span>
+                )}
+              </motion.div>
             </div>
           </AnimatedSection>
         </div>
 
         {/* Main Generation Card */}
         <AnimatedSection delay={0.35}>
-          <div className="rgb-border p-[1px] md:p-[2px] rounded-2xl md:rounded-3xl">
-            <GlassCard className="p-4 sm:p-5 md:p-8 rounded-2xl md:rounded-3xl">
-              <div className="space-y-4 md:space-y-6">
-                {/* Demo GIF Space */}
-                <div className="w-full h-32 sm:h-40 md:h-56 lg:h-64 rounded-xl md:rounded-2xl bg-gradient-to-br from-watermelon-green/10 to-watermelon-pink/10 border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-1.5 md:gap-2">
-                  <ImagePlus className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground/50" />
-                  <span className="text-muted-foreground/70 text-xs md:text-sm font-medium text-center px-4">Espaço para GIF de demonstração</span>
+          <motion.div 
+            className="rgb-border p-[1px] md:p-[2px] rounded-2xl md:rounded-3xl"
+            whileHover={{ scale: 1.002 }}
+            transition={{ duration: 0.3 }}
+          >
+            <GlassCard className="p-5 sm:p-6 md:p-10 rounded-2xl md:rounded-3xl">
+              <div className="space-y-6 md:space-y-8">
+                {/* Example Carousel */}
+                <div className="w-full h-44 sm:h-52 md:h-64 lg:h-72 rounded-xl md:rounded-2xl overflow-hidden shadow-lg">
+                  <ExampleCarousel />
                 </div>
 
                 {/* Prompt Field */}
@@ -401,6 +415,9 @@ const NanoBananaPro = () => {
                     />
                   )}
                 </div>
+
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
                 {/* Negative Prompt */}
                 <div className="space-y-2 md:space-y-3">
@@ -476,7 +493,7 @@ const NanoBananaPro = () => {
                 </div>
               </div>
             </GlassCard>
-          </div>
+          </motion.div>
         </AnimatedSection>
 
         {/* Loading State */}

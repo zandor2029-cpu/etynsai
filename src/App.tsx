@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
 import AnimatedRoutes from "./components/AnimatedRoutes";
+import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
 
@@ -16,8 +17,13 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Navbar />
-          <AnimatedRoutes />
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-1">
+              <AnimatedRoutes />
+            </main>
+            <Footer />
+          </div>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
