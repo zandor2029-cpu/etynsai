@@ -1,15 +1,12 @@
 import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Download, Video, Clapperboard, Play, Zap, AlertCircle, Check, Settings, Wand2 } from "lucide-react";
-import GlassCard from "@/components/GlassCard";
-import WatermelonButton from "@/components/WatermelonButton";
-import WatermelonLoader from "@/components/WatermelonLoader";
+import { motion, AnimatePresence } from "framer-motion";
+import { Download, Video, Clapperboard, Play, Zap, AlertCircle, Check, Settings, Wand2, Upload, X, Clock, LayoutGrid, List, Info, Sparkles, ChevronDown, Film } from "lucide-react";
 import FileUpload from "@/components/FileUpload";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
 import VideoResolutionSelect, { VIDEO_CREDIT_COSTS } from "@/components/VideoResolutionSelect";
 import PromptAssistant from "@/components/PromptAssistant";
-import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
+import WatermelonLoader from "@/components/WatermelonLoader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsWithAmount, canAffordAmount, refundCreditsWithAmount } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
@@ -18,8 +15,11 @@ import { generateVideo } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
 import { usePromptAssistant } from "@/hooks/usePromptAssistant";
 
+const SUB_TABS = ["Criar Vídeo", "Motion Control"];
+
 const KlingMotionControl = () => {
   const [characterImage, setCharacterImage] = useState<File | null>(null);
+  const [characterPreview, setCharacterPreview] = useState<string | null>(null);
   const [instructions, setInstructions] = useState("");
   const [resolution, setResolution] = useState<"480p" | "720p">("720p");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -33,6 +33,9 @@ const KlingMotionControl = () => {
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [creditsDeducted, setCreditsDeducted] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
+  const [activeSubTab, setActiveSubTab] = useState("Motion Control");
+  const [activeTab, setActiveTab] = useState("Histórico");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -40,35 +43,43 @@ const KlingMotionControl = () => {
   const creditCost = VIDEO_CREDIT_COSTS[resolution];
   const currentCredits = profile?.credits ?? 0;
   const canGenerateVideo = characterImage !== null;
-  
-  // Prompt assistant for video
+
   const promptAssistant = usePromptAssistant();
-  
+
+  const handleFileSelect = useCallback((file: File | null) => {
+    setCharacterImage(file);
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setCharacterPreview(url);
+    } else {
+      setCharacterPreview(null);
+    }
+  }, []);
+
+  const handleClearImage = useCallback(() => {
+    setCharacterImage(null);
+    setCharacterPreview(null);
+  }, []);
+
   const handleEnhancePrompt = useCallback(() => {
     if (instructions.trim().length >= 3) {
       setShowAssistant(true);
       promptAssistant.enhance(instructions, 'video');
     }
   }, [instructions, promptAssistant]);
-  
+
   const handleApplyEnhanced = useCallback((enhanced: string) => {
     setInstructions(enhanced);
     setShowAssistant(false);
     promptAssistant.clear();
-    toast({
-      title: "Prompt aplicado!",
-      description: "A descrição aprimorada foi aplicada.",
-    });
+    toast({ title: "Prompt aplicado!", description: "A descrição aprimorada foi aplicada." });
   }, [promptAssistant, toast]);
-  
+
   const handleApplySuggestion = useCallback((suggestion: string) => {
     setInstructions(prev => `${prev.trim()}, ${suggestion}`);
-    toast({
-      title: "Sugestão adicionada!",
-      description: suggestion,
-    });
+    toast({ title: "Sugestão adicionada!", description: suggestion });
   }, [toast]);
-  
+
   const handleCloseAssistant = useCallback(() => {
     setShowAssistant(false);
     promptAssistant.clear();
@@ -76,19 +87,9 @@ const KlingMotionControl = () => {
 
   const handleGenerate = async () => {
     if (!canGenerateVideo || !characterImage) return;
-    
-    // Check if user is logged in
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-    
-    // Check if user has enough credits
-    if (!canAffordAmount(currentCredits, creditCost)) {
-      setShowNoCreditsModal(true);
-      return;
-    }
-    
+    if (!user) { setShowAuthModal(true); return; }
+    if (!canAffordAmount(currentCredits, creditCost)) { setShowNoCreditsModal(true); return; }
+
     setIsGenerating(true);
     setGeneratedVideo(null);
     setGenerationError(null);
@@ -101,373 +102,449 @@ const KlingMotionControl = () => {
     let creditsWereDeducted = false;
 
     try {
-      // Upload character image
       setProgress(10);
       setProgressText("Fazendo upload da imagem...");
       const imageUpload = await uploadFileForGeneration(characterImage, user.id);
-      if (!imageUpload.success || !imageUpload.url) {
-        throw new Error(imageUpload.error || 'Falha ao fazer upload da imagem');
-      }
+      if (!imageUpload.success || !imageUpload.url) throw new Error(imageUpload.error || 'Falha ao fazer upload da imagem');
 
-      // Use credits based on resolution
       setProgress(25);
       setProgressText("Processando créditos...");
       const creditResult = await useCreditsWithAmount(creditCost, 'video', `Geração de vídeo ${resolution}`);
-      
-      if (!creditResult.success) {
-        throw new Error(creditResult.message);
-      }
-      
-      // Mark credits as deducted for potential refund
+      if (!creditResult.success) throw new Error(creditResult.message);
       creditsWereDeducted = true;
       setCreditsDeducted(true);
-      
-      // Refresh profile to update credits display
       await refreshProfile();
 
-      // Call generation API
       setProgress(35);
       setProgressText("Iniciando geração com IA...");
-      
-      // Start progress simulation
+
       let currentProgress = 35;
       const progressInterval = setInterval(() => {
         currentProgress = Math.min(currentProgress + 3, 90);
         setProgress(currentProgress);
-        if (currentProgress < 50) {
-          setProgressText("Analisando imagem...");
-        } else if (currentProgress < 65) {
-          setProgressText("Gerando movimentos...");
-        } else if (currentProgress < 80) {
-          setProgressText("Renderizando frames...");
-        } else {
-          setProgressText("Finalizando vídeo...");
-        }
+        if (currentProgress < 50) setProgressText("Analisando imagem...");
+        else if (currentProgress < 65) setProgressText("Gerando movimentos...");
+        else if (currentProgress < 80) setProgressText("Renderizando frames...");
+        else setProgressText("Finalizando vídeo...");
       }, 4000);
 
       const result = await generateVideo({
         characterImageUrl: imageUpload.url,
         prompt: instructions.trim() || undefined,
         duration: 5,
-        resolution: resolution,
+        resolution,
       });
-      
+
       clearInterval(progressInterval);
       setProgress(100);
       setIsGenerating(false);
 
       if (result.success && result.videoUrl) {
         setGeneratedVideo(result.videoUrl);
-        
-        // Auto-save to renders
-        const saveResult = await saveRender({
-          type: 'video',
-          url: result.videoUrl,
-          prompt: currentPrompt || 'Vídeo gerado com IA',
-          model: 'wan-2.2-i2v-fast',
-        });
-        
-        if (saveResult.success) {
-          setIsSaved(true);
-        }
-        
-        toast({
-          title: 'Vídeo gerado e salvo! 🎬',
-          description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
-        });
+        const saveResult = await saveRender({ type: 'video', url: result.videoUrl, prompt: currentPrompt || 'Vídeo gerado com IA', model: 'wan-2.2-i2v-fast' });
+        if (saveResult.success) setIsSaved(true);
+        toast({ title: 'Vídeo gerado e salvo! 🎬', description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}` });
       } else {
         throw new Error(result.error || 'Erro ao gerar vídeo');
       }
-
     } catch (error) {
       setIsGenerating(false);
       setProgress(0);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setGenerationError(errorMessage);
-      
-      // Refund credits if they were deducted
+
       if (creditsWereDeducted) {
         try {
           const refundResult = await refundCreditsWithAmount(creditCost, `Reembolso: ${errorMessage}`);
           if (refundResult.success) {
             await refreshProfile();
-            toast({
-              title: 'Créditos reembolsados',
-              description: `Seus ${creditCost} créditos foram devolvidos devido à falha na geração.`,
-            });
+            toast({ title: 'Créditos reembolsados', description: `Seus ${creditCost} créditos foram devolvidos.` });
           } else {
-            toast({
-              title: 'Erro na geração',
-              description: `${errorMessage}. Não foi possível reembolsar automaticamente. Entre em contato com o suporte.`,
-              variant: 'destructive',
-            });
+            toast({ title: 'Erro na geração', description: `${errorMessage}. Não foi possível reembolsar. Contate o suporte.`, variant: 'destructive' });
             return;
           }
         } catch (refundError) {
           console.error('Refund failed:', refundError);
         }
       }
-      
-      toast({
-        title: 'Erro na geração',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro na geração', description: errorMessage, variant: 'destructive' });
     }
   };
 
   return (
-    <div className="min-h-screen bg-animated-gradient bg-orbs pt-24 pb-12 px-4">
-      <div className="container mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <AnimatedBadge delay={0}>
-            <div className="inline-flex items-center gap-2 badge-rgb mb-4">
-              <Play className="w-4 h-4" />
-              <span>Imagem para Vídeo com IA</span>
-            </div>
-          </AnimatedBadge>
-          
-          <AnimatedSection delay={0.1}>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6">
-              <span className="text-gradient-rgb">Gerador de Vídeo</span>
-              <motion.span 
-                className="ml-3 inline-block"
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                🎬
-              </motion.span>
-            </h1>
-          </AnimatedSection>
-          
-          <AnimatedSection delay={0.2}>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Transforme <span className="text-watermelon-pink font-semibold">imagens estáticas</span> em 
-              vídeos com <span className="text-watermelon-green-light font-semibold">movimentos realistas</span>
-            </p>
-          </AnimatedSection>
-          
-          {/* Credit cost indicator */}
-          <AnimatedSection delay={0.3}>
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
-              <Zap className="w-4 h-4 text-watermelon-pink" />
-              <span className="text-muted-foreground">Custo:</span>
-              <span className="font-bold text-watermelon-pink">{creditCost} créditos</span>
-              <span className="text-muted-foreground">por vídeo</span>
-            </div>
-          </AnimatedSection>
-        </div>
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-background text-foreground overflow-hidden">
 
-        {/* Main Input Card */}
-        <AnimatedSection delay={0.35}>
-          <div className="rgb-border p-[2px] rounded-3xl">
-            <GlassCard className="p-6 md:p-8 rounded-3xl">
-              <div className="space-y-6">
-                {/* Image Upload */}
-                <FileUpload
-                  label="Imagem para Animar"
-                  accept="image"
-                  onFileSelect={setCharacterImage}
-                />
+      {/* SUB TABS */}
+      <div className="flex items-center px-5 h-11 border-b border-border flex-shrink-0">
+        {SUB_TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveSubTab(tab)}
+            className={`h-full px-4 text-[13px] border-b-2 transition-all ${
+              activeSubTab === tab
+                ? "text-foreground font-semibold border-watermelon-green"
+                : "text-muted-foreground font-normal border-transparent hover:text-foreground/70"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-                {/* Movement Instructions */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                      <Clapperboard className="w-4 h-4" />
-                      Descrição do Movimento <span className="text-xs font-normal">(opcional)</span>
-                    </label>
+      {/* MAIN 3-PANEL LAYOUT */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* LEFT PANEL - Controls */}
+        <div className="w-[280px] bg-card border-r border-border flex flex-col overflow-hidden flex-shrink-0">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+
+            {/* Tutorial card */}
+            <div className="rounded-xl overflow-hidden border border-border bg-muted">
+              <div className="flex items-stretch h-[88px]">
+                <div className="flex-1 p-3 flex flex-col justify-center">
+                  <div className="text-watermelon-green font-extrabold text-[13px] tracking-wide mb-1">MOTION CONTROL</div>
+                  <div className="text-muted-foreground text-[10.5px] leading-snug">Transforme imagens em vídeos com movimentos realistas</div>
+                </div>
+                <div className="w-[88px] bg-muted relative overflow-hidden">
+                  <div className="absolute top-1.5 right-1.5 bg-background/70 border border-border rounded px-1.5 py-0.5 text-[10px] text-muted-foreground flex items-center gap-1 backdrop-blur-sm">
+                    <Play className="w-[9px] h-[9px]" />
+                    Como funciona
+                  </div>
+                  <div className="w-full h-full bg-gradient-to-br from-muted to-background flex items-center justify-center">
+                    <Film className="w-9 h-9 text-muted-foreground/40" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Upload area */}
+            <div className="bg-muted border border-dashed border-border rounded-xl p-3">
+              <div className="flex gap-2.5">
+                {/* Empty upload slot */}
+                {!characterPreview ? (
+                  <label className="flex-1 bg-background rounded-lg border border-dashed border-border flex flex-col items-center justify-center h-24 cursor-pointer hover:border-watermelon-green/40 transition-colors group">
+                    <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center mb-1.5 group-hover:bg-watermelon-green/10 transition-colors">
+                      <Upload className="w-3 h-3 text-muted-foreground group-hover:text-watermelon-green transition-colors" />
+                    </div>
+                    <div className="text-[10px] text-muted-foreground text-center leading-snug">Adicionar imagem<br/>para animar</div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        handleFileSelect(file);
+                      }}
+                    />
+                  </label>
+                ) : (
+                  <div className="flex-1 bg-background rounded-lg overflow-hidden relative h-24">
+                    <img src={characterPreview} alt="Preview" className="w-full h-full object-cover" />
                     <button
-                      type="button"
-                      onClick={handleEnhancePrompt}
-                      disabled={instructions.trim().length < 3 || promptAssistant.isLoading}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-watermelon-green/10 to-watermelon-pink/10 border border-watermelon-green/30 hover:border-watermelon-green/50 text-watermelon-green disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+                      onClick={handleClearImage}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-destructive/80 transition-colors"
                     >
-                      <Wand2 className="w-3 h-3" />
-                      <span className="hidden sm:inline">Melhorar com IA</span>
-                      <span className="sm:hidden">IA</span>
+                      <X className="w-2.5 h-2.5 text-foreground" />
                     </button>
                   </div>
-                  <textarea
-                    value={instructions}
-                    onChange={(e) => {
-                      setInstructions(e.target.value);
-                      if (showAssistant) {
-                        setShowAssistant(false);
-                        promptAssistant.clear();
-                      }
-                    }}
-                    placeholder="Descreva o movimento desejado: andar para frente, acenar, dançar, expressão feliz…"
-                    className="textarea-glass w-full"
-                    rows={3}
-                  />
-                  
-                  {/* AI Prompt Assistant for Video */}
-                  {showAssistant && (
-                    <PromptAssistant
-                      suggestions={promptAssistant.suggestions}
-                      isLoading={promptAssistant.isLoading}
-                      onApplyEnhanced={handleApplyEnhanced}
-                      onApplySuggestion={handleApplySuggestion}
-                      onClose={handleCloseAssistant}
-                    />
-                  )}
-                </div>
+                )}
+              </div>
+            </div>
 
-                {/* Resolution Select */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                    <Settings className="w-4 h-4" />
-                    Resolução do Vídeo
-                  </label>
-                  <VideoResolutionSelect
-                    value={resolution}
-                    onChange={setResolution}
-                  />
+            {/* Model selector */}
+            <div className="bg-muted border border-border rounded-lg px-3 py-2.5 cursor-pointer flex justify-between items-center hover:border-border/80 transition-colors">
+              <div>
+                <div className="text-[10px] text-muted-foreground mb-0.5">Modelo</div>
+                <div className="text-[12.5px] text-foreground flex items-center gap-1.5">
+                  Nano Banana Motion
+                  <Info className="w-[13px] h-[13px] text-muted-foreground" />
                 </div>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+            </div>
 
-                {/* Generate Button */}
-                <div className="pt-4">
-                  <WatermelonButton
-                    onClick={handleGenerate}
-                    loading={isGenerating}
-                    disabled={!canGenerateVideo || isGenerating}
-                    size="lg"
-                    className="w-full text-lg"
+            {/* Quality / Resolution */}
+            <div className="bg-muted border border-border rounded-lg px-3 py-2.5">
+              <div className="text-[10px] text-muted-foreground mb-2">Qualidade</div>
+              <div className="flex gap-1.5">
+                {(["480p", "720p"] as const).map((res) => (
+                  <button
+                    key={res}
+                    onClick={() => setResolution(res)}
+                    className={`flex-1 py-1.5 rounded-md text-[12px] font-medium transition-all ${
+                      resolution === res
+                        ? "bg-watermelon-green text-watermelon-green-foreground shadow-sm"
+                        : "bg-background text-muted-foreground hover:text-foreground"
+                    }`}
                   >
-                    {isGenerating ? "Gerando vídeo com IA..." : `Gerar Vídeo 🍉 (${creditCost} créditos)`}
-                  </WatermelonButton>
-                  
-                  {!canGenerateVideo && (
-                    <p className="text-center text-sm text-muted-foreground mt-3">
-                      📎 Faça upload de uma imagem para começar
-                    </p>
-                  )}
-                  
-                  {!user && canGenerateVideo && (
-                    <p className="text-center text-sm text-muted-foreground mt-3">
-                      🔐 Faça login para gerar vídeos
-                    </p>
-                  )}
-                </div>
+                    {res}
+                    <span className="ml-1 text-[10px] opacity-70">({VIDEO_CREDIT_COSTS[res]}cr)</span>
+                  </button>
+                ))}
               </div>
-            </GlassCard>
+            </div>
+
+            {/* Prompt / Instructions */}
+            <div className="bg-muted border border-border rounded-lg px-3 py-2.5">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <Clapperboard className="w-3 h-3" />
+                  Descrição do Movimento
+                </div>
+                <button
+                  onClick={handleEnhancePrompt}
+                  disabled={instructions.trim().length < 3 || promptAssistant.isLoading}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-watermelon-green/10 border border-watermelon-green/30 text-watermelon-green hover:border-watermelon-green/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <Wand2 className="w-2.5 h-2.5" />
+                  IA
+                </button>
+              </div>
+              <textarea
+                value={instructions}
+                onChange={(e) => {
+                  setInstructions(e.target.value);
+                  if (showAssistant) { setShowAssistant(false); promptAssistant.clear(); }
+                }}
+                placeholder="Ex: andar para frente, acenar, dançar..."
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[12px] text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:border-watermelon-green/40 transition-colors"
+                rows={3}
+              />
+              {showAssistant && (
+                <div className="mt-2">
+                  <PromptAssistant
+                    suggestions={promptAssistant.suggestions}
+                    isLoading={promptAssistant.isLoading}
+                    onApplyEnhanced={handleApplyEnhanced}
+                    onApplySuggestion={handleApplySuggestion}
+                    onClose={handleCloseAssistant}
+                  />
+                </div>
+              )}
+            </div>
           </div>
-        </AnimatedSection>
 
-        {/* Loading State with Progress */}
-        {isGenerating && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="mt-10"
-          >
-            <GlassCard className="p-12 md:p-16">
-              <div className="space-y-10">
-                <WatermelonLoader text="Gerando seu vídeo… 🎥" />
-                
-                {/* Progress Bar */}
-                <div className="max-w-md mx-auto">
-                  <div className="flex justify-between text-sm font-semibold mb-3">
-                    <span className="text-muted-foreground">Progresso</span>
-                    <span className="text-gradient-watermelon">{progress}%</span>
-                  </div>
-                  <div className="progress-watermelon">
-                    <motion.div
-                      className="progress-watermelon-bar"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progress}%` }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
-                  <p className="text-center text-xs text-muted-foreground mt-3">
-                    {progressText}
-                  </p>
-                </div>
-              </div>
-            </GlassCard>
-          </motion.div>
-        )}
+          {/* Generate button */}
+          <div className="p-3 border-t border-border flex-shrink-0">
+            <button
+              onClick={handleGenerate}
+              disabled={!canGenerateVideo || isGenerating}
+              className="w-full bg-watermelon-green hover:bg-watermelon-green-light disabled:opacity-40 disabled:cursor-not-allowed border-none rounded-xl py-3.5 text-sm font-bold text-background cursor-pointer flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-watermelon-green/20"
+            >
+              {isGenerating ? (
+                <>Gerando...</>
+              ) : (
+                <>
+                  Gerar Vídeo
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-[12px] opacity-80">{creditCost}</span>
+                </>
+              )}
+            </button>
+            {!canGenerateVideo && !isGenerating && (
+              <p className="text-center text-[10px] text-muted-foreground mt-2">
+                📎 Faça upload de uma imagem para começar
+              </p>
+            )}
+            {!user && canGenerateVideo && (
+              <p className="text-center text-[10px] text-muted-foreground mt-2">
+                🔐 Faça login para gerar vídeos
+              </p>
+            )}
+          </div>
+        </div>
 
-        {/* Error State */}
-        {generationError && !isGenerating && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="mt-10"
-          >
-            <GlassCard className="p-8 border border-destructive/20">
-              <div className="flex items-center gap-4 text-destructive">
-                <AlertCircle className="w-8 h-8" />
-                <div>
-                  <h3 className="font-bold text-lg">Erro na geração</h3>
-                  <p className="text-muted-foreground">{generationError}</p>
-                </div>
-              </div>
-              <WatermelonButton
-                onClick={() => setGenerationError(null)}
-                variant="outline"
-                size="md"
-                className="mt-4"
+        {/* CENTER - Preview Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+
+          {/* Center tabs */}
+          <div className="flex items-center px-4 h-11 border-b border-border flex-shrink-0 justify-between">
+            <div className="flex gap-1">
+              {["Histórico", "Galeria"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex items-center gap-1.5 px-3 py-1 text-[13px] rounded-md transition-colors ${
+                    activeTab === tab ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab === "Histórico" ? <Clock className="w-[13px] h-[13px]" /> : <LayoutGrid className="w-[13px] h-[13px]" />}
+                  {tab}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 items-center">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-muted text-foreground" : "text-muted-foreground"}`}
               >
-                Tentar novamente
-              </WatermelonButton>
-            </GlassCard>
-          </motion.div>
-        )}
+                <LayoutGrid className="w-[11px] h-[11px]" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-muted text-foreground" : "text-muted-foreground"}`}
+              >
+                <List className="w-[11px] h-[11px]" />
+              </button>
+            </div>
+          </div>
 
-        {/* Result */}
-        {generatedVideo && !isGenerating && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-            className="mt-10"
-          >
-            <div className="rgb-border p-[2px] rounded-3xl">
-              <GlassCard className="p-6 md:p-8 rounded-3xl">
-                <h2 className="text-xl md:text-2xl font-display font-bold mb-6 flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-watermelon-pink to-watermelon-red">
-                    <Video className="w-5 h-5 text-white" />
+          {/* Video preview area */}
+          <div className="flex-1 flex items-center justify-center bg-background relative">
+            <AnimatePresence mode="wait">
+              {isGenerating ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center gap-6"
+                >
+                  <WatermelonLoader text="Gerando seu vídeo… 🎥" />
+                  <div className="w-64">
+                    <div className="flex justify-between text-[11px] font-semibold mb-2">
+                      <span className="text-muted-foreground">Progresso</span>
+                      <span className="text-watermelon-green">{progress}%</span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-gradient-to-r from-watermelon-green to-watermelon-pink rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    </div>
+                    <p className="text-center text-[10px] text-muted-foreground mt-2">{progressText}</p>
                   </div>
-                  <span className="text-gradient-watermelon">Seu vídeo está pronto!</span>
-                </h2>
-                
-                {/* Video Player */}
-                <div className="relative rounded-2xl overflow-hidden mb-6 bg-watermelon-seed">
+                </motion.div>
+              ) : generationError ? (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center gap-4 p-8"
+                >
+                  <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-destructive" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="font-bold text-foreground mb-1">Erro na geração</h3>
+                    <p className="text-[13px] text-muted-foreground max-w-sm">{generationError}</p>
+                  </div>
+                  <button
+                    onClick={() => setGenerationError(null)}
+                    className="px-4 py-2 rounded-lg bg-muted border border-border text-[13px] text-foreground hover:bg-muted/80 transition-colors"
+                  >
+                    Tentar novamente
+                  </button>
+                </motion.div>
+              ) : generatedVideo ? (
+                <motion.div
+                  key="result"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="relative max-w-[560px] w-[90%] max-h-[85%] rounded-lg overflow-hidden bg-card"
+                  style={{ aspectRatio: "9/16" }}
+                >
                   <video
                     src={generatedVideo}
-                    className="w-full h-auto max-h-[500px]"
+                    className="w-full h-full object-contain"
                     controls
                     autoPlay
                     loop
                   />
-                </div>
+                  {/* Play overlay */}
+                  <div className="absolute top-3 left-3 flex items-center gap-2">
+                    {isSaved && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-1 bg-watermelon-green/20 backdrop-blur-sm rounded-full px-2.5 py-1 text-[11px] text-watermelon-green font-medium"
+                      >
+                        <Check className="w-3 h-3" />
+                        Salvo
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center gap-4 text-muted-foreground"
+                >
+                  <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center">
+                    <Video className="w-8 h-8 text-muted-foreground/40" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[14px] font-medium text-foreground/60">Nenhum vídeo gerado</p>
+                    <p className="text-[12px] text-muted-foreground mt-1">Faça upload de uma imagem e clique em Gerar</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-4 items-center">
-                  <WatermelonButton variant="primary" size="md">
-                    <Download className="w-4 h-4" />
-                    Baixar Vídeo
-                  </WatermelonButton>
-                  {isSaved && (
-                    <motion.div 
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-2 text-watermelon-green"
-                    >
-                      <Check className="w-4 h-4" />
-                      <span className="text-sm font-medium">Salvo em Meus Renders</span>
-                    </motion.div>
-                  )}
+        {/* RIGHT PANEL - Details */}
+        <div className="w-[220px] bg-card border-l border-border flex flex-col flex-shrink-0">
+          {/* Action buttons */}
+          <div className="flex gap-1.5 p-2.5 border-b border-border">
+            <a
+              href={generatedVideo || "#"}
+              download={generatedVideo ? "video.mp4" : undefined}
+              className={`flex-1 bg-muted border border-border rounded-md py-1.5 text-[11.5px] flex items-center justify-center gap-1 transition-colors ${
+                generatedVideo ? "text-foreground hover:bg-muted/80 cursor-pointer" : "text-muted-foreground/40 pointer-events-none"
+              }`}
+            >
+              <Download className="w-3 h-3" />
+              Baixar
+            </a>
+            <button
+              onClick={() => { setGeneratedVideo(null); setGenerationError(null); }}
+              className="flex-1 bg-muted border border-border text-muted-foreground rounded-md py-1.5 text-[11.5px] flex items-center justify-center gap-1 hover:bg-muted/80 transition-colors"
+            >
+              <Video className="w-3 h-3" />
+              Novo
+            </button>
+          </div>
+
+          {/* Prompt display */}
+          <div className="p-2.5 border-b border-border">
+            <p className="text-[12px] text-muted-foreground leading-relaxed">
+              {currentPrompt || instructions || (
+                <span className="italic text-muted-foreground/50">Nenhuma descrição de movimento definida</span>
+              )}
+            </p>
+          </div>
+
+          {/* Reference thumbnails */}
+          {characterPreview && (
+            <div className="p-2.5 border-b border-border">
+              <div className="text-[10px] text-muted-foreground mb-2">Imagem de referência</div>
+              <div className="flex gap-2">
+                <div className="w-[70px] h-[52px] rounded-md overflow-hidden border border-border">
+                  <img src={characterPreview} alt="Referência" className="w-full h-full object-cover" />
                 </div>
-              </GlassCard>
+              </div>
             </div>
-          </motion.div>
-        )}
+          )}
+
+          {/* Quality badge */}
+          <div className="p-2.5">
+            <div className="inline-flex items-center gap-1 bg-muted border border-border rounded px-2 py-1 text-[11px] text-muted-foreground">
+              <Sparkles className="w-[11px] h-[11px]" />
+              {resolution}
+            </div>
+            <div className="mt-2 inline-flex items-center gap-1 bg-watermelon-green/10 border border-watermelon-green/20 rounded px-2 py-1 text-[11px] text-watermelon-green">
+              <Zap className="w-[11px] h-[11px]" />
+              {creditCost} créditos
+            </div>
+          </div>
+        </div>
       </div>
 
       <NoCreditsModal
@@ -477,7 +554,6 @@ const KlingMotionControl = () => {
         creditsNeeded={creditCost}
         currentCredits={currentCredits}
       />
-      
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
