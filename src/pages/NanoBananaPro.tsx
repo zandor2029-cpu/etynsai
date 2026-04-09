@@ -27,8 +27,7 @@ function GalleryCard({ render, onSelect }: { render: Render; onSelect: (render: 
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => onSelect(render)}
-      className="relative rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-card border border-border/50"
-      style={{ height: 240, width: 240 * 0.75 }}
+      className="relative rounded-lg overflow-hidden cursor-pointer bg-card border border-border/50 aspect-[3/4]"
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
     >
