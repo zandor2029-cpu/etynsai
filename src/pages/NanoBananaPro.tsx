@@ -332,16 +332,15 @@ const NanoBananaPro = () => {
       </div>
 
       {/* GALLERY GRID - scrolls naturally, padding at bottom for prompt bar */}
-      <div className="flex-1 p-2 pb-44 sm:pb-36">
-        {/* Gallery grid */}
+      <div className="flex-1 px-2 sm:px-4 py-2 pb-40 sm:pb-32">
         {renders.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-2">
             {renders.map((render) => (
               <GalleryCard key={render.id} render={render} onView={handleViewRender} onUse={handleUseRender} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-2">
             {Array.from({ length: 18 }).map((_, i) => (
               <PlaceholderCard key={i} index={i} />
             ))}
