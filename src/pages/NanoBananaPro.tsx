@@ -25,7 +25,7 @@ function GalleryCard({ render, onView, onUse }: { render: Render; onView: (r: Re
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative rounded-lg overflow-hidden cursor-pointer bg-card border border-border/50 aspect-[3/4]"
+      className="relative rounded-lg overflow-hidden cursor-pointer bg-card border border-border/50 aspect-square"
     >
       {render.type === 'image' ? (
         <img src={render.url} alt={render.prompt || ''} className="w-full h-full object-cover" loading="lazy" />
@@ -59,7 +59,7 @@ function GalleryCard({ render, onView, onUse }: { render: Render; onView: (r: Re
 function PlaceholderCard({ index }: { index: number }) {
   const gradients = ["from-card to-muted", "from-muted to-card", "from-card via-muted to-card"];
   return (
-    <div className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-[3/4]`}>
+    <div className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-square`}>
       <div className="text-center p-2">
         <ImageIcon className="w-6 h-6 text-muted-foreground/30 mx-auto mb-1" />
         <p className="text-[9px] text-muted-foreground/40 leading-tight">Suas imagens aparecerão aqui</p>
@@ -332,16 +332,15 @@ const NanoBananaPro = () => {
       </div>
 
       {/* GALLERY GRID - scrolls naturally, padding at bottom for prompt bar */}
-      <div className="flex-1 p-2 pb-44 sm:pb-36">
-        {/* Gallery grid */}
+      <div className="flex-1 px-2 sm:px-4 py-2 pb-40 sm:pb-32">
         {renders.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-2">
             {renders.map((render) => (
               <GalleryCard key={render.id} render={render} onView={handleViewRender} onUse={handleUseRender} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-2">
             {Array.from({ length: 18 }).map((_, i) => (
               <PlaceholderCard key={i} index={i} />
             ))}
@@ -498,13 +497,13 @@ const NanoBananaPro = () => {
       </AnimatePresence>
 
       {/* FIXED BOTTOM PROMPT CARD */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[640px] max-w-[94vw] z-30">
-        <div className="glass-card border border-border/80 rounded-2xl p-3 sm:p-4 backdrop-blur-xl shadow-2xl">
+      <div className="fixed bottom-0 sm:bottom-4 left-1/2 -translate-x-1/2 w-full sm:w-[640px] sm:max-w-[94vw] z-30">
+        <div className="glass-card border-t sm:border border-border/80 sm:rounded-2xl rounded-none p-3 sm:p-4 backdrop-blur-xl shadow-2xl">
           {/* Reference images thumbnails */}
           {referenceImages.length > 0 && (
             <div className="flex items-center gap-2 mb-2">
               {referenceImages.map((img, i) => (
-                <div key={i} className="w-9 h-9 rounded-md overflow-hidden border border-border/50 flex-shrink-0">
+                <div key={i} className="w-8 h-8 sm:w-9 sm:h-9 rounded-md overflow-hidden border border-border/50 flex-shrink-0">
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </div>
               ))}
@@ -526,8 +525,8 @@ const NanoBananaPro = () => {
               if (showAssistant) { setShowAssistant(false); promptAssistant.clear(); }
             }}
             placeholder="Descreva a imagem que você quer gerar… 🎨"
-            className="w-full bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground mb-2"
-            rows={2}
+            className="w-full bg-transparent border-none outline-none resize-none text-xs sm:text-sm text-foreground placeholder:text-muted-foreground mb-1.5 sm:mb-2"
+            rows={1}
           />
 
           {/* AI Assistant */}
@@ -579,9 +578,9 @@ const NanoBananaPro = () => {
           </AnimatePresence>
 
           {/* Bottom controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
             {/* Model */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
               <div className="w-2 h-2 rounded-full bg-primary" />
               <span className="text-foreground font-medium">Nano Banana 2</span>
             </div>
@@ -593,14 +592,14 @@ const NanoBananaPro = () => {
                 const idx = ratios.indexOf(aspectRatio);
                 setAspectRatio(ratios[(idx + 1) % ratios.length]);
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground hover:border-primary/30 transition-colors"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-[11px] sm:text-xs text-muted-foreground hover:border-primary/30 transition-colors"
             >
               <ImageIcon className="w-3 h-3" />
               <span>{aspectRatio}</span>
             </button>
 
             {/* Quality */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-[11px] sm:text-xs text-muted-foreground">
               <Star className="w-3 h-3" />
               <span>4K</span>
             </div>
@@ -608,7 +607,7 @@ const NanoBananaPro = () => {
             {/* Toggle: Neg */}
             <button
               onClick={() => setShowNegativePrompt(!showNegativePrompt)}
-              className={`px-2 py-1 rounded-full text-[11px] font-medium transition-colors ${
+              className={`px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-medium transition-colors ${
                 showNegativePrompt ? "bg-secondary/20 border border-secondary/30 text-secondary" : "bg-muted/30 border border-border/30 text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -618,7 +617,7 @@ const NanoBananaPro = () => {
             {/* Toggle: Ref */}
             <button
               onClick={() => setShowRefImages(!showRefImages)}
-              className={`px-2 py-1 rounded-full text-[11px] font-medium transition-colors ${
+              className={`px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-medium transition-colors ${
                 showRefImages ? "bg-secondary/20 border border-secondary/30 text-secondary" : "bg-muted/30 border border-border/30 text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -629,10 +628,10 @@ const NanoBananaPro = () => {
             <button
               onClick={handleEnhancePrompt}
               disabled={prompt.trim().length < 3 || promptAssistant.isLoading}
-              className="px-2 py-1 rounded-full text-[11px] font-medium bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+              className="px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-medium bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
             >
               <Wand2 className="w-3 h-3" />
-              IA
+              <span className="hidden sm:inline">IA</span>
             </button>
 
             <div className="flex-1" />
@@ -643,7 +642,7 @@ const NanoBananaPro = () => {
               loading={isGenerating}
               disabled={!prompt.trim() || isGenerating}
               size="sm"
-              className="rounded-xl"
+              className="rounded-xl text-xs"
             >
               Gerar
               <Sparkles className="w-3 h-3" />
