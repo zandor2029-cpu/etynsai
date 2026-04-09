@@ -71,8 +71,8 @@ function PlaceholderCard({ index }: { index: number }) {
   ];
   return (
     <div
-      className={`relative rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center`}
-      style={{ height: 240, width: 240 * 0.75 }}
+      className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-[3/4]`}
+    >
     >
       <div className="text-center p-4">
         <ImageIcon className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
