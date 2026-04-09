@@ -73,7 +73,6 @@ function PlaceholderCard({ index }: { index: number }) {
     <div
       className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-[3/4]`}
     >
-    >
       <div className="text-center p-4">
         <ImageIcon className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
         <p className="text-[10px] text-muted-foreground/40">Suas imagens aparecerão aqui</p>
