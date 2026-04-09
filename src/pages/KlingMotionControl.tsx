@@ -405,9 +405,10 @@ const KlingMotionControl = () => {
               {isGenerating ? (
                 <motion.div
                   key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0, scale: 0.9, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 1.05, filter: "blur(6px)" }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                   className="flex flex-col items-center gap-4 md:gap-6"
                 >
                   <WatermelonLoader text="Gerando seu vídeo… 🎥" />
@@ -430,9 +431,10 @@ const KlingMotionControl = () => {
               ) : generationError ? (
                 <motion.div
                   key="error"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                   className="flex flex-col items-center gap-3 md:gap-4 p-4 md:p-8"
                 >
                   <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -452,9 +454,10 @@ const KlingMotionControl = () => {
               ) : generatedVideo ? (
                 <motion.div
                   key="result"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0, scale: 0.85, y: 30 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                   className="relative max-w-[400px] lg:max-w-[560px] w-full max-h-full rounded-lg overflow-hidden bg-card"
                   style={{ aspectRatio: "9/16" }}
                 >
@@ -491,8 +494,10 @@ const KlingMotionControl = () => {
               ) : (
                 <motion.div
                   key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.95 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   className="flex flex-col items-center gap-3 md:gap-4 text-muted-foreground"
                 >
                   <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-muted flex items-center justify-center">
