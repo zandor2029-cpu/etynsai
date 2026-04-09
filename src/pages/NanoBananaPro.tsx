@@ -27,8 +27,7 @@ function GalleryCard({ render, onSelect }: { render: Render; onSelect: (render: 
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => onSelect(render)}
-      className="relative rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-card border border-border/50"
-      style={{ height: 240, width: 240 * 0.75 }}
+      className="relative rounded-lg overflow-hidden cursor-pointer bg-card border border-border/50 aspect-[3/4]"
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
     >
@@ -72,8 +71,7 @@ function PlaceholderCard({ index }: { index: number }) {
   ];
   return (
     <div
-      className={`relative rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center`}
-      style={{ height: 240, width: 240 * 0.75 }}
+      className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-[3/4]`}
     >
       <div className="text-center p-4">
         <ImageIcon className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
@@ -466,44 +464,18 @@ const NanoBananaPro = () => {
           )}
         </AnimatePresence>
 
-        {/* Gallery rows */}
+        {/* Gallery grid */}
         {renders.length > 0 ? (
-          <div className="space-y-0.5">
-            {/* Row 1 */}
-            <div className="flex gap-0.5 overflow-x-auto pb-0.5 scrollbar-hide">
-              {renders.slice(0, Math.min(8, renders.length)).map((render) => (
-                <GalleryCard key={render.id} render={render} onSelect={handleSelectRender} />
-              ))}
-            </div>
-            {/* Row 2 */}
-            {renders.length > 8 && (
-              <div className="flex gap-0.5 overflow-x-auto pb-0.5 scrollbar-hide">
-                {renders.slice(8, Math.min(16, renders.length)).map((render) => (
-                  <GalleryCard key={render.id} render={render} onSelect={handleSelectRender} />
-                ))}
-              </div>
-            )}
-            {/* Row 3 */}
-            {renders.length > 16 && (
-              <div className="flex gap-0.5 overflow-x-auto pb-0.5 scrollbar-hide">
-                {renders.slice(16).map((render) => (
-                  <GalleryCard key={render.id} render={render} onSelect={handleSelectRender} />
-                ))}
-              </div>
-            )}
+          <div className="grid grid-cols-6 gap-0.5 pb-28">
+            {renders.map((render) => (
+              <GalleryCard key={render.id} render={render} onSelect={handleSelectRender} />
+            ))}
           </div>
         ) : (
-          <div className="space-y-0.5">
-            <div className="flex gap-0.5">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <PlaceholderCard key={i} index={i} />
-              ))}
-            </div>
-            <div className="flex gap-0.5">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <PlaceholderCard key={`r2-${i}`} index={i + 3} />
-              ))}
-            </div>
+          <div className="grid grid-cols-6 gap-0.5 pb-28">
+            {Array.from({ length: 18 }).map((_, i) => (
+              <PlaceholderCard key={i} index={i} />
+            ))}
           </div>
         )}
       </div>
