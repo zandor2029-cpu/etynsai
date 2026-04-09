@@ -210,7 +210,7 @@ const NanoBananaPro = () => {
         }
 
         toast({
-          title: 'Imagem gerada e salva! 🍉',
+          title: 'Imagem gerada e salva! ⚡',
           description: wasSkipped
             ? 'Imagens ilimitadas no plano Ultimate! 🚀'
             : `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
@@ -358,7 +358,7 @@ const NanoBananaPro = () => {
             className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm flex items-center justify-center"
           >
             <div className="glass-card p-8 rounded-2xl border border-primary/20 shadow-2xl max-w-xs w-full">
-              <WatermelonLoader text="Gerando imagem 4K… 🎨" />
+              <WatermelonLoader text="Gerando imagem 4K…" />
             </div>
           </motion.div>
         )}
@@ -453,7 +453,7 @@ const NanoBananaPro = () => {
                     if (generatedImage) {
                       const link = document.createElement('a');
                       link.href = generatedImage;
-                      link.download = `nano-banana-${Date.now()}.png`;
+                      link.download = `etyns-${Date.now()}.png`;
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
@@ -524,7 +524,7 @@ const NanoBananaPro = () => {
               setShowWarnings(true);
               if (showAssistant) { setShowAssistant(false); promptAssistant.clear(); }
             }}
-            placeholder="Descreva a imagem que você quer gerar… 🎨"
+            placeholder="Descreva a imagem que você quer gerar…"
             className="w-full bg-transparent border-none outline-none resize-none text-xs sm:text-sm text-foreground placeholder:text-muted-foreground mb-1.5 sm:mb-2"
             rows={1}
           />
@@ -582,7 +582,7 @@ const NanoBananaPro = () => {
             {/* Model */}
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
               <div className="w-2 h-2 rounded-full bg-primary" />
-              <span className="text-foreground font-medium">Nano Banana 2</span>
+              <span className="text-foreground font-medium">Etyns Pro</span>
             </div>
 
             {/* Ratio */}
