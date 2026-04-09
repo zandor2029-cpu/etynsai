@@ -172,7 +172,7 @@ const KlingMotionControl = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
 
       {/* SUB TABS */}
       <div className="flex items-center px-5 h-11 border-b border-border flex-shrink-0">
