@@ -494,8 +494,10 @@ const KlingMotionControl = () => {
               ) : (
                 <motion.div
                   key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.95 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   className="flex flex-col items-center gap-3 md:gap-4 text-muted-foreground"
                 >
                   <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-muted flex items-center justify-center">
