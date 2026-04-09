@@ -1,26 +1,87 @@
-import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ZoomIn } from "lucide-react";
-import GlassCard from "@/components/GlassCard";
+import { useState, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ZoomIn, FolderOpen, Users, ChevronLeft, ChevronRight, Image as ImageIcon, Star, Copy, X } from "lucide-react";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
 import AspectRatioSelect from "@/components/AspectRatioSelect";
 import ImageStyleSelect, { type ImageStyle } from "@/components/ImageStyleSelect";
-import WatermelonIcon from "@/components/WatermelonIcon";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
 import ReferenceImageUpload from "@/components/ReferenceImageUpload";
 import PromptAssistant from "@/components/PromptAssistant";
 import { PromptWarning } from "@/components/PromptWarning";
-import { AnimatedSection, AnimatedBadge } from "@/components/AnimatedSection";
-import ExampleCarousel from "@/components/ExampleCarousel";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits, checkUnlimitedImages } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
 import { generateImage, upscaleImage } from "@/hooks/useGeneration";
-import { saveRender } from "@/hooks/useRenders";
+import { saveRender, fetchUserRenders, type Render } from "@/hooks/useRenders";
 import { usePromptValidation } from "@/hooks/usePromptValidation";
 import { usePromptAssistant } from "@/hooks/usePromptAssistant";
+
+// Gallery image card component
+function GalleryCard({ render, onSelect }: { render: Render; onSelect: (render: Render) => void }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => onSelect(render)}
+      className="relative rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-card border border-border/50"
+      style={{ height: 240, width: 240 * 0.75 }}
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.2 }}
+    >
+      {render.type === 'image' ? (
+        <img src={render.url} alt={render.prompt || ''} className="w-full h-full object-cover" />
+      ) : (
+        <video src={render.url} className="w-full h-full object-cover" muted />
+      )}
+
+      {/* Hover overlay */}
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center gap-2"
+          >
+            <button className="px-3 py-1.5 rounded-md text-xs font-medium bg-primary/20 border border-primary/30 text-primary-foreground hover:bg-primary/30 transition-colors">
+              Ver
+            </button>
+            <button className="px-3 py-1.5 rounded-md text-xs font-medium bg-secondary/20 border border-secondary/30 text-secondary-foreground hover:bg-secondary/30 transition-colors">
+              Usar
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bottom gradient */}
+      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
+    </motion.div>
+  );
+}
+
+// Placeholder card for empty gallery
+function PlaceholderCard({ index }: { index: number }) {
+  const gradients = [
+    "from-card to-muted",
+    "from-muted to-card",
+    "from-card via-muted to-card",
+  ];
+  return (
+    <div
+      className={`relative rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center`}
+      style={{ height: 240, width: 240 * 0.75 }}
+    >
+      <div className="text-center p-4">
+        <ImageIcon className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+        <p className="text-[10px] text-muted-foreground/40">Suas imagens aparecerão aqui</p>
+      </div>
+    </div>
+  );
+}
 
 const NanoBananaPro = () => {
   const [prompt, setPrompt] = useState("");
@@ -41,65 +102,80 @@ const NanoBananaPro = () => {
   const [showAssistant, setShowAssistant] = useState(false);
   const [isUpscaling, setIsUpscaling] = useState(false);
   const [isUpscaled, setIsUpscaled] = useState(false);
-  
+  const [activeTab, setActiveTab] = useState<"history" | "community">("history");
+  const [renders, setRenders] = useState<Render[]>([]);
+  const [selectedRender, setSelectedRender] = useState<Render | null>(null);
+  const [showPromptBar, setShowPromptBar] = useState(true);
+  const [showNegativePrompt, setShowNegativePrompt] = useState(false);
+  const [showRefImages, setShowRefImages] = useState(false);
+
   const { user, profile, subscription, refreshProfile } = useAuth();
   const { toast } = useToast();
-  
+
   const creditCost = getCreditCost('image');
   const currentCredits = profile?.credits ?? 0;
   const isUltimate = subscription?.plan === 'ultimate';
-  
-  // Validate prompt in real-time
+
   const promptValidation = usePromptValidation(prompt);
-  
-  // Prompt assistant
   const promptAssistant = usePromptAssistant();
-  
+
+  // Load renders on mount
+  useEffect(() => {
+    if (user) {
+      fetchUserRenders().then((result) => {
+        if (result.success && result.renders) {
+          setRenders(result.renders.filter(r => r.type === 'image'));
+        }
+      });
+    }
+  }, [user]);
+
   const handleEnhancePrompt = useCallback(() => {
     if (prompt.trim().length >= 3) {
       setShowAssistant(true);
       promptAssistant.enhance(prompt, 'image');
     }
   }, [prompt, promptAssistant]);
-  
+
   const handleApplyEnhanced = useCallback((enhanced: string) => {
     setPrompt(enhanced);
     setShowAssistant(false);
     promptAssistant.clear();
-    toast({
-      title: "Prompt aplicado!",
-      description: "O prompt aprimorado foi aplicado.",
-    });
+    toast({ title: "Prompt aplicado!", description: "O prompt aprimorado foi aplicado." });
   }, [promptAssistant, toast]);
-  
+
   const handleApplySuggestion = useCallback((suggestion: string) => {
     setPrompt(prev => `${prev.trim()}, ${suggestion}`);
-    toast({
-      title: "Sugestão adicionada!",
-      description: suggestion,
-    });
+    toast({ title: "Sugestão adicionada!", description: suggestion });
   }, [toast]);
-  
+
   const handleCloseAssistant = useCallback(() => {
     setShowAssistant(false);
     promptAssistant.clear();
   }, [promptAssistant]);
 
+  const handleSelectRender = useCallback((render: Render) => {
+    setSelectedRender(render);
+    setGeneratedImage(render.url);
+    setCurrentPrompt(render.prompt || "");
+    setIsImageLoading(false);
+    setImageLoadError(null);
+    setGenerationError(null);
+  }, []);
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
-    
-    // Check if user is logged in
+
     if (!user) {
       setShowAuthModal(true);
       return;
     }
-    
-    // Check if user has enough credits (skip for Ultimate - unlimited images)
+
     if (!isUltimate && !canAfford(currentCredits, 'image')) {
       setShowNoCreditsModal(true);
       return;
     }
-    
+
     setIsGenerating(true);
     setGeneratedImage(null);
     setIsImageLoading(false);
@@ -107,27 +183,19 @@ const NanoBananaPro = () => {
     setGenerationError(null);
     setIsSaved(false);
     setIsUpscaled(false);
+    setSelectedRender(null);
     setCurrentPrompt(prompt.trim());
-    
+
     let creditsWereDeducted = false;
     let wasSkipped = false;
-    
+
     try {
-      // Use credits first (will be skipped for Ultimate plan)
       const creditResult = await useCreditsForGeneration('image', `Geração: ${prompt.substring(0, 50)}...`);
-      
-      if (!creditResult.success) {
-        throw new Error(creditResult.message);
-      }
-      
-      // Mark if credits were actually deducted (not skipped)
+      if (!creditResult.success) throw new Error(creditResult.message);
       creditsWereDeducted = !creditResult.skipped;
       wasSkipped = creditResult.skipped ?? false;
-      
-      // Refresh profile to update credits display
       await refreshProfile();
-      
-      // Call API via edge function
+
       const result = await generateImage({
         prompt: prompt.trim(),
         negativePrompt: negativePrompt.trim() || undefined,
@@ -135,31 +203,33 @@ const NanoBananaPro = () => {
         style: imageStyle,
         referenceImages: referenceImages.length > 0 ? referenceImages : undefined,
       });
-      
+
       setIsGenerating(false);
-      
+
       if (result.success && result.imageUrl) {
         setGeneratedImage(result.imageUrl);
-        // Pollinations gera sob demanda; mostramos loading até o <img> disparar onLoad
         setIsImageLoading(true);
         setImageLoadError(null);
-        
-        // Auto-save to renders
+
         const saveResult = await saveRender({
           type: 'image',
           url: result.imageUrl,
           prompt: currentPrompt,
           model: 'gemini-2.5-flash-image',
         });
-        
+
         if (saveResult.success) {
           setIsSaved(true);
+          // Add to local renders list
+          if (saveResult.render) {
+            setRenders(prev => [saveResult.render!, ...prev]);
+          }
         }
-        
+
         toast({
           title: 'Imagem gerada e salva! 🍉',
-          description: wasSkipped 
-            ? 'Imagens ilimitadas no plano Ultimate! 🚀' 
+          description: wasSkipped
+            ? 'Imagens ilimitadas no plano Ultimate! 🚀'
             : `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
         });
       } else {
@@ -169,518 +239,445 @@ const NanoBananaPro = () => {
       setIsGenerating(false);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setGenerationError(errorMessage);
-      
-      // Refund credits if they were deducted
+
       if (creditsWereDeducted) {
         try {
           const refundResult = await refundCredits('image', `Reembolso: ${errorMessage}`);
           if (refundResult.success) {
             await refreshProfile();
-            toast({
-              title: 'Créditos reembolsados',
-              description: `Seus ${creditCost} créditos foram devolvidos devido à falha na geração.`,
-            });
+            toast({ title: 'Créditos reembolsados', description: `Seus ${creditCost} créditos foram devolvidos.` });
           } else {
-            toast({
-              title: 'Erro na geração',
-              description: `${errorMessage}. Não foi possível reembolsar automaticamente. Entre em contato com o suporte.`,
-              variant: 'destructive',
-            });
+            toast({ title: 'Erro na geração', description: `${errorMessage}. Não foi possível reembolsar.`, variant: 'destructive' });
             return;
           }
         } catch (refundError) {
           console.error('Refund failed:', refundError);
         }
       }
-      
-      toast({
-        title: 'Erro na geração',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+
+      toast({ title: 'Erro na geração', description: errorMessage, variant: 'destructive' });
     }
   };
 
   const handleUpscale = async () => {
     if (!generatedImage || isUpscaling || isUpscaled) return;
-    
-    // Check if user is logged in
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-    
-    // Check if user has enough credits (skip for Ultimate)
-    if (!isUltimate && !canAfford(currentCredits, 'image')) {
-      setShowNoCreditsModal(true);
-      return;
-    }
-    
+    if (!user) { setShowAuthModal(true); return; }
+    if (!isUltimate && !canAfford(currentCredits, 'image')) { setShowNoCreditsModal(true); return; }
+
     setIsUpscaling(true);
-    
     let creditsWereDeducted = false;
-    
+
     try {
-      // Use credits (upscale costs same as image generation)
       const creditResult = await useCreditsForGeneration('image', `Upscale: ${currentPrompt.substring(0, 30)}...`);
-      
-      if (!creditResult.success) {
-        throw new Error(creditResult.message);
-      }
-      
+      if (!creditResult.success) throw new Error(creditResult.message);
       creditsWereDeducted = !creditResult.skipped;
       await refreshProfile();
-      
-      // Call upscale API
-      const result = await upscaleImage({
-        imageUrl: generatedImage,
-        scale: 2,
-      });
-      
+
+      const result = await upscaleImage({ imageUrl: generatedImage, scale: 2 });
       setIsUpscaling(false);
-      
+
       if (result.success && result.imageUrl) {
         setGeneratedImage(result.imageUrl);
         setIsUpscaled(true);
         setIsImageLoading(true);
-        
-        // Save upscaled version
+
         await saveRender({
           type: 'image',
           url: result.imageUrl,
           prompt: `[UPSCALE] ${currentPrompt}`,
           model: 'gemini-upscale',
         });
-        
-        toast({
-          title: 'Imagem melhorada! 🚀',
-          description: 'Resolução aumentada com sucesso.',
-        });
+
+        toast({ title: 'Imagem melhorada! 🚀', description: 'Resolução aumentada com sucesso.' });
       } else {
         throw new Error(result.error || 'Erro ao melhorar imagem');
       }
     } catch (error) {
       setIsUpscaling(false);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      
-      // Refund credits if they were deducted
       if (creditsWereDeducted) {
         try {
           const refundResult = await refundCredits('image', `Reembolso upscale: ${errorMessage}`);
-          if (refundResult.success) {
-            await refreshProfile();
-          }
+          if (refundResult.success) await refreshProfile();
         } catch (refundError) {
           console.error('Refund failed:', refundError);
         }
       }
-      
-      toast({
-        title: 'Erro no upscale',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro no upscale', description: errorMessage, variant: 'destructive' });
     }
   };
 
   return (
-    <div className="min-h-screen bg-animated-gradient bg-orbs pt-20 md:pt-24 pb-8 md:pb-12 px-3 md:px-4">
-      <div className="container mx-auto max-w-4xl">
-        {/* Header - Improved hierarchy */}
-        <div className="text-center mb-10 md:mb-16">
-          {/* Title first - main focus */}
-          <AnimatedSection delay={0}>
-            <motion.h1 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-3 md:mb-4 flex items-center justify-center gap-2 md:gap-4 px-2"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+
+      {/* HISTORY / COMMUNITY TABS */}
+      <div className="flex items-center justify-between px-4 h-11 bg-background border-b border-border flex-shrink-0 mt-16">
+        <div className="flex gap-1">
+          {[
+            { id: "history" as const, label: "Histórico", icon: FolderOpen },
+            { id: "community" as const, label: "Comunidade", icon: Users },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground/70"
+              }`}
             >
-              <span className="text-gradient-rgb">Nano Banana Pro 4K</span>
-              <motion.div
-                whileHover={{ rotate: 15, scale: 1.1 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <WatermelonIcon size={48} className="hidden md:inline-block" />
-                <WatermelonIcon size={32} className="inline-block md:hidden flex-shrink-0" />
-              </motion.div>
-            </motion.h1>
-          </AnimatedSection>
-          
-          {/* Subtitle - secondary */}
-          <AnimatedSection delay={0.15}>
-            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed px-2 mb-4 md:mb-6">
-              {referenceImages.length > 0 ? (
-                <>Edite e transforme suas imagens com IA</>
-              ) : (
-                <>Crie imagens incríveis em qualidade 4K Ultra HD</>
-              )}
-            </p>
-          </AnimatedSection>
-          
-          {/* Badges row - tertiary info */}
-          <AnimatedSection delay={0.25}>
-            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
-              {/* Mode badge */}
-              <motion.div 
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-watermelon-green/10 border border-watermelon-green/30 text-watermelon-green"
-                whileHover={{ scale: 1.05, borderColor: "hsl(145 80% 42% / 0.5)" }}
-                transition={{ duration: 0.2 }}
-              >
-                <Wand2 className="w-3 h-3" />
-                <span>{referenceImages.length > 0 ? 'Image-to-Image' : 'Text-to-Image'}</span>
-              </motion.div>
-              
-              {/* Credit cost */}
-              <motion.div 
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-muted/50 border border-border text-muted-foreground"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Zap className="w-3 h-3 text-watermelon-green" />
-                {isUltimate ? (
-                  <span className="text-watermelon-green font-semibold">Ilimitado</span>
-                ) : (
-                  <span><span className="text-foreground font-semibold">{creditCost}</span> créditos</span>
-                )}
-              </motion.div>
-            </div>
-          </AnimatedSection>
+              <tab.icon className="w-3.5 h-3.5" />
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* Main Generation Card */}
-        <AnimatedSection delay={0.35}>
-          <motion.div 
-            className="rgb-border p-[1px] md:p-[2px] rounded-2xl md:rounded-3xl"
-            whileHover={{ scale: 1.002 }}
-            transition={{ duration: 0.3 }}
-          >
-            <GlassCard className="p-5 sm:p-6 md:p-10 rounded-2xl md:rounded-3xl">
-              <div className="space-y-6 md:space-y-8">
-                {/* Example Carousel */}
-                <div className="w-full h-44 sm:h-52 md:h-64 lg:h-72 rounded-xl md:rounded-2xl overflow-hidden shadow-lg">
-                  <ExampleCarousel />
-                </div>
+        {/* Credits badge */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Zap className="w-3 h-3 text-primary" />
+          {isUltimate ? (
+            <span className="text-primary font-semibold">Ilimitado</span>
+          ) : (
+            <span><span className="text-foreground font-semibold">{currentCredits}</span> créditos</span>
+          )}
+        </div>
+      </div>
 
-                {/* Prompt Field */}
-                <div className="space-y-2 md:space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 md:gap-2.5 text-xs md:text-sm font-semibold text-foreground tracking-wide">
-                      <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-watermelon-green flex-shrink-0" />
-                      <span>Prompt</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleEnhancePrompt}
-                      disabled={prompt.trim().length < 3 || promptAssistant.isLoading}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-watermelon-green/10 to-watermelon-pink/10 border border-watermelon-green/30 hover:border-watermelon-green/50 text-watermelon-green disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
-                    >
-                      <Wand2 className="w-3 h-3" />
-                      <span className="hidden sm:inline">Melhorar com IA</span>
-                      <span className="sm:hidden">IA</span>
-                    </button>
+      {/* GALLERY GRID */}
+      <div className="flex-1 overflow-y-auto p-2 relative">
+        {/* Loading state */}
+        <AnimatePresence>
+          {isGenerating && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute inset-x-0 top-0 z-30 flex justify-center pt-8"
+            >
+              <div className="glass-card p-6 rounded-2xl border border-primary/20 shadow-2xl max-w-xs w-full">
+                <WatermelonLoader text="Gerando imagem 4K… 🎨" />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Error overlay */}
+        <AnimatePresence>
+          {generationError && !isGenerating && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-x-0 top-0 z-30 flex justify-center pt-8"
+            >
+              <div className="glass-card p-5 rounded-2xl border border-destructive/30 max-w-sm w-full">
+                <div className="flex items-start gap-3 text-destructive">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-bold text-sm">Erro na geração</h3>
+                    <p className="text-muted-foreground text-xs mt-1">{generationError}</p>
                   </div>
-                  <textarea
-                    value={prompt}
-                    onChange={(e) => {
-                      setPrompt(e.target.value);
-                      setShowWarnings(true);
-                      if (showAssistant) {
-                        setShowAssistant(false);
-                        promptAssistant.clear();
-                      }
-                    }}
-                    placeholder="Descreva a imagem que você quer gerar… seja detalhado e criativo! 🎨"
-                    className="textarea-glass w-full text-sm md:text-base"
-                    rows={3}
-                  />
-                  
-                  {/* AI Prompt Assistant */}
-                  {showAssistant && (
-                    <PromptAssistant
-                      suggestions={promptAssistant.suggestions}
-                      isLoading={promptAssistant.isLoading}
-                      onApplyEnhanced={handleApplyEnhanced}
-                      onApplySuggestion={handleApplySuggestion}
-                      onClose={handleCloseAssistant}
-                    />
-                  )}
-                  
-                  {/* Prompt validation warnings */}
-                  {prompt.trim() && showWarnings && !showAssistant && promptValidation.warnings.length > 0 && (
-                    <PromptWarning 
-                      warnings={promptValidation.warnings}
-                      hasBlockingWarning={promptValidation.hasBlockingWarning}
-                      onDismiss={() => setShowWarnings(false)}
-                    />
-                  )}
+                  <button onClick={() => setGenerationError(null)} className="ml-auto text-muted-foreground hover:text-foreground">
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-                {/* Divider */}
-                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        {/* Selected image viewer */}
+        <AnimatePresence>
+          {generatedImage && !isGenerating && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 z-20 bg-background/95 backdrop-blur-xl flex flex-col items-center justify-center p-4"
+            >
+              <button
+                onClick={() => { setGeneratedImage(null); setSelectedRender(null); }}
+                className="absolute top-4 right-4 p-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
+              >
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
 
-                {/* Negative Prompt */}
-                <div className="space-y-2 md:space-y-3">
-                  <label className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm font-semibold text-muted-foreground tracking-wide">
-                    <span>Negative Prompt</span>
-                    <span className="text-[10px] md:text-xs font-normal opacity-70">(opcional)</span>
-                  </label>
-                  <textarea
-                    value={negativePrompt}
-                    onChange={(e) => setNegativePrompt(e.target.value)}
-                    placeholder="O que você NÃO quer na imagem..."
-                    className="textarea-glass w-full text-sm md:text-base"
-                    rows={2}
-                  />
-                </div>
+              <div className="max-w-2xl w-full max-h-[70vh] relative rounded-xl overflow-hidden mb-4">
+                {isImageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                  </div>
+                )}
+                <img
+                  src={generatedImage}
+                  alt={currentPrompt}
+                  className="w-full h-auto max-h-[70vh] object-contain"
+                  onLoad={() => { setIsImageLoading(false); setImageLoadError(null); }}
+                  onError={() => { setIsImageLoading(false); setImageLoadError('Erro ao carregar imagem.'); }}
+                />
+              </div>
 
-                {/* Reference Images Upload */}
+              {currentPrompt && (
+                <p className="text-sm text-muted-foreground max-w-lg text-center mb-4 line-clamp-2">{currentPrompt}</p>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-2 justify-center">
+                <WatermelonButton
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    if (generatedImage) {
+                      const link = document.createElement('a');
+                      link.href = generatedImage;
+                      link.download = `nano-banana-${Date.now()}.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }
+                  }}
+                >
+                  <Download className="w-4 h-4" />
+                  Baixar
+                </WatermelonButton>
+
+                <WatermelonButton
+                  variant={isUpscaled ? "outline" : "secondary"}
+                  size="sm"
+                  onClick={handleUpscale}
+                  disabled={isUpscaling || isUpscaled}
+                >
+                  {isUpscaling ? (
+                    <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" /> Melhorando...</>
+                  ) : isUpscaled ? (
+                    <><Check className="w-4 h-4" /> Já melhorada</>
+                  ) : (
+                    <><ZoomIn className="w-4 h-4" /> Upscale</>
+                  )}
+                </WatermelonButton>
+
+                <WatermelonButton variant="outline" size="sm" onClick={handleGenerate}>
+                  <RefreshCw className="w-4 h-4" />
+                  Variação
+                </WatermelonButton>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Gallery rows */}
+        {renders.length > 0 ? (
+          <div className="space-y-0.5">
+            {/* Row 1 */}
+            <div className="flex gap-0.5 overflow-x-auto pb-0.5 scrollbar-hide">
+              {renders.slice(0, Math.min(8, renders.length)).map((render) => (
+                <GalleryCard key={render.id} render={render} onSelect={handleSelectRender} />
+              ))}
+            </div>
+            {/* Row 2 */}
+            {renders.length > 8 && (
+              <div className="flex gap-0.5 overflow-x-auto pb-0.5 scrollbar-hide">
+                {renders.slice(8, Math.min(16, renders.length)).map((render) => (
+                  <GalleryCard key={render.id} render={render} onSelect={handleSelectRender} />
+                ))}
+              </div>
+            )}
+            {/* Row 3 */}
+            {renders.length > 16 && (
+              <div className="flex gap-0.5 overflow-x-auto pb-0.5 scrollbar-hide">
+                {renders.slice(16).map((render) => (
+                  <GalleryCard key={render.id} render={render} onSelect={handleSelectRender} />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-0.5">
+            <div className="flex gap-0.5">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <PlaceholderCard key={i} index={i} />
+              ))}
+            </div>
+            <div className="flex gap-0.5">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <PlaceholderCard key={`r2-${i}`} index={i + 3} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* FIXED BOTTOM PROMPT CARD */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[640px] max-w-[94vw] z-50">
+        <motion.div
+          className="glass-card border border-border/80 rounded-2xl p-4 backdrop-blur-xl shadow-2xl"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          {/* Reference images row */}
+          {referenceImages.length > 0 && (
+            <div className="flex items-start gap-2 mb-3">
+              <div className="flex gap-1.5 flex-shrink-0">
+                {referenceImages.map((img, i) => (
+                  <div key={i} className="w-10 h-10 rounded-md overflow-hidden border border-border/50">
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowRefImages(!showRefImages)}
+                className="p-1.5 rounded-md border border-border/50 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Prompt text area */}
+          <textarea
+            value={prompt}
+            onChange={(e) => {
+              setPrompt(e.target.value);
+              setShowWarnings(true);
+              if (showAssistant) { setShowAssistant(false); promptAssistant.clear(); }
+            }}
+            placeholder="Descreva a imagem que você quer gerar… 🎨"
+            className="w-full bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground mb-3"
+            rows={2}
+          />
+
+          {/* AI Assistant */}
+          {showAssistant && (
+            <div className="mb-3">
+              <PromptAssistant
+                suggestions={promptAssistant.suggestions}
+                isLoading={promptAssistant.isLoading}
+                onApplyEnhanced={handleApplyEnhanced}
+                onApplySuggestion={handleApplySuggestion}
+                onClose={handleCloseAssistant}
+              />
+            </div>
+          )}
+
+          {/* Prompt warnings */}
+          {prompt.trim() && showWarnings && !showAssistant && promptValidation.warnings.length > 0 && (
+            <div className="mb-3">
+              <PromptWarning
+                warnings={promptValidation.warnings}
+                hasBlockingWarning={promptValidation.hasBlockingWarning}
+                onDismiss={() => setShowWarnings(false)}
+              />
+            </div>
+          )}
+
+          {/* Expandable sections */}
+          <AnimatePresence>
+            {showNegativePrompt && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden mb-3"
+              >
+                <textarea
+                  value={negativePrompt}
+                  onChange={(e) => setNegativePrompt(e.target.value)}
+                  placeholder="Negative prompt (o que NÃO quer na imagem)..."
+                  className="w-full bg-muted/30 border border-border/50 rounded-lg outline-none resize-none text-xs text-foreground placeholder:text-muted-foreground p-2"
+                  rows={2}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {showRefImages && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden mb-3"
+              >
                 <ReferenceImageUpload
                   images={referenceImages}
                   onImagesChange={setReferenceImages}
                   maxImages={2}
                   disabled={isGenerating}
                 />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                {/* Settings Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                  {/* Image Style */}
-                  <ImageStyleSelect value={imageStyle} onChange={setImageStyle} disabled={isGenerating} />
-                  
-                  {/* Aspect Ratio */}
-                  <AspectRatioSelect value={aspectRatio} onChange={setAspectRatio} />
-
-                  {/* Resolution Indicator */}
-                  <div className="space-y-2 md:space-y-3">
-                    <label className="flex items-center text-xs md:text-sm font-semibold text-muted-foreground tracking-wide">
-                      <span>Resolução</span>
-                    </label>
-                    <div className="input-glass flex items-center gap-2 md:gap-3 h-[46px] md:h-[58px]">
-                      <div className="p-1.5 md:p-2 rounded-lg bg-gradient-to-br from-watermelon-green/20 to-watermelon-pink/20">
-                        <Zap className="w-4 h-4 md:w-5 md:h-5 text-watermelon-green-neon" />
-                      </div>
-                      <div>
-                        <span className="font-bold text-gradient-watermelon text-sm md:text-base">4K Ultra HD</span>
-                        <p className="text-[10px] md:text-xs text-muted-foreground">3840 × 2160 pixels</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Generate Button */}
-                <div className="pt-2 md:pt-4">
-                  <WatermelonButton
-                    onClick={handleGenerate}
-                    loading={isGenerating}
-                    disabled={!prompt.trim() || isGenerating}
-                    size="lg"
-                    className="w-full text-sm sm:text-base md:text-lg"
-                  >
-                    {isGenerating 
-                      ? "Gerando sua obra-prima..." 
-                      : isUltimate 
-                        ? "Gerar Imagem 🍉 (Ilimitado)" 
-                        : `Gerar Imagem 🍉 (${creditCost} créditos)`
-                    }
-                  </WatermelonButton>
-                  
-                  {!user && (
-                    <p className="text-center text-xs md:text-sm text-muted-foreground mt-3 md:mt-4 font-medium flex items-center justify-center gap-1.5 md:gap-2">
-                      <span className="opacity-80">🔐</span>
-                      <span>Faça login para gerar imagens</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-            </GlassCard>
-          </motion.div>
-        </AnimatedSection>
-
-        {/* Loading State */}
-        {isGenerating && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-            className="mt-6 md:mt-10"
-          >
-            <GlassCard className="p-8 md:p-12 lg:p-16">
-              <WatermelonLoader text="Gerando sua imagem em 4K… 🎨" />
-            </GlassCard>
-          </motion.div>
-        )}
-
-        {/* Error State */}
-        {generationError && !isGenerating && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="mt-6 md:mt-10"
-          >
-            <GlassCard className="p-5 md:p-8 border border-destructive/20">
-              <div className="flex items-start md:items-center gap-3 md:gap-4 text-destructive">
-                <AlertCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0" />
-                <div>
-                  <h3 className="font-bold text-base md:text-lg">Erro na geração</h3>
-                  <p className="text-muted-foreground text-sm md:text-base">{generationError}</p>
-                </div>
-              </div>
-              <WatermelonButton
-                onClick={() => setGenerationError(null)}
-                variant="outline"
-                size="md"
-                className="mt-3 md:mt-4"
-              >
-                Tentar novamente
-              </WatermelonButton>
-            </GlassCard>
-          </motion.div>
-        )}
-
-        {/* Result */}
-        {generatedImage && !isGenerating && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-            className="mt-6 md:mt-10"
-          >
-            <div className="rgb-border p-[1px] md:p-[2px] rounded-2xl md:rounded-3xl">
-              <GlassCard className="p-4 sm:p-5 md:p-8 rounded-2xl md:rounded-3xl">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-display font-bold mb-4 md:mb-6 flex items-center gap-2 md:gap-3">
-                  <div className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-gradient-to-br from-watermelon-green to-watermelon-pink">
-                    <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                  </div>
-                  <span className="text-gradient-watermelon">Sua imagem está pronta!</span>
-                </h2>
-                
-                {/* Image Preview */}
-                <motion.div 
-                  className="relative rounded-xl md:rounded-2xl overflow-hidden mb-4 md:mb-6 group"
-                  whileHover={{ scale: 1.01 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {/* Loading overlay while image loads */}
-                  {isImageLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-watermelon-green/10 to-watermelon-pink/10 z-10">
-                      <div className="text-center px-4">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-watermelon-green mx-auto mb-2" />
-                        <p className="text-sm text-muted-foreground">Carregando imagem (pode levar alguns segundos)...</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {imageLoadError && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-10">
-                      <div className="text-center px-4">
-                        <p className="text-sm text-destructive font-medium mb-2">{imageLoadError}</p>
-                        {generatedImage && (
-                          <a
-                            href={generatedImage}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sm underline text-foreground"
-                          >
-                            Abrir imagem em nova aba
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  <img
-                    src={generatedImage}
-                    alt="Imagem gerada"
-                    className="w-full h-auto"
-                    onLoad={() => {
-                      setIsImageLoading(false);
-                      setImageLoadError(null);
-                    }}
-                    onError={() => {
-                      setIsImageLoading(false);
-                      setImageLoadError('Erro ao carregar a imagem. Tente gerar novamente.');
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                </motion.div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 md:gap-4">
-                  <WatermelonButton 
-                    variant="primary" 
-                    size="md"
-                    className="w-full sm:w-auto text-sm md:text-base"
-                    onClick={() => {
-                      if (generatedImage) {
-                        const link = document.createElement('a');
-                        link.href = generatedImage;
-                        link.download = `nano-banana-${Date.now()}.png`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }
-                    }}
-                  >
-                    <Download className="w-4 h-4" />
-                    Baixar Imagem
-                  </WatermelonButton>
-                  
-                  {/* Upscale Button */}
-                  <WatermelonButton 
-                    variant={isUpscaled ? "outline" : "secondary"}
-                    size="md" 
-                    onClick={handleUpscale}
-                    disabled={isUpscaling || isUpscaled}
-                    className="w-full sm:w-auto text-sm md:text-base"
-                  >
-                    {isUpscaling ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
-                        Melhorando...
-                      </>
-                    ) : isUpscaled ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        Já melhorada
-                      </>
-                    ) : (
-                      <>
-                        <ZoomIn className="w-4 h-4" />
-                        <span className="hidden sm:inline">Melhorar Resolução</span>
-                        <span className="sm:hidden">Upscale</span>
-                        <span className="text-xs opacity-80">{isUltimate ? '(∞)' : `(${creditCost})`}</span>
-                      </>
-                    )}
-                  </WatermelonButton>
-                  
-                  <WatermelonButton 
-                    variant="outline" 
-                    size="md" 
-                    onClick={handleGenerate}
-                    className="w-full sm:w-auto text-sm md:text-base"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    <span className="hidden sm:inline">Gerar Variação</span>
-                    <span className="sm:hidden">Variação</span>
-                    <span className="text-xs opacity-80">{isUltimate ? '(∞)' : `(${creditCost})`}</span>
-                  </WatermelonButton>
-                  
-                  {isSaved && (
-                    <motion.div 
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-1.5 md:gap-2 text-watermelon-green w-full sm:w-auto justify-center sm:justify-start"
-                    >
-                      <Check className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                      <span className="text-xs md:text-sm font-medium">Salvo em Meus Renders</span>
-                    </motion.div>
-                  )}
-                </div>
-              </GlassCard>
+          {/* Bottom controls row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Model selector */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+              <div className="w-2 h-2 rounded-full bg-primary" />
+              <span className="text-foreground font-medium">Nano Banana 2</span>
             </div>
-          </motion.div>
-        )}
+
+            {/* Aspect Ratio pill */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+              <ImageIcon className="w-3 h-3" />
+              <span>{aspectRatio}</span>
+            </div>
+
+            {/* Quality pill */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+              <Star className="w-3 h-3" />
+              <span>4K</span>
+            </div>
+
+            {/* Toggle buttons */}
+            <button
+              onClick={() => setShowNegativePrompt(!showNegativePrompt)}
+              className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-colors ${
+                showNegativePrompt ? "bg-secondary/20 border border-secondary/30 text-secondary" : "bg-muted/30 border border-border/30 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Neg
+            </button>
+
+            <button
+              onClick={() => setShowRefImages(!showRefImages)}
+              className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-colors ${
+                showRefImages ? "bg-secondary/20 border border-secondary/30 text-secondary" : "bg-muted/30 border border-border/30 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Ref
+            </button>
+
+            {/* Enhance button */}
+            <button
+              onClick={handleEnhancePrompt}
+              disabled={prompt.trim().length < 3 || promptAssistant.isLoading}
+              className="px-2.5 py-1.5 rounded-full text-[11px] font-medium bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Wand2 className="w-3 h-3 inline mr-1" />
+              IA
+            </button>
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Generate button */}
+            <WatermelonButton
+              onClick={handleGenerate}
+              loading={isGenerating}
+              disabled={!prompt.trim() || isGenerating}
+              size="sm"
+              className="rounded-xl"
+            >
+              Gerar
+              <Sparkles className="w-3 h-3" />
+              <span className="text-[10px] opacity-80">
+                {isUltimate ? "∞" : `+${creditCost}`}
+              </span>
+            </WatermelonButton>
+          </div>
+        </motion.div>
       </div>
 
       <NoCreditsModal
@@ -690,7 +687,7 @@ const NanoBananaPro = () => {
         creditsNeeded={creditCost}
         currentCredits={currentCredits}
       />
-      
+
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
