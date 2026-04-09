@@ -1,9 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ZoomIn, FolderOpen, Users, ChevronLeft, ChevronRight, Image as ImageIcon, Star, Copy, X } from "lucide-react";
+import { Sparkles, Download, RefreshCw, Zap, Wand2, AlertCircle, Check, ZoomIn, FolderOpen, Users, Image as ImageIcon, Star, Copy, X } from "lucide-react";
 import WatermelonButton from "@/components/WatermelonButton";
 import WatermelonLoader from "@/components/WatermelonLoader";
-import AspectRatioSelect from "@/components/AspectRatioSelect";
 import ImageStyleSelect, { type ImageStyle } from "@/components/ImageStyleSelect";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
@@ -11,71 +10,59 @@ import ReferenceImageUpload from "@/components/ReferenceImageUpload";
 import PromptAssistant from "@/components/PromptAssistant";
 import { PromptWarning } from "@/components/PromptWarning";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits, checkUnlimitedImages } from "@/hooks/useCredits";
+import { useCreditsForGeneration, getCreditCost, canAfford, refundCredits } from "@/hooks/useCredits";
 import { useToast } from "@/hooks/use-toast";
 import { generateImage, upscaleImage } from "@/hooks/useGeneration";
 import { saveRender, fetchUserRenders, type Render } from "@/hooks/useRenders";
 import { usePromptValidation } from "@/hooks/usePromptValidation";
 import { usePromptAssistant } from "@/hooks/usePromptAssistant";
 
-// Gallery image card component
-function GalleryCard({ render, onSelect }: { render: Render; onSelect: (render: Render) => void }) {
+// Gallery image card
+function GalleryCard({ render, onView, onUse }: { render: Render; onView: (r: Render) => void; onUse: (r: Render) => void }) {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <motion.div
+    <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={() => onSelect(render)}
       className="relative rounded-lg overflow-hidden cursor-pointer bg-card border border-border/50 aspect-[3/4]"
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
     >
       {render.type === 'image' ? (
-        <img src={render.url} alt={render.prompt || ''} className="w-full h-full object-cover" />
+        <img src={render.url} alt={render.prompt || ''} className="w-full h-full object-cover" loading="lazy" />
       ) : (
         <video src={render.url} className="w-full h-full object-cover" muted />
       )}
 
-      {/* Hover overlay */}
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center gap-2"
+      {hovered && (
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center gap-2 z-10">
+          <button
+            onClick={(e) => { e.stopPropagation(); onView(render); }}
+            className="px-3 py-1.5 rounded-md text-xs font-medium bg-primary/20 border border-primary/30 text-foreground hover:bg-primary/30 transition-colors"
           >
-            <button className="px-3 py-1.5 rounded-md text-xs font-medium bg-primary/20 border border-primary/30 text-primary-foreground hover:bg-primary/30 transition-colors">
-              Ver
-            </button>
-            <button className="px-3 py-1.5 rounded-md text-xs font-medium bg-secondary/20 border border-secondary/30 text-secondary-foreground hover:bg-secondary/30 transition-colors">
-              Usar
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Ver
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onUse(render); }}
+            className="px-3 py-1.5 rounded-md text-xs font-medium bg-secondary/20 border border-secondary/30 text-foreground hover:bg-secondary/30 transition-colors"
+          >
+            Usar
+          </button>
+        </div>
+      )}
 
-      {/* Bottom gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
-    </motion.div>
+    </div>
   );
 }
 
-// Placeholder card for empty gallery
+// Placeholder card
 function PlaceholderCard({ index }: { index: number }) {
-  const gradients = [
-    "from-card to-muted",
-    "from-muted to-card",
-    "from-card via-muted to-card",
-  ];
+  const gradients = ["from-card to-muted", "from-muted to-card", "from-card via-muted to-card"];
   return (
-    <div
-      className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-[3/4]`}
-    >
-      <div className="text-center p-4">
-        <ImageIcon className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-        <p className="text-[10px] text-muted-foreground/40">Suas imagens aparecerão aqui</p>
+    <div className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-[3/4]`}>
+      <div className="text-center p-2">
+        <ImageIcon className="w-6 h-6 text-muted-foreground/30 mx-auto mb-1" />
+        <p className="text-[9px] text-muted-foreground/40 leading-tight">Suas imagens aparecerão aqui</p>
       </div>
     </div>
   );
@@ -102,8 +89,6 @@ const NanoBananaPro = () => {
   const [isUpscaled, setIsUpscaled] = useState(false);
   const [activeTab, setActiveTab] = useState<"history" | "community">("history");
   const [renders, setRenders] = useState<Render[]>([]);
-  const [selectedRender, setSelectedRender] = useState<Render | null>(null);
-  const [showPromptBar, setShowPromptBar] = useState(true);
   const [showNegativePrompt, setShowNegativePrompt] = useState(false);
   const [showRefImages, setShowRefImages] = useState(false);
 
@@ -117,7 +102,6 @@ const NanoBananaPro = () => {
   const promptValidation = usePromptValidation(prompt);
   const promptAssistant = usePromptAssistant();
 
-  // Load renders on mount
   useEffect(() => {
     if (user) {
       fetchUserRenders().then((result) => {
@@ -152,27 +136,30 @@ const NanoBananaPro = () => {
     promptAssistant.clear();
   }, [promptAssistant]);
 
-  const handleSelectRender = useCallback((render: Render) => {
-    setSelectedRender(render);
+  // View: open image in full overlay
+  const handleViewRender = useCallback((render: Render) => {
     setGeneratedImage(render.url);
     setCurrentPrompt(render.prompt || "");
     setIsImageLoading(false);
     setImageLoadError(null);
     setGenerationError(null);
+    setIsUpscaled(false);
+    setIsSaved(true); // already saved
   }, []);
+
+  // Use: load prompt from a render into the prompt bar
+  const handleUseRender = useCallback((render: Render) => {
+    if (render.prompt) {
+      setPrompt(render.prompt);
+      toast({ title: "Prompt carregado!", description: "O prompt desta imagem foi aplicado à barra." });
+    }
+  }, [toast]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
 
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    if (!isUltimate && !canAfford(currentCredits, 'image')) {
-      setShowNoCreditsModal(true);
-      return;
-    }
+    if (!user) { setShowAuthModal(true); return; }
+    if (!isUltimate && !canAfford(currentCredits, 'image')) { setShowNoCreditsModal(true); return; }
 
     setIsGenerating(true);
     setGeneratedImage(null);
@@ -181,7 +168,6 @@ const NanoBananaPro = () => {
     setGenerationError(null);
     setIsSaved(false);
     setIsUpscaled(false);
-    setSelectedRender(null);
     setCurrentPrompt(prompt.trim());
 
     let creditsWereDeducted = false;
@@ -212,13 +198,12 @@ const NanoBananaPro = () => {
         const saveResult = await saveRender({
           type: 'image',
           url: result.imageUrl,
-          prompt: currentPrompt,
+          prompt: prompt.trim(),
           model: 'gemini-2.5-flash-image',
         });
 
         if (saveResult.success) {
           setIsSaved(true);
-          // Add to local renders list
           if (saveResult.render) {
             setRenders(prev => [saveResult.render!, ...prev]);
           }
@@ -305,11 +290,17 @@ const NanoBananaPro = () => {
     }
   };
 
+  const closeViewer = () => {
+    setGeneratedImage(null);
+    setGenerationError(null);
+    setIsUpscaled(false);
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-background text-foreground pt-16">
 
       {/* HISTORY / COMMUNITY TABS */}
-      <div className="flex items-center justify-between px-4 h-11 bg-background border-b border-border flex-shrink-0 mt-16">
+      <div className="flex items-center justify-between px-4 h-11 bg-background border-b border-border flex-shrink-0 sticky top-16 z-10">
         <div className="flex gap-1">
           {[
             { id: "history" as const, label: "Histórico", icon: FolderOpen },
@@ -330,7 +321,6 @@ const NanoBananaPro = () => {
           ))}
         </div>
 
-        {/* Credits badge */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Zap className="w-3 h-3 text-primary" />
           {isUltimate ? (
@@ -341,81 +331,116 @@ const NanoBananaPro = () => {
         </div>
       </div>
 
-      {/* GALLERY GRID */}
-      <div className="flex-1 overflow-y-auto p-2 relative">
-        {/* Loading state */}
-        <AnimatePresence>
-          {isGenerating && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute inset-x-0 top-0 z-30 flex justify-center pt-8"
-            >
-              <div className="glass-card p-6 rounded-2xl border border-primary/20 shadow-2xl max-w-xs w-full">
-                <WatermelonLoader text="Gerando imagem 4K… 🎨" />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* GALLERY GRID - scrolls naturally, padding at bottom for prompt bar */}
+      <div className="flex-1 p-2 pb-36">
+        {/* Gallery grid */}
+        {renders.length > 0 ? (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
+            {renders.map((render) => (
+              <GalleryCard key={render.id} render={render} onView={handleViewRender} onUse={handleUseRender} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
+            {Array.from({ length: 18 }).map((_, i) => (
+              <PlaceholderCard key={i} index={i} />
+            ))}
+          </div>
+        )}
+      </div>
 
-        {/* Error overlay */}
-        <AnimatePresence>
-          {generationError && !isGenerating && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-x-0 top-0 z-30 flex justify-center pt-8"
-            >
-              <div className="glass-card p-5 rounded-2xl border border-destructive/30 max-w-sm w-full">
-                <div className="flex items-start gap-3 text-destructive">
-                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-bold text-sm">Erro na geração</h3>
-                    <p className="text-muted-foreground text-xs mt-1">{generationError}</p>
-                  </div>
-                  <button onClick={() => setGenerationError(null)} className="ml-auto text-muted-foreground hover:text-foreground">
-                    <X className="w-4 h-4" />
-                  </button>
+      {/* LOADING OVERLAY */}
+      <AnimatePresence>
+        {isGenerating && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm flex items-center justify-center"
+          >
+            <div className="glass-card p-8 rounded-2xl border border-primary/20 shadow-2xl max-w-xs w-full">
+              <WatermelonLoader text="Gerando imagem 4K… 🎨" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ERROR OVERLAY */}
+      <AnimatePresence>
+        {generationError && !isGenerating && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={closeViewer}
+          >
+            <div className="glass-card p-6 rounded-2xl border border-destructive/30 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+              <div className="flex items-start gap-3 text-destructive mb-4">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-bold text-sm">Erro na geração</h3>
+                  <p className="text-muted-foreground text-xs mt-1">{generationError}</p>
                 </div>
+                <button onClick={closeViewer} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <WatermelonButton onClick={() => { closeViewer(); }} variant="outline" size="sm" className="w-full">
+                Tentar novamente
+              </WatermelonButton>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Selected image viewer */}
-        <AnimatePresence>
-          {generatedImage && !isGenerating && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute inset-0 z-20 bg-background/95 backdrop-blur-xl flex flex-col items-center justify-center p-4"
-            >
+      {/* IMAGE VIEWER OVERLAY */}
+      <AnimatePresence>
+        {generatedImage && !isGenerating && !generationError && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-40 bg-background/95 backdrop-blur-xl flex flex-col items-center justify-center p-4"
+            onClick={closeViewer}
+          >
+            <div className="flex flex-col items-center max-w-2xl w-full" onClick={e => e.stopPropagation()}>
+              {/* Close button */}
               <button
-                onClick={() => { setGeneratedImage(null); setSelectedRender(null); }}
-                className="absolute top-4 right-4 p-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
+                onClick={closeViewer}
+                className="absolute top-4 right-4 p-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors z-10"
               >
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
 
-              <div className="max-w-2xl w-full max-h-[70vh] relative rounded-xl overflow-hidden mb-4">
+              {/* Image */}
+              <div className="w-full max-h-[65vh] relative rounded-xl overflow-hidden mb-4">
                 {isImageLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                   </div>
                 )}
+                {imageLoadError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-10">
+                    <div className="text-center px-4">
+                      <p className="text-sm text-destructive font-medium mb-2">{imageLoadError}</p>
+                      <a href={generatedImage} target="_blank" rel="noreferrer" className="text-sm underline text-foreground">
+                        Abrir em nova aba
+                      </a>
+                    </div>
+                  </div>
+                )}
                 <img
                   src={generatedImage}
                   alt={currentPrompt}
-                  className="w-full h-auto max-h-[70vh] object-contain"
+                  className="w-full h-auto max-h-[65vh] object-contain"
                   onLoad={() => { setIsImageLoading(false); setImageLoadError(null); }}
                   onError={() => { setIsImageLoading(false); setImageLoadError('Erro ao carregar imagem.'); }}
                 />
               </div>
 
+              {/* Prompt */}
               {currentPrompt && (
                 <p className="text-sm text-muted-foreground max-w-lg text-center mb-4 line-clamp-2">{currentPrompt}</p>
               )}
@@ -455,59 +480,44 @@ const NanoBananaPro = () => {
                   )}
                 </WatermelonButton>
 
-                <WatermelonButton variant="outline" size="sm" onClick={handleGenerate}>
+                <WatermelonButton variant="outline" size="sm" onClick={() => { closeViewer(); handleGenerate(); }}>
                   <RefreshCw className="w-4 h-4" />
                   Variação
                 </WatermelonButton>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
-        {/* Gallery grid */}
-        {renders.length > 0 ? (
-          <div className="grid grid-cols-6 gap-0.5 pb-28">
-            {renders.map((render) => (
-              <GalleryCard key={render.id} render={render} onSelect={handleSelectRender} />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-6 gap-0.5 pb-28">
-            {Array.from({ length: 18 }).map((_, i) => (
-              <PlaceholderCard key={i} index={i} />
-            ))}
-          </div>
+                {isSaved && (
+                  <div className="flex items-center gap-1.5 text-primary text-xs font-medium">
+                    <Check className="w-3.5 h-3.5" />
+                    Salvo
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
       {/* FIXED BOTTOM PROMPT CARD */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[640px] max-w-[94vw] z-50">
-        <motion.div
-          className="glass-card border border-border/80 rounded-2xl p-4 backdrop-blur-xl shadow-2xl"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          {/* Reference images row */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[640px] max-w-[94vw] z-30">
+        <div className="glass-card border border-border/80 rounded-2xl p-3 sm:p-4 backdrop-blur-xl shadow-2xl">
+          {/* Reference images thumbnails */}
           {referenceImages.length > 0 && (
-            <div className="flex items-start gap-2 mb-3">
-              <div className="flex gap-1.5 flex-shrink-0">
-                {referenceImages.map((img, i) => (
-                  <div key={i} className="w-10 h-10 rounded-md overflow-hidden border border-border/50">
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-center gap-2 mb-2">
+              {referenceImages.map((img, i) => (
+                <div key={i} className="w-9 h-9 rounded-md overflow-hidden border border-border/50 flex-shrink-0">
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                </div>
+              ))}
               <button
-                onClick={() => setShowRefImages(!showRefImages)}
-                className="p-1.5 rounded-md border border-border/50 text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setReferenceImages([])}
+                className="p-1 rounded-md text-muted-foreground hover:text-destructive transition-colors"
               >
-                <Copy className="w-3.5 h-3.5" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
 
-          {/* Prompt text area */}
+          {/* Prompt textarea */}
           <textarea
             value={prompt}
             onChange={(e) => {
@@ -516,13 +526,13 @@ const NanoBananaPro = () => {
               if (showAssistant) { setShowAssistant(false); promptAssistant.clear(); }
             }}
             placeholder="Descreva a imagem que você quer gerar… 🎨"
-            className="w-full bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground mb-3"
+            className="w-full bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground mb-2"
             rows={2}
           />
 
           {/* AI Assistant */}
           {showAssistant && (
-            <div className="mb-3">
+            <div className="mb-2">
               <PromptAssistant
                 suggestions={promptAssistant.suggestions}
                 isLoading={promptAssistant.isLoading}
@@ -535,7 +545,7 @@ const NanoBananaPro = () => {
 
           {/* Prompt warnings */}
           {prompt.trim() && showWarnings && !showAssistant && promptValidation.warnings.length > 0 && (
-            <div className="mb-3">
+            <div className="mb-2">
               <PromptWarning
                 warnings={promptValidation.warnings}
                 hasBlockingWarning={promptValidation.hasBlockingWarning}
@@ -544,19 +554,14 @@ const NanoBananaPro = () => {
             </div>
           )}
 
-          {/* Expandable sections */}
+          {/* Expandable: Negative prompt */}
           <AnimatePresence>
             {showNegativePrompt && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden mb-3"
-              >
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
                 <textarea
                   value={negativePrompt}
                   onChange={(e) => setNegativePrompt(e.target.value)}
-                  placeholder="Negative prompt (o que NÃO quer na imagem)..."
+                  placeholder="Negative prompt (o que NÃO quer)..."
                   className="w-full bg-muted/30 border border-border/50 rounded-lg outline-none resize-none text-xs text-foreground placeholder:text-muted-foreground p-2"
                   rows={2}
                 />
@@ -564,77 +569,75 @@ const NanoBananaPro = () => {
             )}
           </AnimatePresence>
 
+          {/* Expandable: Reference images */}
           <AnimatePresence>
             {showRefImages && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden mb-3"
-              >
-                <ReferenceImageUpload
-                  images={referenceImages}
-                  onImagesChange={setReferenceImages}
-                  maxImages={2}
-                  disabled={isGenerating}
-                />
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
+                <ReferenceImageUpload images={referenceImages} onImagesChange={setReferenceImages} maxImages={2} disabled={isGenerating} />
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Bottom controls row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Model selector */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+          {/* Bottom controls */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            {/* Model */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
               <div className="w-2 h-2 rounded-full bg-primary" />
               <span className="text-foreground font-medium">Nano Banana 2</span>
             </div>
 
-            {/* Aspect Ratio pill */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+            {/* Ratio */}
+            <button
+              onClick={() => {
+                const ratios = ["1:1", "9:16", "16:9", "4:3", "3:4"];
+                const idx = ratios.indexOf(aspectRatio);
+                setAspectRatio(ratios[(idx + 1) % ratios.length]);
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground hover:border-primary/30 transition-colors"
+            >
               <ImageIcon className="w-3 h-3" />
               <span>{aspectRatio}</span>
-            </div>
+            </button>
 
-            {/* Quality pill */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+            {/* Quality */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
               <Star className="w-3 h-3" />
               <span>4K</span>
             </div>
 
-            {/* Toggle buttons */}
+            {/* Toggle: Neg */}
             <button
               onClick={() => setShowNegativePrompt(!showNegativePrompt)}
-              className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-colors ${
+              className={`px-2 py-1 rounded-full text-[11px] font-medium transition-colors ${
                 showNegativePrompt ? "bg-secondary/20 border border-secondary/30 text-secondary" : "bg-muted/30 border border-border/30 text-muted-foreground hover:text-foreground"
               }`}
             >
               Neg
             </button>
 
+            {/* Toggle: Ref */}
             <button
               onClick={() => setShowRefImages(!showRefImages)}
-              className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-colors ${
+              className={`px-2 py-1 rounded-full text-[11px] font-medium transition-colors ${
                 showRefImages ? "bg-secondary/20 border border-secondary/30 text-secondary" : "bg-muted/30 border border-border/30 text-muted-foreground hover:text-foreground"
               }`}
             >
               Ref
             </button>
 
-            {/* Enhance button */}
+            {/* AI enhance */}
             <button
               onClick={handleEnhancePrompt}
               disabled={prompt.trim().length < 3 || promptAssistant.isLoading}
-              className="px-2.5 py-1.5 rounded-full text-[11px] font-medium bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-2 py-1 rounded-full text-[11px] font-medium bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
             >
-              <Wand2 className="w-3 h-3 inline mr-1" />
+              <Wand2 className="w-3 h-3" />
               IA
             </button>
 
-            {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Generate button */}
+            {/* Generate */}
             <WatermelonButton
               onClick={handleGenerate}
               loading={isGenerating}
@@ -649,21 +652,11 @@ const NanoBananaPro = () => {
               </span>
             </WatermelonButton>
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      <NoCreditsModal
-        isOpen={showNoCreditsModal}
-        onClose={() => setShowNoCreditsModal(false)}
-        type="image"
-        creditsNeeded={creditCost}
-        currentCredits={currentCredits}
-      />
-
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
+      <NoCreditsModal isOpen={showNoCreditsModal} onClose={() => setShowNoCreditsModal(false)} type="image" creditsNeeded={creditCost} currentCredits={currentCredits} />
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 };
