@@ -74,9 +74,9 @@ const RenderCard = ({ id, type, thumbnail, createdAt, prompt, onOpen, onDownload
                 e.stopPropagation();
                 onOpen(id);
               }}
-              className="p-3 rounded-xl bg-watermelon-green/90 text-white shadow-glow-green"
+              className="p-3 rounded-xl bg-primary/90 text-white shadow-glow-blue"
               title="Abrir"
-              whileHover={{ scale: 1.15, backgroundColor: "hsl(145 80% 42%)" }}
+              whileHover={{ scale: 1.15, backgroundColor: "hsl(210 100% 55%)" }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.15 }}
             >
@@ -87,9 +87,9 @@ const RenderCard = ({ id, type, thumbnail, createdAt, prompt, onOpen, onDownload
                 e.stopPropagation();
                 onDownload(id);
               }}
-              className="p-3 rounded-xl bg-watermelon-pink/90 text-white shadow-glow-pink"
+              className="p-3 rounded-xl bg-etyns-purple/90 text-white shadow-glow-purple"
               title="Baixar"
-              whileHover={{ scale: 1.15, backgroundColor: "hsl(330 100% 65%)" }}
+              whileHover={{ scale: 1.15, backgroundColor: "hsl(260 100% 65%)" }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.15 }}
             >
@@ -119,7 +119,7 @@ const RenderCard = ({ id, type, thumbnail, createdAt, prompt, onOpen, onDownload
             whileHover={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
             style={{
-              boxShadow: "inset 0 0 20px hsl(145 100% 50% / 0.2), inset 0 0 40px hsl(330 100% 65% / 0.15)",
+              boxShadow: "inset 0 0 20px hsl(210 100% 60% / 0.2), inset 0 0 40px hsl(190 100% 50% / 0.15)",
             }}
           />
         </div>
@@ -132,7 +132,7 @@ const RenderCard = ({ id, type, thumbnail, createdAt, prompt, onOpen, onDownload
                 whileHover={{ rotate: 15, scale: 1.2 }}
                 transition={{ duration: 0.2 }}
               >
-                <Sparkles className="w-4 h-4 text-watermelon-green" />
+                <Sparkles className="w-4 h-4 text-etyns-blue" />
               </motion.div>
               <span className="text-sm font-semibold text-foreground">{typeLabel}</span>
             </div>
