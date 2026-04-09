@@ -332,7 +332,7 @@ const NanoBananaPro = () => {
       </div>
 
       {/* GALLERY GRID - scrolls naturally, padding at bottom for prompt bar */}
-      <div className="flex-1 p-2 pb-36">
+      <div className="flex-1 p-2 pb-44 sm:pb-36">
         {/* Gallery grid */}
         {renders.length > 0 ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
