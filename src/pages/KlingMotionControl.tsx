@@ -175,12 +175,12 @@ const KlingMotionControl = () => {
     <div className="flex flex-col h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
 
       {/* SUB TABS */}
-      <div className="flex items-center px-5 h-11 border-b border-border flex-shrink-0">
+      <div className="flex items-center px-3 md:px-5 h-10 md:h-11 border-b border-border flex-shrink-0">
         {SUB_TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveSubTab(tab)}
-            className={`h-full px-4 text-[13px] border-b-2 transition-all ${
+            className={`h-full px-3 md:px-4 text-xs md:text-[13px] border-b-2 transition-all ${
               activeSubTab === tab
                 ? "text-foreground font-semibold border-watermelon-green"
                 : "text-muted-foreground font-normal border-transparent hover:text-foreground/70"
@@ -191,15 +191,15 @@ const KlingMotionControl = () => {
         ))}
       </div>
 
-      {/* MAIN 3-PANEL LAYOUT */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* MAIN LAYOUT - stacked on mobile, 3-panel on desktop */}
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
 
         {/* LEFT PANEL - Controls */}
-        <div className="w-[280px] bg-card border-r border-border flex flex-col overflow-hidden flex-shrink-0">
+        <div className="lg:w-[280px] bg-card lg:border-r border-b lg:border-b-0 border-border flex flex-col overflow-hidden flex-shrink-0 max-h-[50vh] lg:max-h-none">
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
 
-            {/* Tutorial card */}
-            <div className="rounded-xl overflow-hidden border border-border bg-muted">
+            {/* Tutorial card - hidden on mobile for space */}
+            <div className="hidden md:block rounded-xl overflow-hidden border border-border bg-muted">
               <div className="flex items-stretch h-[88px]">
                 <div className="flex-1 p-3 flex flex-col justify-center">
                   <div className="text-watermelon-green font-extrabold text-[13px] tracking-wide mb-1">MOTION CONTROL</div>
@@ -217,70 +217,75 @@ const KlingMotionControl = () => {
               </div>
             </div>
 
-            {/* Upload area */}
-            <div className="bg-muted border border-dashed border-border rounded-xl p-3">
-              <div className="flex gap-2.5">
-                {/* Empty upload slot */}
-                {!characterPreview ? (
-                  <label className="flex-1 bg-background rounded-lg border border-dashed border-border flex flex-col items-center justify-center h-24 cursor-pointer hover:border-watermelon-green/40 transition-colors group">
-                    <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center mb-1.5 group-hover:bg-watermelon-green/10 transition-colors">
-                      <Upload className="w-3 h-3 text-muted-foreground group-hover:text-watermelon-green transition-colors" />
+            {/* Mobile: compact row layout for upload + settings */}
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
+              {/* Upload area */}
+              <div className="bg-muted border border-dashed border-border rounded-xl p-3 sm:flex-1 lg:flex-none">
+                <div className="flex gap-2.5">
+                  {!characterPreview ? (
+                    <label className="flex-1 bg-background rounded-lg border border-dashed border-border flex flex-col items-center justify-center h-20 md:h-24 cursor-pointer hover:border-watermelon-green/40 transition-colors group">
+                      <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center mb-1.5 group-hover:bg-watermelon-green/10 transition-colors">
+                        <Upload className="w-3 h-3 text-muted-foreground group-hover:text-watermelon-green transition-colors" />
+                      </div>
+                      <div className="text-[10px] text-muted-foreground text-center leading-snug">Adicionar imagem<br/>para animar</div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          handleFileSelect(file);
+                        }}
+                      />
+                    </label>
+                  ) : (
+                    <div className="flex-1 bg-background rounded-lg overflow-hidden relative h-20 md:h-24">
+                      <img src={characterPreview} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        onClick={handleClearImage}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-destructive/80 transition-colors"
+                      >
+                        <X className="w-2.5 h-2.5 text-foreground" />
+                      </button>
                     </div>
-                    <div className="text-[10px] text-muted-foreground text-center leading-snug">Adicionar imagem<br/>para animar</div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null;
-                        handleFileSelect(file);
-                      }}
-                    />
-                  </label>
-                ) : (
-                  <div className="flex-1 bg-background rounded-lg overflow-hidden relative h-24">
-                    <img src={characterPreview} alt="Preview" className="w-full h-full object-cover" />
-                    <button
-                      onClick={handleClearImage}
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-destructive/80 transition-colors"
-                    >
-                      <X className="w-2.5 h-2.5 text-foreground" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Model selector */}
-            <div className="bg-muted border border-border rounded-lg px-3 py-2.5 cursor-pointer flex justify-between items-center hover:border-border/80 transition-colors">
-              <div>
-                <div className="text-[10px] text-muted-foreground mb-0.5">Modelo</div>
-                <div className="text-[12.5px] text-foreground flex items-center gap-1.5">
-                  Nano Banana Motion
-                  <Info className="w-[13px] h-[13px] text-muted-foreground" />
+                  )}
                 </div>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
 
-            {/* Quality / Resolution */}
-            <div className="bg-muted border border-border rounded-lg px-3 py-2.5">
-              <div className="text-[10px] text-muted-foreground mb-2">Qualidade</div>
-              <div className="flex gap-1.5">
-                {(["480p", "720p"] as const).map((res) => (
-                  <button
-                    key={res}
-                    onClick={() => setResolution(res)}
-                    className={`flex-1 py-1.5 rounded-md text-[12px] font-medium transition-all ${
-                      resolution === res
-                        ? "bg-watermelon-green text-watermelon-green-foreground shadow-sm"
-                        : "bg-background text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {res}
-                    <span className="ml-1 text-[10px] opacity-70">({VIDEO_CREDIT_COSTS[res]}cr)</span>
-                  </button>
-                ))}
+              {/* Model + Quality side-by-side on mobile */}
+              <div className="flex flex-row sm:flex-col lg:flex-col gap-2 sm:flex-1 lg:flex-none">
+                {/* Model selector */}
+                <div className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 md:py-2.5 cursor-pointer flex justify-between items-center hover:border-border/80 transition-colors">
+                  <div>
+                    <div className="text-[10px] text-muted-foreground mb-0.5">Modelo</div>
+                    <div className="text-[11px] md:text-[12.5px] text-foreground flex items-center gap-1.5">
+                      Nano Banana Motion
+                      <Info className="w-[13px] h-[13px] text-muted-foreground hidden sm:inline" />
+                    </div>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                </div>
+
+                {/* Quality / Resolution */}
+                <div className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 md:py-2.5">
+                  <div className="text-[10px] text-muted-foreground mb-1.5 md:mb-2">Qualidade</div>
+                  <div className="flex gap-1.5">
+                    {(["480p", "720p"] as const).map((res) => (
+                      <button
+                        key={res}
+                        onClick={() => setResolution(res)}
+                        className={`flex-1 py-1 md:py-1.5 rounded-md text-[11px] md:text-[12px] font-medium transition-all ${
+                          resolution === res
+                            ? "bg-watermelon-green text-watermelon-green-foreground shadow-sm"
+                            : "bg-background text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {res}
+                        <span className="ml-1 text-[9px] md:text-[10px] opacity-70">({VIDEO_CREDIT_COSTS[res]}cr)</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -308,7 +313,7 @@ const KlingMotionControl = () => {
                 }}
                 placeholder="Ex: andar para frente, acenar, dançar..."
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[12px] text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:border-watermelon-green/40 transition-colors"
-                rows={3}
+                rows={2}
               />
               {showAssistant && (
                 <div className="mt-2">
@@ -329,7 +334,7 @@ const KlingMotionControl = () => {
             <button
               onClick={handleGenerate}
               disabled={!canGenerateVideo || isGenerating}
-              className="w-full bg-watermelon-green hover:bg-watermelon-green-light disabled:opacity-40 disabled:cursor-not-allowed border-none rounded-xl py-3.5 text-sm font-bold text-background cursor-pointer flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-watermelon-green/20"
+              className="w-full bg-watermelon-green hover:bg-watermelon-green-light disabled:opacity-40 disabled:cursor-not-allowed border-none rounded-xl py-3 md:py-3.5 text-xs md:text-sm font-bold text-background cursor-pointer flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-watermelon-green/20"
             >
               {isGenerating ? (
                 <>Gerando...</>
@@ -337,7 +342,7 @@ const KlingMotionControl = () => {
                 <>
                   Gerar Vídeo
                   <Sparkles className="w-4 h-4" />
-                  <span className="text-[12px] opacity-80">{creditCost}</span>
+                  <span className="text-[11px] md:text-[12px] opacity-80">{creditCost}</span>
                 </>
               )}
             </button>
@@ -355,16 +360,16 @@ const KlingMotionControl = () => {
         </div>
 
         {/* CENTER - Preview Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden min-h-[200px]">
 
           {/* Center tabs */}
-          <div className="flex items-center px-4 h-11 border-b border-border flex-shrink-0 justify-between">
+          <div className="flex items-center px-3 md:px-4 h-10 md:h-11 border-b border-border flex-shrink-0 justify-between">
             <div className="flex gap-1">
               {["Histórico", "Galeria"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex items-center gap-1.5 px-3 py-1 text-[13px] rounded-md transition-colors ${
+                  className={`flex items-center gap-1.5 px-2 md:px-3 py-1 text-xs md:text-[13px] rounded-md transition-colors ${
                     activeTab === tab ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -374,6 +379,11 @@ const KlingMotionControl = () => {
               ))}
             </div>
             <div className="flex gap-2 items-center">
+              {/* Mobile: show info badges inline */}
+              <div className="flex lg:hidden items-center gap-1.5 mr-2">
+                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{resolution}</span>
+                <span className="text-[10px] text-watermelon-green bg-watermelon-green/10 px-1.5 py-0.5 rounded">{creditCost}cr</span>
+              </div>
               <button
                 onClick={() => setViewMode("grid")}
                 className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-muted text-foreground" : "text-muted-foreground"}`}
@@ -390,7 +400,7 @@ const KlingMotionControl = () => {
           </div>
 
           {/* Video preview area */}
-          <div className="flex-1 flex items-center justify-center bg-background relative">
+          <div className="flex-1 flex items-center justify-center bg-background relative p-4">
             <AnimatePresence mode="wait">
               {isGenerating ? (
                 <motion.div
@@ -398,10 +408,10 @@ const KlingMotionControl = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex flex-col items-center gap-6"
+                  className="flex flex-col items-center gap-4 md:gap-6"
                 >
                   <WatermelonLoader text="Gerando seu vídeo… 🎥" />
-                  <div className="w-64">
+                  <div className="w-48 md:w-64">
                     <div className="flex justify-between text-[11px] font-semibold mb-2">
                       <span className="text-muted-foreground">Progresso</span>
                       <span className="text-watermelon-green">{progress}%</span>
@@ -423,18 +433,18 @@ const KlingMotionControl = () => {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex flex-col items-center gap-4 p-8"
+                  className="flex flex-col items-center gap-3 md:gap-4 p-4 md:p-8"
                 >
-                  <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-                    <AlertCircle className="w-6 h-6 text-destructive" />
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-destructive" />
                   </div>
                   <div className="text-center">
-                    <h3 className="font-bold text-foreground mb-1">Erro na geração</h3>
-                    <p className="text-[13px] text-muted-foreground max-w-sm">{generationError}</p>
+                    <h3 className="font-bold text-foreground text-sm md:text-base mb-1">Erro na geração</h3>
+                    <p className="text-xs md:text-[13px] text-muted-foreground max-w-sm">{generationError}</p>
                   </div>
                   <button
                     onClick={() => setGenerationError(null)}
-                    className="px-4 py-2 rounded-lg bg-muted border border-border text-[13px] text-foreground hover:bg-muted/80 transition-colors"
+                    className="px-4 py-2 rounded-lg bg-muted border border-border text-xs md:text-[13px] text-foreground hover:bg-muted/80 transition-colors"
                   >
                     Tentar novamente
                   </button>
@@ -445,7 +455,7 @@ const KlingMotionControl = () => {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
-                  className="relative max-w-[560px] w-[90%] max-h-[85%] rounded-lg overflow-hidden bg-card"
+                  className="relative max-w-[400px] lg:max-w-[560px] w-full max-h-full rounded-lg overflow-hidden bg-card"
                   style={{ aspectRatio: "9/16" }}
                 >
                   <video
@@ -455,7 +465,6 @@ const KlingMotionControl = () => {
                     autoPlay
                     loop
                   />
-                  {/* Play overlay */}
                   <div className="absolute top-3 left-3 flex items-center gap-2">
                     {isSaved && (
                       <motion.div
@@ -468,20 +477,30 @@ const KlingMotionControl = () => {
                       </motion.div>
                     )}
                   </div>
+                  {/* Mobile: download button overlay */}
+                  <div className="absolute bottom-3 right-3 lg:hidden flex gap-2">
+                    <a
+                      href={generatedVideo}
+                      download="video.mp4"
+                      className="bg-background/80 backdrop-blur-sm rounded-full p-2 text-foreground"
+                    >
+                      <Download className="w-4 h-4" />
+                    </a>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div
                   key="empty"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex flex-col items-center gap-4 text-muted-foreground"
+                  className="flex flex-col items-center gap-3 md:gap-4 text-muted-foreground"
                 >
-                  <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center">
-                    <Video className="w-8 h-8 text-muted-foreground/40" />
+                  <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-muted flex items-center justify-center">
+                    <Video className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground/40" />
                   </div>
                   <div className="text-center">
-                    <p className="text-[14px] font-medium text-foreground/60">Nenhum vídeo gerado</p>
-                    <p className="text-[12px] text-muted-foreground mt-1">Faça upload de uma imagem e clique em Gerar</p>
+                    <p className="text-xs md:text-[14px] font-medium text-foreground/60">Nenhum vídeo gerado</p>
+                    <p className="text-[11px] md:text-[12px] text-muted-foreground mt-1">Faça upload de uma imagem e clique em Gerar</p>
                   </div>
                 </motion.div>
               )}
@@ -489,8 +508,8 @@ const KlingMotionControl = () => {
           </div>
         </div>
 
-        {/* RIGHT PANEL - Details */}
-        <div className="w-[220px] bg-card border-l border-border flex flex-col flex-shrink-0">
+        {/* RIGHT PANEL - Details (hidden on mobile) */}
+        <div className="hidden lg:flex w-[220px] bg-card border-l border-border flex-col flex-shrink-0">
           {/* Action buttons */}
           <div className="flex gap-1.5 p-2.5 border-b border-border">
             <a
