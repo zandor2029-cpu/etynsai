@@ -59,7 +59,7 @@ function GalleryCard({ render, onView, onUse }: { render: Render; onView: (r: Re
 function PlaceholderCard({ index }: { index: number }) {
   const gradients = ["from-card to-muted", "from-muted to-card", "from-card via-muted to-card"];
   return (
-    <div className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-[3/4]`}>
+    <div className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-square`}>
       <div className="text-center p-2">
         <ImageIcon className="w-6 h-6 text-muted-foreground/30 mx-auto mb-1" />
         <p className="text-[9px] text-muted-foreground/40 leading-tight">Suas imagens aparecerão aqui</p>
