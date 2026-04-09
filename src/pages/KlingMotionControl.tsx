@@ -182,7 +182,7 @@ const KlingMotionControl = () => {
             onClick={() => setActiveSubTab(tab)}
             className={`h-full px-3 md:px-4 text-xs md:text-[13px] border-b-2 transition-all ${
               activeSubTab === tab
-                ? "text-foreground font-semibold border-watermelon-green"
+                ? "text-foreground font-semibold border-primary"
                 : "text-muted-foreground font-normal border-transparent hover:text-foreground/70"
             }`}
           >
@@ -202,7 +202,7 @@ const KlingMotionControl = () => {
             <div className="hidden md:block rounded-xl overflow-hidden border border-border bg-muted">
               <div className="flex items-stretch h-[88px]">
                 <div className="flex-1 p-3 flex flex-col justify-center">
-                  <div className="text-watermelon-green font-extrabold text-[13px] tracking-wide mb-1">MOTION CONTROL</div>
+                  <div className="text-primary font-extrabold text-[13px] tracking-wide mb-1">MOTION CONTROL</div>
                   <div className="text-muted-foreground text-[10.5px] leading-snug">Transforme imagens em vídeos com movimentos realistas</div>
                 </div>
                 <div className="w-[88px] bg-muted relative overflow-hidden">
@@ -223,9 +223,9 @@ const KlingMotionControl = () => {
               <div className="bg-muted border border-dashed border-border rounded-xl p-3 sm:flex-1 lg:flex-none">
                 <div className="flex gap-2.5">
                   {!characterPreview ? (
-                    <label className="flex-1 bg-background rounded-lg border border-dashed border-border flex flex-col items-center justify-center h-20 md:h-24 cursor-pointer hover:border-watermelon-green/40 transition-colors group">
-                      <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center mb-1.5 group-hover:bg-watermelon-green/10 transition-colors">
-                        <Upload className="w-3 h-3 text-muted-foreground group-hover:text-watermelon-green transition-colors" />
+                    <label className="flex-1 bg-background rounded-lg border border-dashed border-border flex flex-col items-center justify-center h-20 md:h-24 cursor-pointer hover:border-primary/40 transition-colors group">
+                      <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center mb-1.5 group-hover:bg-primary/10 transition-colors">
+                        <Upload className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
                       <div className="text-[10px] text-muted-foreground text-center leading-snug">Adicionar imagem<br/>para animar</div>
                       <input
@@ -259,7 +259,7 @@ const KlingMotionControl = () => {
                   <div>
                     <div className="text-[10px] text-muted-foreground mb-0.5">Modelo</div>
                     <div className="text-[11px] md:text-[12.5px] text-foreground flex items-center gap-1.5">
-                      Nano Banana Motion
+                      Etyns Motion
                       <Info className="w-[13px] h-[13px] text-muted-foreground hidden sm:inline" />
                     </div>
                   </div>
@@ -276,7 +276,7 @@ const KlingMotionControl = () => {
                         onClick={() => setResolution(res)}
                         className={`flex-1 py-1 md:py-1.5 rounded-md text-[11px] md:text-[12px] font-medium transition-all ${
                           resolution === res
-                            ? "bg-watermelon-green text-watermelon-green-foreground shadow-sm"
+                            ? "bg-primary text-primary-foreground shadow-sm"
                             : "bg-background text-muted-foreground hover:text-foreground"
                         }`}
                       >
@@ -299,7 +299,7 @@ const KlingMotionControl = () => {
                 <button
                   onClick={handleEnhancePrompt}
                   disabled={instructions.trim().length < 3 || promptAssistant.isLoading}
-                  className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-watermelon-green/10 border border-watermelon-green/30 text-watermelon-green hover:border-watermelon-green/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 border border-primary/30 text-primary hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
                   <Wand2 className="w-2.5 h-2.5" />
                   IA
@@ -312,7 +312,7 @@ const KlingMotionControl = () => {
                   if (showAssistant) { setShowAssistant(false); promptAssistant.clear(); }
                 }}
                 placeholder="Ex: andar para frente, acenar, dançar..."
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[12px] text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:border-watermelon-green/40 transition-colors"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[12px] text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:border-primary/40 transition-colors"
                 rows={2}
               />
               {showAssistant && (
@@ -334,7 +334,7 @@ const KlingMotionControl = () => {
             <button
               onClick={handleGenerate}
               disabled={!canGenerateVideo || isGenerating}
-              className="w-full bg-watermelon-green hover:bg-watermelon-green-light disabled:opacity-40 disabled:cursor-not-allowed border-none rounded-xl py-3 md:py-3.5 text-xs md:text-sm font-bold text-background cursor-pointer flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-watermelon-green/20"
+              className="w-full bg-primary hover:bg-etyns-blue-light disabled:opacity-40 disabled:cursor-not-allowed border-none rounded-xl py-3 md:py-3.5 text-xs md:text-sm font-bold text-white cursor-pointer flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-primary/20"
             >
               {isGenerating ? (
                 <>Gerando...</>
@@ -382,7 +382,7 @@ const KlingMotionControl = () => {
               {/* Mobile: show info badges inline */}
               <div className="flex lg:hidden items-center gap-1.5 mr-2">
                 <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{resolution}</span>
-                <span className="text-[10px] text-watermelon-green bg-watermelon-green/10 px-1.5 py-0.5 rounded">{creditCost}cr</span>
+                <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded">{creditCost}cr</span>
               </div>
               <button
                 onClick={() => setViewMode("grid")}
@@ -411,15 +411,15 @@ const KlingMotionControl = () => {
                   transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                   className="flex flex-col items-center gap-4 md:gap-6"
                 >
-                  <WatermelonLoader text="Gerando seu vídeo… 🎥" />
+                  <WatermelonLoader text="Gerando seu vídeo…" />
                   <div className="w-48 md:w-64">
                     <div className="flex justify-between text-[11px] font-semibold mb-2">
                       <span className="text-muted-foreground">Progresso</span>
-                      <span className="text-watermelon-green">{progress}%</span>
+                      <span className="text-primary">{progress}%</span>
                     </div>
                     <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-gradient-to-r from-watermelon-green to-watermelon-pink rounded-full"
+                        className="h-full bg-gradient-to-r from-etyns-blue to-etyns-cyan rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: `${progress}%` }}
                         transition={{ duration: 0.5 }}
@@ -473,7 +473,7 @@ const KlingMotionControl = () => {
                       <motion.div
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-1 bg-watermelon-green/20 backdrop-blur-sm rounded-full px-2.5 py-1 text-[11px] text-watermelon-green font-medium"
+                        className="flex items-center gap-1 bg-primary/20 backdrop-blur-sm rounded-full px-2.5 py-1 text-[11px] text-primary font-medium"
                       >
                         <Check className="w-3 h-3" />
                         Salvo
@@ -563,7 +563,7 @@ const KlingMotionControl = () => {
               <Sparkles className="w-[11px] h-[11px]" />
               {resolution}
             </div>
-            <div className="mt-2 inline-flex items-center gap-1 bg-watermelon-green/10 border border-watermelon-green/20 rounded px-2 py-1 text-[11px] text-watermelon-green">
+            <div className="mt-2 inline-flex items-center gap-1 bg-primary/10 border border-primary/20 rounded px-2 py-1 text-[11px] text-primary">
               <Zap className="w-[11px] h-[11px]" />
               {creditCost} créditos
             </div>
