@@ -28,17 +28,17 @@ const typeConfig: Record<string, { label: string; icon: React.ReactNode; color: 
   signup_bonus: {
     label: "Bônus de Cadastro",
     icon: <Gift className="w-4 h-4" />,
-    color: "bg-watermelon-green/20 text-watermelon-green border-watermelon-green/30",
+    color: "bg-primary/20 text-primary border-primary/30",
   },
   subscription: {
     label: "Assinatura",
     icon: <CreditCard className="w-4 h-4" />,
-    color: "bg-watermelon-pink/20 text-watermelon-pink border-watermelon-pink/30",
+    color: "bg-etyns-purple/20 text-etyns-purple border-etyns-purple/30",
   },
   image_generation: {
     label: "Geração de Imagem",
     icon: <Sparkles className="w-4 h-4" />,
-    color: "bg-watermelon-coral/20 text-watermelon-coral border-watermelon-coral/30",
+    color: "bg-etyns-cyan/20 text-etyns-cyan border-etyns-cyan/30",
   },
   video_generation: {
     label: "Geração de Vídeo",
@@ -166,9 +166,7 @@ const HistoricoCreditos = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <span
-                            className={`flex items-center justify-end gap-1 font-semibold ${
-                              isPositive ? "text-watermelon-green" : "text-watermelon-coral"
-                            }`}
+                            className={`flex items-center justify-end gap-1 font-semibold ${isPositive ? "text-primary" : "text-etyns-cyan"}`}
                           >
                             {isPositive ? (
                               <ArrowUpCircle className="w-4 h-4" />
