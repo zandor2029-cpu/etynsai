@@ -60,14 +60,14 @@ const AspectRatioSelect = ({ value, onChange }: AspectRatioSelectProps) => {
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
         >
-          <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 transition-colors ${isOpen ? "text-watermelon-green" : "text-muted-foreground"}`} />
+          <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 transition-colors ${isOpen ? "text-primary" : "text-muted-foreground"}`} />
         </motion.div>
       </motion.button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            className="absolute top-full left-0 right-0 mt-1.5 md:mt-2 glass-card p-1.5 md:p-2 z-50 rounded-xl md:rounded-2xl border border-watermelon-green/20 bg-background/95 backdrop-blur-md shadow-lg"
+            className="absolute top-full left-0 right-0 mt-1.5 md:mt-2 glass-card p-1.5 md:p-2 z-50 rounded-xl md:rounded-2xl border border-primary/20 bg-background/95 backdrop-blur-md shadow-lg"
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -84,7 +84,7 @@ const AspectRatioSelect = ({ value, onChange }: AspectRatioSelectProps) => {
                 className={`
                   w-full flex items-center gap-3 md:gap-4 px-3 md:px-4 py-2.5 md:py-3.5 rounded-lg md:rounded-xl transition-colors
                   ${ratio.value === value
-                    ? "bg-gradient-to-r from-watermelon-green/20 to-watermelon-pink/20 border border-watermelon-green/30"
+                    ? "bg-gradient-to-r from-primary/20 to-etyns-purple/20 border border-primary/30"
                     : "hover:bg-muted/50"
                   }
                 `}
@@ -101,19 +101,19 @@ const AspectRatioSelect = ({ value, onChange }: AspectRatioSelectProps) => {
                   {ratio.icon}
                 </motion.span>
                 <div className="text-left flex-1">
-                  <span className={`font-semibold text-sm md:text-base ${ratio.value === value ? "text-watermelon-green-light" : "text-foreground"}`}>
+                  <span className={`font-semibold text-sm md:text-base ${ratio.value === value ? "text-primary-light" : "text-foreground"}`}>
                     {ratio.label}
                   </span>
                   <p className="text-[10px] md:text-xs text-muted-foreground">{ratio.desc}</p>
                 </div>
                 {ratio.value === value && (
                   <motion.div 
-                    className="p-1 md:p-1.5 rounded-md md:rounded-lg bg-watermelon-green/20"
+                    className="p-1 md:p-1.5 rounded-md md:rounded-lg bg-primary/20"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 500 }}
                   >
-                    <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-watermelon-green" />
+                    <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
                   </motion.div>
                 )}
               </motion.button>

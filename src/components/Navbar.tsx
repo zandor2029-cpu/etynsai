@@ -1,8 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { Video, FolderOpen, Menu, X, Sparkles, LogOut, Crown, User, History, ChevronRight } from "lucide-react";
+import { Video, FolderOpen, Menu, X, Sparkles, LogOut, Crown, User, History, ChevronRight, Zap } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import BananaIcon from "./BananaIcon";
+import EtynsIcon from "./EtynsIcon";
 import CreditDisplay from "./CreditDisplay";
 import AuthModal from "./AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,12 +23,10 @@ const Navbar = () => {
     onEscape: closeMobileMenu,
   });
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Prevent body scroll when menu is open
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -41,8 +39,8 @@ const Navbar = () => {
   }, [mobileMenuOpen]);
 
   const navItems = [
-    { path: "/", label: "Nano Banana Pro 4K", shortLabel: "Nano Banana", icon: null, customIcon: BananaIcon },
-    { path: "/motion-control", label: "Kling Motion Control", shortLabel: "Motion Control", icon: Video, customIcon: null },
+    { path: "/", label: "Etyns Image 4K", shortLabel: "Image 4K", icon: Sparkles, customIcon: null },
+    { path: "/motion-control", label: "Etyns Motion", shortLabel: "Motion", icon: Video, customIcon: null },
     { path: "/meus-renders", label: "Meus Renders", shortLabel: "Meus Renders", icon: FolderOpen, customIcon: null },
   ];
 
@@ -60,7 +58,7 @@ const Navbar = () => {
         <div 
           className="h-0.5 w-full"
           style={{
-            background: 'linear-gradient(90deg, hsl(145 100% 50%), hsl(180 100% 50%), hsl(330 100% 65%), hsl(350 90% 62%), hsl(15 100% 60%), hsl(145 100% 50%))',
+            background: 'linear-gradient(90deg, hsl(210 100% 60%), hsl(190 100% 50%), hsl(260 100% 65%), hsl(230 100% 62%), hsl(180 100% 55%), hsl(210 100% 60%))',
             backgroundSize: '300% 100%',
             animation: 'rgb-flow 4s linear infinite',
           }}
@@ -69,21 +67,19 @@ const Navbar = () => {
         <div className="glass-card rounded-none border-t-0 border-x-0 bg-background/95 backdrop-blur-xl">
           <div className="container mx-auto px-3 md:px-4">
             <div className="flex items-center justify-between h-14 md:h-20">
-              {/* Logo - Compact on mobile */}
+              {/* Logo */}
               <Link 
                 to="/" 
                 className="flex items-center gap-2 md:gap-3 group"
               >
-                <span className="text-2xl md:text-4xl animate-bounce-melon group-hover:animate-spin-slow transition-all">
-                  🍉
-                </span>
+                <EtynsIcon size={28} animated={false} className="group-hover:animate-pulse" />
                 <div className="flex flex-col">
                   <span className="text-base md:text-2xl font-display font-bold text-gradient-watermelon">
-                    Watermelon IA
+                    Etyns
                   </span>
                   <span className="text-[8px] md:text-[10px] text-muted-foreground font-medium tracking-widest uppercase hidden sm:block">
-                    <Sparkles className="w-2 h-2 md:w-2.5 md:h-2.5 inline mr-0.5 md:mr-1" />
-                    Premium AI Studio
+                    <Zap className="w-2 h-2 md:w-2.5 md:h-2.5 inline mr-0.5 md:mr-1" />
+                    AI Creative Studio
                   </span>
                 </div>
               </Link>
@@ -96,16 +92,11 @@ const Navbar = () => {
                     to={item.path}
                     className={`nav-link flex items-center gap-2.5 ${isActive(item.path) ? "active" : ""}`}
                   >
-                    {item.customIcon ? (
-                      <item.customIcon size={20} animated={false} />
-                    ) : item.icon ? (
-                      <item.icon className="w-4 h-4" />
-                    ) : null}
+                    {item.icon && <item.icon className="w-4 h-4" />}
                     <span className="font-semibold">{item.label}</span>
                   </Link>
                 ))}
                 
-                {/* Plans Link */}
                 <Link
                   to="/planos"
                   className={`nav-link flex items-center gap-2.5 ${isActive('/planos') ? "active" : ""}`}
@@ -114,7 +105,6 @@ const Navbar = () => {
                   <span className="font-semibold">Planos</span>
                 </Link>
                 
-                {/* History Link - only for logged in users */}
                 {user && (
                   <Link
                     to="/historico"
@@ -147,25 +137,23 @@ const Navbar = () => {
                 ) : (
                   <button
                     onClick={() => setShowAuthModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-watermelon-green/20 to-watermelon-pink/20 border border-watermelon-green/30 hover:border-watermelon-green/50 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-etyns-blue/20 to-etyns-purple/20 border border-etyns-blue/30 hover:border-etyns-blue/50 transition-colors"
                   >
-                    <User className="w-4 h-4 text-watermelon-green" />
+                    <User className="w-4 h-4 text-etyns-blue" />
                     <span className="font-semibold text-foreground">Entrar</span>
                   </button>
                 )}
               </div>
 
-              {/* Mobile Right Side - Credits + Menu */}
+              {/* Mobile Right Side */}
               <div className="flex lg:hidden items-center gap-2">
-                {/* Compact credits on mobile */}
                 {user && (
-                  <Link to="/planos" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-watermelon-green/10 border border-watermelon-green/20">
-                    <Sparkles className="w-3.5 h-3.5 text-watermelon-green" />
-                    <span className="text-xs font-bold text-watermelon-green">{profile?.credits ?? 0}</span>
+                  <Link to="/planos" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-etyns-blue/10 border border-etyns-blue/20">
+                    <Zap className="w-3.5 h-3.5 text-etyns-blue" />
+                    <span className="text-xs font-bold text-etyns-blue">{profile?.credits ?? 0}</span>
                   </Link>
                 )}
                 
-                {/* Hamburger Menu Button */}
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="p-2 rounded-xl glass-card text-foreground hover:text-primary transition-all"
@@ -176,23 +164,11 @@ const Navbar = () => {
                 >
                   <AnimatePresence mode="wait">
                     {mobileMenuOpen ? (
-                      <motion.div
-                        key="close"
-                        initial={{ rotate: -90, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        exit={{ rotate: 90, opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                      >
+                      <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
                         <X className="w-5 h-5" aria-hidden="true" />
                       </motion.div>
                     ) : (
-                      <motion.div
-                        key="menu"
-                        initial={{ rotate: 90, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        exit={{ rotate: -90, opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                      >
+                      <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
                         <Menu className="w-5 h-5" aria-hidden="true" />
                       </motion.div>
                     )}
@@ -207,7 +183,6 @@ const Navbar = () => {
         <AnimatePresence>
           {mobileMenuOpen && (
             <>
-              {/* Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -218,7 +193,6 @@ const Navbar = () => {
                 aria-hidden="true"
               />
               
-              {/* Menu Panel */}
               <motion.div
                 ref={menuRef}
                 id="mobile-navigation-menu"
@@ -232,11 +206,10 @@ const Navbar = () => {
                 className="fixed top-[58px] right-0 bottom-0 w-[280px] max-w-[85vw] bg-background/98 backdrop-blur-xl border-l border-border lg:hidden overflow-y-auto"
               >
                 <div className="p-4">
-                  {/* User info */}
                   {user && (
                     <div className="mb-4 p-3 rounded-xl bg-muted/30 border border-border">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-watermelon-green to-watermelon-pink flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-etyns-blue to-etyns-purple flex items-center justify-center">
                           <User className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -251,7 +224,6 @@ const Navbar = () => {
                     </div>
                   )}
 
-                  {/* Navigation Links */}
                   <nav aria-label="Menu principal mobile" className="space-y-1" role="navigation">
                     {navItems.map((item, index) => (
                       <motion.div
@@ -263,114 +235,77 @@ const Navbar = () => {
                         <Link
                           to={item.path}
                           aria-current={isActive(item.path) ? "page" : undefined}
-                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-watermelon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                             isActive(item.path) 
-                              ? "bg-gradient-to-r from-watermelon-green/15 to-watermelon-pink/15 border border-watermelon-green/30" 
+                              ? "bg-gradient-to-r from-etyns-blue/15 to-etyns-purple/15 border border-etyns-blue/30" 
                               : "hover:bg-muted/50"
                           }`}
                         >
-                          {/* Active indicator bar */}
                           {isActive(item.path) && (
                             <motion.div
                               layoutId="mobile-nav-indicator"
-                              className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-watermelon-green to-watermelon-pink"
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-etyns-blue to-etyns-cyan"
                               initial={{ opacity: 0, scaleY: 0 }}
                               animate={{ opacity: 1, scaleY: 1 }}
                               transition={{ duration: 0.2 }}
                               aria-hidden="true"
                             />
                           )}
-                          {item.customIcon ? (
-                            <item.customIcon size={20} animated={false} className={isActive(item.path) ? "" : "opacity-70"} aria-hidden="true" />
-                          ) : item.icon ? (
-                            <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-watermelon-green" : "text-muted-foreground"}`} aria-hidden="true" />
-                          ) : null}
+                          {item.icon && (
+                            <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-etyns-blue" : "text-muted-foreground"}`} aria-hidden="true" />
+                          )}
                           <span className={`font-medium text-sm flex-1 ${isActive(item.path) ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
                             {item.shortLabel}
                           </span>
-                          <ChevronRight className={`w-4 h-4 ${isActive(item.path) ? "text-watermelon-green" : "text-muted-foreground/50"}`} aria-hidden="true" />
+                          <ChevronRight className={`w-4 h-4 ${isActive(item.path) ? "text-etyns-blue" : "text-muted-foreground/50"}`} aria-hidden="true" />
                         </Link>
                       </motion.div>
                     ))}
 
-                    {/* Plans link */}
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: navItems.length * 0.05 }}
-                    >
+                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: navItems.length * 0.05 }}>
                       <Link
                         to="/planos"
                         aria-current={isActive('/planos') ? "page" : undefined}
-                        className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-watermelon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                        className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                           isActive('/planos') 
-                            ? "bg-gradient-to-r from-watermelon-green/15 to-watermelon-pink/15 border border-watermelon-green/30" 
+                            ? "bg-gradient-to-r from-etyns-blue/15 to-etyns-purple/15 border border-etyns-blue/30" 
                             : "hover:bg-muted/50"
                         }`}
                       >
                         {isActive('/planos') && (
-                          <motion.div
-                            layoutId="mobile-nav-indicator"
-                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-watermelon-green to-watermelon-pink"
-                            initial={{ opacity: 0, scaleY: 0 }}
-                            animate={{ opacity: 1, scaleY: 1 }}
-                            transition={{ duration: 0.2 }}
-                            aria-hidden="true"
-                          />
+                          <motion.div layoutId="mobile-nav-indicator" className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-etyns-blue to-etyns-cyan" initial={{ opacity: 0, scaleY: 0 }} animate={{ opacity: 1, scaleY: 1 }} transition={{ duration: 0.2 }} aria-hidden="true" />
                         )}
-                        <Crown className={`w-5 h-5 ${isActive('/planos') ? "text-watermelon-green" : "text-muted-foreground"}`} aria-hidden="true" />
-                        <span className={`font-medium text-sm flex-1 ${isActive('/planos') ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
-                          Planos
-                        </span>
-                        <ChevronRight className={`w-4 h-4 ${isActive('/planos') ? "text-watermelon-green" : "text-muted-foreground/50"}`} aria-hidden="true" />
+                        <Crown className={`w-5 h-5 ${isActive('/planos') ? "text-etyns-blue" : "text-muted-foreground"}`} aria-hidden="true" />
+                        <span className={`font-medium text-sm flex-1 ${isActive('/planos') ? "text-foreground font-semibold" : "text-muted-foreground"}`}>Planos</span>
+                        <ChevronRight className={`w-4 h-4 ${isActive('/planos') ? "text-etyns-blue" : "text-muted-foreground/50"}`} aria-hidden="true" />
                       </Link>
                     </motion.div>
 
-                    {/* History link - only for logged in users */}
                     {user && (
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: (navItems.length + 1) * 0.05 }}
-                      >
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: (navItems.length + 1) * 0.05 }}>
                         <Link
                           to="/historico"
                           aria-current={isActive('/historico') ? "page" : undefined}
-                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-watermelon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                          className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                             isActive('/historico') 
-                              ? "bg-gradient-to-r from-watermelon-green/15 to-watermelon-pink/15 border border-watermelon-green/30" 
+                              ? "bg-gradient-to-r from-etyns-blue/15 to-etyns-purple/15 border border-etyns-blue/30" 
                               : "hover:bg-muted/50"
                           }`}
                         >
                           {isActive('/historico') && (
-                            <motion.div
-                              layoutId="mobile-nav-indicator"
-                              className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-watermelon-green to-watermelon-pink"
-                              initial={{ opacity: 0, scaleY: 0 }}
-                              animate={{ opacity: 1, scaleY: 1 }}
-                              transition={{ duration: 0.2 }}
-                              aria-hidden="true"
-                            />
+                            <motion.div layoutId="mobile-nav-indicator" className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-etyns-blue to-etyns-cyan" initial={{ opacity: 0, scaleY: 0 }} animate={{ opacity: 1, scaleY: 1 }} transition={{ duration: 0.2 }} aria-hidden="true" />
                           )}
-                          <History className={`w-5 h-5 ${isActive('/historico') ? "text-watermelon-green" : "text-muted-foreground"}`} aria-hidden="true" />
-                          <span className={`font-medium text-sm flex-1 ${isActive('/historico') ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
-                            Histórico
-                          </span>
-                          <ChevronRight className={`w-4 h-4 ${isActive('/historico') ? "text-watermelon-green" : "text-muted-foreground/50"}`} aria-hidden="true" />
+                          <History className={`w-5 h-5 ${isActive('/historico') ? "text-etyns-blue" : "text-muted-foreground"}`} aria-hidden="true" />
+                          <span className={`font-medium text-sm flex-1 ${isActive('/historico') ? "text-foreground font-semibold" : "text-muted-foreground"}`}>Histórico</span>
+                          <ChevronRight className={`w-4 h-4 ${isActive('/historico') ? "text-etyns-blue" : "text-muted-foreground/50"}`} aria-hidden="true" />
                         </Link>
                       </motion.div>
                     )}
                   </nav>
 
-                  {/* Divider */}
                   <div className="my-4 border-t border-border" role="separator" />
 
-                  {/* Auth Section */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                     {user ? (
                       <button
                         onClick={handleSignOut}
@@ -382,11 +317,8 @@ const Navbar = () => {
                       </button>
                     ) : (
                       <button
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          setShowAuthModal(true);
-                        }}
-                        className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-watermelon-green to-watermelon-pink text-white font-semibold text-sm shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-watermelon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        onClick={() => { setMobileMenuOpen(false); setShowAuthModal(true); }}
+                        className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-etyns-blue to-etyns-cyan text-white font-semibold text-sm shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         aria-label="Entrar ou criar uma conta"
                       >
                         <User className="w-4 h-4" aria-hidden="true" />

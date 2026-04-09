@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        display: ['Manrope', 'sans-serif'],
+        display: ['Space Grotesk', 'Manrope', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,22 +51,39 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Watermelon Extended Palette
+        // Etyns Extended Palette
+        etyns: {
+          "blue-dark": "hsl(var(--et-blue-dark))",
+          blue: "hsl(var(--et-blue))",
+          "blue-light": "hsl(var(--et-blue-light))",
+          "blue-neon": "hsl(var(--et-blue-neon))",
+          "cyan-dark": "hsl(var(--et-cyan-dark))",
+          cyan: "hsl(var(--et-cyan))",
+          "cyan-light": "hsl(var(--et-cyan-light))",
+          "cyan-neon": "hsl(var(--et-cyan-neon))",
+          purple: "hsl(var(--et-purple))",
+          "purple-neon": "hsl(var(--et-purple-neon))",
+          deep: "hsl(var(--et-deep))",
+          "deep-light": "hsl(var(--et-deep-light))",
+          ice: "hsl(var(--et-ice))",
+          "ice-dark": "hsl(var(--et-ice-dark))",
+        },
+        // Keep backward compat aliases
         watermelon: {
-          "green-dark": "hsl(var(--wm-green-dark))",
-          green: "hsl(var(--wm-green))",
-          "green-light": "hsl(var(--wm-green-light))",
-          "green-neon": "hsl(var(--wm-green-neon))",
-          "red-dark": "hsl(var(--wm-red-dark))",
-          red: "hsl(var(--wm-red))",
-          "red-light": "hsl(var(--wm-red-light))",
-          pink: "hsl(var(--wm-pink))",
-          "pink-neon": "hsl(var(--wm-pink-neon))",
-          coral: "hsl(var(--wm-coral))",
-          seed: "hsl(var(--wm-seed))",
-          "seed-light": "hsl(var(--wm-seed-light))",
-          cream: "hsl(var(--wm-cream))",
-          "cream-dark": "hsl(var(--wm-cream-dark))",
+          "green-dark": "hsl(var(--et-blue-dark))",
+          green: "hsl(var(--et-blue))",
+          "green-light": "hsl(var(--et-blue-light))",
+          "green-neon": "hsl(var(--et-blue-neon))",
+          "red-dark": "hsl(var(--et-cyan-dark))",
+          red: "hsl(var(--et-cyan))",
+          "red-light": "hsl(var(--et-cyan-light))",
+          pink: "hsl(var(--et-purple))",
+          "pink-neon": "hsl(var(--et-purple-neon))",
+          coral: "hsl(var(--et-cyan))",
+          seed: "hsl(var(--et-deep))",
+          "seed-light": "hsl(var(--et-deep-light))",
+          cream: "hsl(var(--et-ice))",
+          "cream-dark": "hsl(var(--et-ice-dark))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -88,10 +105,10 @@ export default {
         "3xl": "calc(var(--radius) + 16px)",
       },
       boxShadow: {
-        "glow-green": "0 0 30px hsl(145 100% 50% / 0.5), 0 0 60px hsl(145 100% 50% / 0.3)",
-        "glow-pink": "0 0 30px hsl(330 100% 65% / 0.5), 0 0 60px hsl(330 100% 65% / 0.3)",
-        "glow-rgb": "0 0 20px hsl(145 100% 50% / 0.4), 0 0 40px hsl(330 100% 65% / 0.3), 0 0 60px hsl(350 90% 62% / 0.2)",
-        "watermelon": "0 8px 32px hsl(340 25% 4% / 0.5), 0 0 40px hsl(145 100% 50% / 0.1)",
+        "glow-blue": "0 0 30px hsl(210 100% 60% / 0.5), 0 0 60px hsl(210 100% 60% / 0.3)",
+        "glow-cyan": "0 0 30px hsl(190 100% 50% / 0.5), 0 0 60px hsl(190 100% 50% / 0.3)",
+        "glow-rgb": "0 0 20px hsl(210 100% 60% / 0.4), 0 0 40px hsl(190 100% 50% / 0.3), 0 0 60px hsl(260 100% 65% / 0.2)",
+        "etyns": "0 8px 32px hsl(220 20% 4% / 0.5), 0 0 40px hsl(210 100% 60% / 0.1)",
       },
       keyframes: {
         "accordion-down": {
@@ -132,10 +149,10 @@ export default {
         },
         "pulse-glow": {
           "0%, 100%": { 
-            boxShadow: "0 0 20px hsl(145 100% 50% / 0.4), 0 0 40px hsl(330 100% 65% / 0.2)"
+            boxShadow: "0 0 20px hsl(210 100% 60% / 0.4), 0 0 40px hsl(190 100% 50% / 0.2)"
           },
           "50%": { 
-            boxShadow: "0 0 40px hsl(145 100% 50% / 0.6), 0 0 80px hsl(330 100% 65% / 0.4)"
+            boxShadow: "0 0 40px hsl(210 100% 60% / 0.6), 0 0 80px hsl(190 100% 50% / 0.4)"
           },
         },
       },

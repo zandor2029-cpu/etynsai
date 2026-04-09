@@ -44,15 +44,15 @@ const NoCreditsModal = ({ isOpen, onClose, type, creditsNeeded, currentCredits }
 
           {/* Description */}
           <p className="text-muted-foreground mb-6">
-            Você precisa de <span className="text-watermelon-pink font-bold">{creditsNeeded} créditos</span> para 
+            Você precisa de <span className="text-etyns-purple font-bold">{creditsNeeded} créditos</span> para 
             gerar {type === 'image' ? 'uma imagem' : 'um vídeo'}, mas tem apenas{' '}
-            <span className="text-watermelon-green font-bold">{currentCredits} créditos</span>.
+            <span className="text-primary font-bold">{currentCredits} créditos</span>.
           </p>
 
           {/* Stats */}
           <div className="flex justify-center gap-8 mb-8">
             <div className="text-center">
-              <div className="text-2xl font-bold text-watermelon-green">{currentCredits}</div>
+              <div className="text-2xl font-bold text-primary">{currentCredits}</div>
               <div className="text-xs text-muted-foreground">Você tem</div>
             </div>
             <div className="text-center">

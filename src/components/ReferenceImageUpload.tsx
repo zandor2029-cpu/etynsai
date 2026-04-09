@@ -122,7 +122,7 @@ const ReferenceImageUpload = ({
   return (
     <div className="space-y-2 md:space-y-3">
       <label className="flex items-center gap-2 md:gap-2.5 text-xs md:text-sm font-semibold text-foreground tracking-wide flex-wrap">
-        <ImagePlus className="w-3.5 h-3.5 md:w-4 md:h-4 text-watermelon-pink flex-shrink-0" />
+        <ImagePlus className="w-3.5 h-3.5 md:w-4 md:h-4 text-etyns-purple flex-shrink-0" />
         <span>Imagens de Referência</span>
         <span className="text-[10px] md:text-xs font-normal text-muted-foreground opacity-70">(opcional, até {maxImages})</span>
       </label>
@@ -144,7 +144,7 @@ const ReferenceImageUpload = ({
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="relative group"
               >
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg md:rounded-xl overflow-hidden border-2 border-watermelon-pink/30 bg-background/50">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg md:rounded-xl overflow-hidden border-2 border-etyns-purple/30 bg-background/50">
                   <img
                     src={url}
                     alt={`Referência ${index + 1}`}
@@ -175,8 +175,8 @@ const ReferenceImageUpload = ({
           className={`
             relative border-2 border-dashed rounded-lg md:rounded-xl p-3 md:p-4 transition-all cursor-pointer
             ${dragActive 
-              ? 'border-watermelon-pink bg-watermelon-pink/10' 
-              : 'border-muted-foreground/30 hover:border-watermelon-pink/50 hover:bg-muted/30'
+              ? 'border-etyns-purple bg-etyns-purple/10' 
+              : 'border-muted-foreground/30 hover:border-etyns-purple/50 hover:bg-muted/30'
             }
             ${isUploading ? 'pointer-events-none opacity-60' : ''}
           `}
@@ -202,15 +202,15 @@ const ReferenceImageUpload = ({
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                 >
-                  <Upload className="w-5 h-5 md:w-6 md:h-6 text-watermelon-pink" />
+                  <Upload className="w-5 h-5 md:w-6 md:h-6 text-etyns-purple" />
                 </motion.div>
                 <span className="text-xs md:text-sm text-muted-foreground">Fazendo upload...</span>
               </>
             ) : (
               <>
                 <div className="flex items-center gap-1.5 md:gap-2">
-                  <Image className="w-4 h-4 md:w-5 md:h-5 text-watermelon-pink" />
-                  <Upload className="w-4 h-4 md:w-5 md:h-5 text-watermelon-green" />
+                  <Image className="w-4 h-4 md:w-5 md:h-5 text-etyns-purple" />
+                  <Upload className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                 </div>
                 <span className="text-xs md:text-sm text-muted-foreground">
                   {dragActive ? "Solte aqui!" : "Arraste ou toque para adicionar"}
@@ -229,9 +229,9 @@ const ReferenceImageUpload = ({
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-start gap-1.5 md:gap-2 p-2 md:p-3 rounded-lg bg-watermelon-green/10 border border-watermelon-green/20"
+          className="flex items-start gap-1.5 md:gap-2 p-2 md:p-3 rounded-lg bg-primary/10 border border-primary/20"
         >
-          <AlertCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-watermelon-green mt-0.5 flex-shrink-0" />
+          <AlertCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary mt-0.5 flex-shrink-0" />
           <div className="text-[10px] md:text-xs text-muted-foreground">
             <strong className="text-foreground">Dica:</strong> Descreva no prompt como combinar as imagens. 
             Ex: "Pegue a pessoa da imagem 1 e coloque no cenário da imagem 2".

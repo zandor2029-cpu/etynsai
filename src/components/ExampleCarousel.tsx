@@ -89,7 +89,7 @@ const ExampleCarousel = () => {
       onMouseLeave={handleMouseLeave}
     >
       {/* Background glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-watermelon-green/5 via-transparent to-watermelon-pink/5" />
+      <div className="absolute inset-0 bg-gradient-to-br from-etyns-blue/5 via-transparent to-etyns-purple/5" />
 
       {/* Main carousel */}
       <div className="relative w-full h-full">
@@ -121,14 +121,14 @@ const ExampleCarousel = () => {
                 transition={{ delay: 0.2 }}
                 className="flex items-start gap-2"
               >
-                <div className="p-1.5 rounded-lg bg-watermelon-green/20 backdrop-blur-sm">
-                  <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-watermelon-green" />
+                <div className="p-1.5 rounded-lg bg-primary/20 backdrop-blur-sm">
+                  <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs md:text-sm font-medium text-foreground line-clamp-1 mb-0.5">
                     {current.prompt}
                   </p>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-watermelon-pink/20 text-watermelon-pink-neon">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-accent/20 text-etyns-purple-neon">
                     {current.style}
                   </span>
                 </div>
@@ -167,7 +167,7 @@ const ExampleCarousel = () => {
             }}
             className={`h-1.5 rounded-full transition-all duration-300 ${
               idx === currentIndex
-                ? "w-4 bg-watermelon-green"
+                ? "w-4 bg-primary"
                 : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
             }`}
             aria-label={`Ir para imagem ${idx + 1}`}
@@ -177,7 +177,7 @@ const ExampleCarousel = () => {
 
       {/* "Exemplos IA" badge */}
       <div className="absolute top-2 md:top-3 right-2 md:right-3">
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] md:text-xs font-semibold bg-background/80 backdrop-blur-sm border border-watermelon-green/30 text-watermelon-green">
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] md:text-xs font-semibold bg-background/80 backdrop-blur-sm border border-primary/30 text-primary">
           <Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" />
           Exemplos IA
         </span>

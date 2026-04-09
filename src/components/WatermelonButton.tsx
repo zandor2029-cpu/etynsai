@@ -37,8 +37,8 @@ const WatermelonButton = ({
       case "outline":
         return `
           relative overflow-hidden px-6 py-3 rounded-xl font-bold
-          border-2 border-watermelon-green text-watermelon-green-light
-          hover:bg-watermelon-green/10 hover:border-watermelon-green-light
+          border-2 border-etyns-blue text-etyns-blue-light
+          hover:bg-etyns-blue/10 hover:border-etyns-blue-light
           transition-colors duration-300
         `;
       default:
@@ -49,18 +49,18 @@ const WatermelonButton = ({
   const glowVariants = {
     rest: {
       boxShadow: variant === "primary" 
-        ? "0 4px 12px hsl(145 80% 42% / 0.3)"
+        ? "0 4px 12px hsl(210 100% 55% / 0.3)"
         : variant === "secondary"
-        ? "0 4px 12px hsl(330 100% 65% / 0.3)"
+        ? "0 4px 12px hsl(260 100% 65% / 0.3)"
         : "0 0 0 transparent",
       scale: 1,
     },
     hover: {
       boxShadow: variant === "primary"
-        ? "0 8px 30px hsl(145 100% 50% / 0.5), 0 0 50px hsl(145 100% 50% / 0.3), 0 0 80px hsl(145 100% 50% / 0.15)"
+        ? "0 8px 30px hsl(210 100% 60% / 0.5), 0 0 50px hsl(210 100% 60% / 0.3), 0 0 80px hsl(210 100% 60% / 0.15)"
         : variant === "secondary"
-        ? "0 8px 30px hsl(330 100% 65% / 0.5), 0 0 50px hsl(330 100% 65% / 0.3), 0 0 80px hsl(330 100% 65% / 0.15)"
-        : "0 4px 25px hsl(145 100% 50% / 0.4)",
+        ? "0 8px 30px hsl(260 100% 65% / 0.5), 0 0 50px hsl(260 100% 65% / 0.3), 0 0 80px hsl(260 100% 65% / 0.15)"
+        : "0 4px 25px hsl(210 100% 60% / 0.4)",
       scale: 1.02,
     },
   };
@@ -83,9 +83,7 @@ const WatermelonButton = ({
       variants={glowVariants}
       animate="rest"
       transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-      style={{
-        transform: disabled ? "none" : undefined,
-      }}
+      style={{ transform: disabled ? "none" : undefined }}
     >
       <motion.span 
         className="flex items-center justify-center gap-2.5"
@@ -98,7 +96,7 @@ const WatermelonButton = ({
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           >
-            🍉
+            ⚡
           </motion.span>
         )}
         {children}
