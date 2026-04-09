@@ -25,7 +25,7 @@ function GalleryCard({ render, onView, onUse }: { render: Render; onView: (r: Re
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative rounded-lg overflow-hidden cursor-pointer bg-card border border-border/50 aspect-[3/4]"
+      className="relative rounded-lg overflow-hidden cursor-pointer bg-card border border-border/50 aspect-square"
     >
       {render.type === 'image' ? (
         <img src={render.url} alt={render.prompt || ''} className="w-full h-full object-cover" loading="lazy" />
