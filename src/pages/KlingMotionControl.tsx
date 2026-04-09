@@ -454,9 +454,10 @@ const KlingMotionControl = () => {
               ) : generatedVideo ? (
                 <motion.div
                   key="result"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0, scale: 0.85, y: 30 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                   className="relative max-w-[400px] lg:max-w-[560px] w-full max-h-full rounded-lg overflow-hidden bg-card"
                   style={{ aspectRatio: "9/16" }}
                 >
