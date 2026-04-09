@@ -124,7 +124,7 @@ const MeusRenders = () => {
                 Faça login para ver seus renders
               </h3>
               <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                Entre na sua conta para acessar sua galeria de criações 🍉
+                Entre na sua conta para acessar sua galeria de criações
               </p>
               <button
                 onClick={() => setShowAuthModal(true)}
@@ -167,8 +167,8 @@ const MeusRenders = () => {
           
           <AnimatedSection delay={0.2}>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Histórico de todas as suas <span className="text-watermelon-green-light font-semibold">criações</span> com 
-              <span className="text-watermelon-pink font-semibold"> inteligência artificial</span>
+              Histórico de todas as suas <span className="text-etyns-blue-light font-semibold">criações</span> com 
+              <span className="text-etyns-purple font-semibold"> inteligência artificial</span>
             </p>
           </AnimatedSection>
         </div>
@@ -204,8 +204,8 @@ const MeusRenders = () => {
           <StaggerItem>
             <GlassCard className="p-5 text-center group hover:glow-rgb transition-all duration-500">
               <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-watermelon-green/20 to-watermelon-pink/20 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-5 h-5 text-watermelon-green" />
+                <div className="p-2 rounded-xl bg-gradient-to-br from-etyns-blue/20 to-etyns-purple/20 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="w-5 h-5 text-etyns-blue" />
                 </div>
                 <p className="text-3xl font-display font-bold text-gradient-watermelon">
                   {renders.length}
@@ -216,12 +216,12 @@ const MeusRenders = () => {
           </StaggerItem>
           
           <StaggerItem>
-            <GlassCard className="p-5 text-center group hover:glow-green transition-all duration-500">
+            <GlassCard className="p-5 text-center group hover:glow-blue transition-all duration-500">
               <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="p-2 rounded-xl bg-watermelon-green/20 group-hover:scale-110 transition-transform">
-                  <Image className="w-5 h-5 text-watermelon-green-light" />
+                <div className="p-2 rounded-xl bg-etyns-blue/20 group-hover:scale-110 transition-transform">
+                  <Image className="w-5 h-5 text-etyns-blue-light" />
                 </div>
-                <p className="text-3xl font-display font-bold text-watermelon-green-light">
+                <p className="text-3xl font-display font-bold text-etyns-blue-light">
                   {renders.filter((r) => r.type === "image").length}
                 </p>
               </div>
@@ -230,12 +230,12 @@ const MeusRenders = () => {
           </StaggerItem>
           
           <StaggerItem>
-            <GlassCard className="p-5 text-center group hover:glow-pink transition-all duration-500">
+            <GlassCard className="p-5 text-center group hover:glow-purple transition-all duration-500">
               <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="p-2 rounded-xl bg-watermelon-pink/20 group-hover:scale-110 transition-transform">
-                  <Video className="w-5 h-5 text-watermelon-pink" />
+                <div className="p-2 rounded-xl bg-etyns-purple/20 group-hover:scale-110 transition-transform">
+                  <Video className="w-5 h-5 text-etyns-purple" />
                 </div>
-                <p className="text-3xl font-display font-bold text-watermelon-pink">
+                <p className="text-3xl font-display font-bold text-etyns-purple">
                   {renders.filter((r) => r.type === "video").length}
                 </p>
               </div>
@@ -247,7 +247,7 @@ const MeusRenders = () => {
         {/* Loading State */}
         {isLoading && (
           <div className="flex justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-watermelon-green" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         )}
 
@@ -288,7 +288,7 @@ const MeusRenders = () => {
               </h3>
               <p className="text-muted-foreground max-w-md mx-auto">
                 {filter === "all"
-                  ? "Comece a criar suas imagens e vídeos com IA! 🍉"
+                  ? "Comece a criar suas imagens e vídeos com IA!"
                   : `Você ainda não criou nenhum ${filter === "image" ? "imagem" : "vídeo"}.`}
               </p>
             </GlassCard>
