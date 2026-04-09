@@ -93,7 +93,7 @@ const PlansPage = () => {
           
           <AnimatedSection delay={0.2}>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Desbloqueie o poder completo da <span className="text-watermelon-green-light font-semibold">Watermelon IA</span>
+              Desbloqueie o poder completo da <span className="text-etyns-blue-light font-semibold">Etyns</span>
             </p>
           </AnimatedSection>
 
@@ -112,7 +112,7 @@ const PlansPage = () => {
           <div className="text-center mb-10">
             <GlassCard className="inline-block px-6 py-3">
               <p className="text-muted-foreground">
-                🎁 <span className="text-watermelon-green font-semibold">10 créditos grátis</span> ao criar sua conta!
+                🎁 <span className="text-primary font-semibold">10 créditos grátis</span> ao criar sua conta!
               </p>
             </GlassCard>
           </div>
@@ -140,7 +140,7 @@ const PlansPage = () => {
 
                 <div className={`h-full ${isPopular ? 'rgb-border p-[2px] rounded-3xl' : ''}`}>
                   <GlassCard 
-                    className={`h-full p-6 md:p-8 rounded-3xl ${isCurrentPlan ? 'border-2 border-watermelon-green' : ''}`}
+                    className={`h-full p-6 md:p-8 rounded-3xl ${isCurrentPlan ? 'border-2 border-primary' : ''}`}
                   >
                     {isCurrentPlan && (
                       <div className="absolute top-4 right-4">
@@ -169,7 +169,7 @@ const PlansPage = () => {
                         <span className="text-muted-foreground">/mês</span>
                       </div>
                       <div className="mt-2">
-                        <span className="text-lg font-bold text-watermelon-green">{plan.credits}</span>
+                        <span className="text-lg font-bold text-primary">{plan.credits}</span>
                         <span className="text-muted-foreground"> créditos/mês</span>
                       </div>
                     </div>
@@ -178,7 +178,7 @@ const PlansPage = () => {
                     <ul className="space-y-3 mb-8">
                       {plan.features.map((feature, i) => (
                         <li key={i} className="flex items-start gap-3">
-                          <Check className="w-5 h-5 text-watermelon-green shrink-0 mt-0.5" />
+                          <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                           <span className="text-muted-foreground">{feature}</span>
                         </li>
                       ))}
@@ -230,11 +230,11 @@ const PlansPage = () => {
               <h4 className="font-display font-bold text-foreground mb-4">Como funcionam os créditos?</h4>
               <div className="flex flex-wrap justify-center gap-8">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-watermelon-green">3</div>
+                  <div className="text-2xl font-bold text-primary">3</div>
                   <div className="text-sm text-muted-foreground">créditos/imagem 4K</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-watermelon-pink">10</div>
+                  <div className="text-2xl font-bold text-etyns-purple">10</div>
                   <div className="text-sm text-muted-foreground">créditos/vídeo motion</div>
                 </div>
                 <div className="text-center">
