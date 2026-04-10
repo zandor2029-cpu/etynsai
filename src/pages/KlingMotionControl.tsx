@@ -259,7 +259,7 @@ const KlingMotionControl = () => {
                   <div>
                     <div className="text-[10px] text-muted-foreground mb-0.5">Modelo</div>
                     <div className="text-[11px] md:text-[12.5px] text-foreground flex items-center gap-1.5">
-                      Etyns Motion
+                      Control Motion
                       <Info className="w-[13px] h-[13px] text-muted-foreground hidden sm:inline" />
                     </div>
                   </div>

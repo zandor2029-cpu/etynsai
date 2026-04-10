@@ -31,7 +31,7 @@ const tools = [
     ],
   },
   {
-    title: "Etyns Motion",
+    title: "Control Motion",
     subtitle: "Transforme imagens em vídeos",
     description:
       "Anime suas imagens com controle preciso de movimento. Gere vídeos cinematográficos de alta qualidade a partir de qualquer imagem estática.",

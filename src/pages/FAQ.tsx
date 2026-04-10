@@ -26,9 +26,9 @@ const faqItems = [
       "Você pode gerar imagens nos formatos 1:1, 16:9, 9:16, 4:3 e 3:4, em resolução de até 4K, ideais para redes sociais, impressão e projetos profissionais.",
   },
   {
-    question: "O que é o Etyns Motion?",
+    question: "O que é o Control Motion?",
     answer:
-      "O Etyns Motion é nossa ferramenta de geração de vídeos com IA. Você pode criar vídeos a partir de prompts de texto ou usar uma imagem como referência para animar.",
+      "O Control Motion é nossa ferramenta de geração de vídeos com IA. Você pode criar vídeos a partir de prompts de texto ou usar uma imagem como referência para animar.",
   },
   {
     question: "Posso usar as imagens e vídeos comercialmente?",
