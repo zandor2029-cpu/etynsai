@@ -15,7 +15,7 @@ const fadeUp = {
 
 const tools = [
   {
-    title: "Etyns Image 4K",
+    title: "Nano Banana 2",
     subtitle: "Geração de imagens em ultra resolução",
     description:
       "Crie imagens impressionantes em 4K com IA de última geração. Prompt inteligente, estilos artísticos e upscale automático para resultados profissionais.",
