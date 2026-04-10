@@ -1,7 +1,7 @@
-import NanoBananaPro from "./NanoBananaPro";
+import LandingPage from "./LandingPage";
 
 const Index = () => {
-  return <NanoBananaPro />;
+  return <LandingPage />;
 };
 
 export default Index;
