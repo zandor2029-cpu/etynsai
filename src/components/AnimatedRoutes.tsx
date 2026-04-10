@@ -10,6 +10,8 @@ const KlingMotionControl = lazy(() => import("@/pages/KlingMotionControl"));
 const MeusRenders = lazy(() => import("@/pages/MeusRenders"));
 const PlansPage = lazy(() => import("@/pages/PlansPage"));
 const HistoricoCreditos = lazy(() => import("@/pages/HistoricoCreditos"));
+const FAQ = lazy(() => import("@/pages/FAQ"));
+const TermosDeUso = lazy(() => import("@/pages/TermosDeUso"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const pageVariants = {
@@ -58,6 +60,8 @@ const AnimatedRoutes = () => {
             <Route path="/meus-renders" element={<MeusRenders />} />
             <Route path="/planos" element={<PlansPage />} />
             <Route path="/historico" element={<HistoricoCreditos />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/termos-de-uso" element={<TermosDeUso />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

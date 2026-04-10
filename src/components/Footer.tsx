@@ -25,13 +25,13 @@ const Footer = () => {
       title: "Recursos",
       links: [
         { name: "Tutoriais", href: "#" },
-        { name: "FAQ", href: "#" },
+        { name: "FAQ", href: "/faq" },
       ],
     },
     {
       title: "Legal",
       links: [
-        { name: "Termos de Uso", href: "#" },
+        { name: "Termos de Uso", href: "/termos-de-uso" },
         { name: "Privacidade", href: "#" },
         { name: "Cookies", href: "#" },
       ],
