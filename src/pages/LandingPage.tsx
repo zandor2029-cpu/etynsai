@@ -20,6 +20,7 @@ const tools = [
     description:
       "Crie imagens impressionantes em 4K com IA de última geração. Prompt inteligente, estilos artísticos e upscale automático para resultados profissionais.",
     icon: Sparkles,
+    customIcon: googleGIcon,
     color: "from-etyns-blue to-etyns-cyan",
     bgGlow: "hsl(210 100% 55% / 0.15)",
     link: "/image",
