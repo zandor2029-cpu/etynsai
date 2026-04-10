@@ -133,8 +133,8 @@ const LandingPage = () => {
                   {/* Icon & Title */}
                   <div className="relative z-10">
                     <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${tool.color} mb-5`}>
-                      {tool.customIcon ? (
-                        <img src={tool.customIcon} alt={tool.title} className="w-7 h-7" />
+                      {'customIconComponent' in tool && tool.customIconComponent ? (
+                        <tool.customIconComponent className="w-7 h-7" />
                       ) : (
                         <tool.icon className="w-7 h-7 text-white" />
                       )}
