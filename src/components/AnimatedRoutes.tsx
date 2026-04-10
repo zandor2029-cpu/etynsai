@@ -52,6 +52,7 @@ const AnimatedRoutes = () => {
         <Suspense fallback={<PageLoader />}>
           <Routes location={location}>
             <Route path="/" element={<Index />} />
+            <Route path="/image" element={<NanoBananaPro />} />
             <Route path="/nano-banana-pro" element={<NanoBananaPro />} />
             <Route path="/motion-control" element={<KlingMotionControl />} />
             <Route path="/meus-renders" element={<MeusRenders />} />
