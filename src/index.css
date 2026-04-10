@@ -264,6 +264,15 @@
       0 0 60px hsl(260 100% 65% / 0.1);
   }
 
+  /* Light mode: soften all glows */
+  .light .glow-blue,
+  .light .glow-cyan,
+  .light .glow-green,
+  .light .glow-pink,
+  .light .glow-rgb {
+    box-shadow: 0 4px 16px hsl(210 30% 50% / 0.12);
+  }
+
   /* RGB Animated Border */
   .rgb-border {
     @apply relative rounded-xl;
