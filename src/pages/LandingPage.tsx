@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Video, ArrowRight, Zap, Wand2, Image, Film, Crown, ChevronRight, Sparkles } from "lucide-react";
 import EtynsIcon from "@/components/EtynsIcon";
-import googleGIcon from "@/assets/google-g-white.png";
+import GoogleGIcon from "@/components/GoogleGIcon";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -20,7 +20,7 @@ const tools = [
     description:
       "Crie imagens impressionantes em 4K com IA de última geração. Prompt inteligente, estilos artísticos e upscale automático para resultados profissionais.",
     icon: Sparkles,
-    customIcon: googleGIcon,
+    customIconComponent: GoogleGIcon,
     color: "from-etyns-blue to-etyns-cyan",
     bgGlow: "hsl(210 100% 55% / 0.15)",
     link: "/image",
@@ -133,8 +133,8 @@ const LandingPage = () => {
                   {/* Icon & Title */}
                   <div className="relative z-10">
                     <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${tool.color} mb-5`}>
-                      {tool.customIcon ? (
-                        <img src={tool.customIcon} alt={tool.title} className="w-7 h-7" />
+                      {'customIconComponent' in tool && tool.customIconComponent ? (
+                        <tool.customIconComponent className="w-7 h-7" />
                       ) : (
                         <tool.icon className="w-7 h-7 text-white" />
                       )}
