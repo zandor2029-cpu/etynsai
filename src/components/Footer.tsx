@@ -8,7 +8,6 @@ const Footer = () => {
 
   const socialLinks = [
     { name: "Instagram", href: "#", icon: "📸" },
-    { name: "Twitter", href: "#", icon: "𝕏" },
     { name: "Discord", href: "#", icon: "💬" },
   ];
 
@@ -26,9 +25,7 @@ const Footer = () => {
       title: "Recursos",
       links: [
         { name: "Tutoriais", href: "#" },
-        { name: "API Docs", href: "#" },
         { name: "FAQ", href: "#" },
-        { name: "Blog", href: "#" },
       ],
     },
     {
