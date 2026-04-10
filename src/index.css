@@ -748,6 +748,15 @@
     text-shadow: 0 0 10px hsl(var(--et-cyan-neon)), 0 0 20px hsl(var(--et-cyan) / 0.5);
   }
 
+  .light .text-glow-blue,
+  .light .text-glow-cyan {
+    text-shadow: none;
+  }
+
+  .light .animate-neon-pulse {
+    animation: none;
+  }
+
   /* Delays */
   .delay-100 { animation-delay: 100ms; }
   .delay-200 { animation-delay: 200ms; }
