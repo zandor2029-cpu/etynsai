@@ -118,7 +118,8 @@ const Navbar = () => {
               </div>
 
               {/* Right side - Auth & Credits (Desktop) */}
-              <div className="hidden lg:flex items-center gap-4">
+              <div className="hidden lg:flex items-center gap-3">
+                <ThemeToggle />
                 {user ? (
                   <>
                     <CreditDisplay compact />
@@ -148,6 +149,7 @@ const Navbar = () => {
 
               {/* Mobile Right Side */}
               <div className="flex lg:hidden items-center gap-2">
+                <ThemeToggle />
                 {user && (
                   <Link to="/planos" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-etyns-blue/10 border border-etyns-blue/20">
                     <Zap className="w-3.5 h-3.5 text-etyns-blue" />
