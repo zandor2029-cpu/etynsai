@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Video, ArrowRight, Zap, Wand2, Image, Film, Crown, ChevronRight, Sparkles } from "lucide-react";
 import EtynsIcon from "@/components/EtynsIcon";
-import googleGIcon from "@/assets/google-g-white.png";
+import GoogleGIcon from "@/components/GoogleGIcon";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
