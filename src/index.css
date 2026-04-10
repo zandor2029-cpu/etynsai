@@ -192,12 +192,16 @@
 }
 
 @layer components {
-  /* Glass Card - Clean Dark Style */
+  /* Glass Card */
   .glass-card {
     @apply relative rounded-xl;
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     box-shadow: 0 4px 24px hsl(220 20% 4% / 0.3);
+  }
+
+  .light .glass-card {
+    box-shadow: 0 2px 12px hsl(210 20% 50% / 0.1);
   }
 
   .glass-card::before {
@@ -258,6 +262,15 @@
       0 0 20px hsl(210 100% 60% / 0.2),
       0 0 40px hsl(190 100% 50% / 0.15),
       0 0 60px hsl(260 100% 65% / 0.1);
+  }
+
+  /* Light mode: soften all glows */
+  .light .glow-blue,
+  .light .glow-cyan,
+  .light .glow-green,
+  .light .glow-pink,
+  .light .glow-rgb {
+    box-shadow: 0 4px 16px hsl(210 30% 50% / 0.12);
   }
 
   /* RGB Animated Border */
@@ -378,6 +391,12 @@
     box-shadow: inset 0 2px 4px hsl(220 20% 4% / 0.3);
   }
 
+  .light .input-glass {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: inset 0 1px 2px hsl(210 20% 80% / 0.3);
+  }
+
   .input-glass:focus {
     outline: none;
     border-color: hsl(var(--et-blue-light));
@@ -385,6 +404,12 @@
       0 0 0 3px hsl(210 100% 55% / 0.15),
       0 0 20px hsl(210 100% 60% / 0.1),
       inset 0 2px 4px hsl(220 20% 4% / 0.3);
+  }
+
+  .light .input-glass:focus {
+    box-shadow: 
+      0 0 0 3px hsl(210 100% 55% / 0.12),
+      inset 0 1px 2px hsl(210 20% 80% / 0.2);
   }
 
   .textarea-glass {
@@ -439,6 +464,14 @@
       linear-gradient(180deg, hsl(220 20% 5%) 0%, hsl(220 22% 7%) 100%);
   }
 
+  .light .bg-watermelon-gradient {
+    background: 
+      radial-gradient(ellipse at 0% 0%, hsl(210 100% 55% / 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 100% 0%, hsl(260 100% 65% / 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, hsl(190 100% 50% / 0.05) 0%, transparent 50%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(210 30% 96%) 100%);
+  }
+
   .bg-animated-gradient {
     background: 
       radial-gradient(ellipse at 20% 20%, hsl(210 100% 55% / 0.2) 0%, transparent 40%),
@@ -446,6 +479,16 @@
       radial-gradient(ellipse at 40% 80%, hsl(190 100% 50% / 0.15) 0%, transparent 40%),
       radial-gradient(ellipse at 90% 90%, hsl(210 100% 60% / 0.1) 0%, transparent 40%),
       linear-gradient(180deg, hsl(220 20% 5%) 0%, hsl(220 22% 8%) 50%, hsl(220 20% 6%) 100%);
+    background-attachment: fixed;
+  }
+
+  .light .bg-animated-gradient {
+    background: 
+      radial-gradient(ellipse at 20% 20%, hsl(210 100% 55% / 0.08) 0%, transparent 40%),
+      radial-gradient(ellipse at 80% 30%, hsl(260 100% 65% / 0.06) 0%, transparent 40%),
+      radial-gradient(ellipse at 40% 80%, hsl(190 100% 50% / 0.06) 0%, transparent 40%),
+      radial-gradient(ellipse at 90% 90%, hsl(210 100% 60% / 0.04) 0%, transparent 40%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(210 25% 96%) 50%, hsl(var(--background)) 100%);
     background-attachment: fixed;
   }
 
@@ -459,6 +502,11 @@
     opacity: 0.5;
     pointer-events: none;
     z-index: -1;
+  }
+
+  .light .bg-orbs::before,
+  .light .bg-orbs::after {
+    opacity: 0.15;
   }
 
   .bg-orbs::before {
@@ -485,6 +533,10 @@
     background: linear-gradient(135deg, hsl(var(--et-blue) / 0.2), hsl(var(--et-cyan) / 0.2));
     border: 1px solid hsl(var(--et-blue) / 0.3);
     color: hsl(var(--et-blue-light));
+  }
+
+  .light .badge-watermelon {
+    color: hsl(var(--et-blue-dark));
   }
 
   .badge-rgb {
@@ -694,6 +746,15 @@
 
   .text-glow-cyan {
     text-shadow: 0 0 10px hsl(var(--et-cyan-neon)), 0 0 20px hsl(var(--et-cyan) / 0.5);
+  }
+
+  .light .text-glow-blue,
+  .light .text-glow-cyan {
+    text-shadow: none;
+  }
+
+  .light .animate-neon-pulse {
+    animation: none;
   }
 
   /* Delays */
