@@ -132,7 +132,11 @@ const LandingPage = () => {
                   {/* Icon & Title */}
                   <div className="relative z-10">
                     <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${tool.color} mb-5`}>
-                      <tool.icon className="w-7 h-7 text-white" />
+                      {tool.customIcon ? (
+                        <img src={tool.customIcon} alt={tool.title} className="w-7 h-7" />
+                      ) : (
+                        <tool.icon className="w-7 h-7 text-white" />
+                      )}
                     </div>
 
                     <h3 className="text-xl md:text-2xl font-display font-bold text-foreground mb-1">
