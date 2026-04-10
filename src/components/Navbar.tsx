@@ -41,7 +41,7 @@ const Navbar = () => {
 
   const navItems = [
     { path: "/", label: "Início", shortLabel: "Início", icon: Zap, customIcon: null },
-    { path: "/image", label: "Etyns Image 4K", shortLabel: "Image 4K", icon: Sparkles, customIcon: null },
+    { path: "/image", label: "Nano Banana 2", shortLabel: "Nano 2", icon: Sparkles, customIcon: null },
     { path: "/motion-control", label: "Etyns Motion", shortLabel: "Motion", icon: Video, customIcon: null },
     { path: "/meus-renders", label: "Meus Renders", shortLabel: "Meus Renders", icon: FolderOpen, customIcon: null },
   ];
