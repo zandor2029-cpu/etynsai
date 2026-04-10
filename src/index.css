@@ -504,6 +504,11 @@
     z-index: -1;
   }
 
+  .light .bg-orbs::before,
+  .light .bg-orbs::after {
+    opacity: 0.15;
+  }
+
   .bg-orbs::before {
     width: 600px;
     height: 600px;
