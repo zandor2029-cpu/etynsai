@@ -364,17 +364,36 @@
       hsl(var(--et-blue-light)) 100%
     );
     box-shadow: 0 2px 8px hsl(210 100% 55% / 0.3);
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
     text-transform: uppercase;
     letter-spacing: 0.02em;
     font-size: 0.875rem;
   }
 
+  .btn-watermelon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--et-cyan-neon) / 0) 0%,
+      hsl(var(--et-cyan-neon) / 0.3) 50%,
+      hsl(var(--et-blue-neon) / 0) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .btn-watermelon:hover::after {
+    opacity: 1;
+  }
+
   .btn-watermelon:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: 
-      0 4px 16px hsl(210 100% 60% / 0.4),
-      0 0 20px hsl(210 100% 60% / 0.2);
+      0 8px 25px hsl(210 100% 60% / 0.5),
+      0 0 40px hsl(210 100% 60% / 0.2),
+      0 0 80px hsl(190 100% 55% / 0.1);
   }
 
   .btn-watermelon:active {
@@ -391,17 +410,17 @@
     background: linear-gradient(135deg, hsl(var(--et-purple)) 0%, hsl(var(--et-cyan)) 100%);
     color: white;
     box-shadow: 0 2px 8px hsl(260 100% 65% / 0.3);
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
     text-transform: uppercase;
     letter-spacing: 0.02em;
     font-size: 0.875rem;
   }
 
   .btn-secondary:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: 
-      0 4px 16px hsl(260 100% 65% / 0.4),
-      0 0 20px hsl(260 100% 65% / 0.2);
+      0 8px 25px hsl(260 100% 65% / 0.5),
+      0 0 40px hsl(260 100% 65% / 0.2);
   }
 
   /* Input Styles */
