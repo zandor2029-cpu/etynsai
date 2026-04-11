@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
 import AnimatedRoutes from "./components/AnimatedRoutes";
 import Footer from "./components/Footer";
+import AnimatedGridBackground from "./components/AnimatedGridBackground";
 
 const queryClient = new QueryClient();
 
