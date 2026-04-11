@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
 import AnimatedRoutes from "./components/AnimatedRoutes";
 import Footer from "./components/Footer";
+import AnimatedGridBackground from "./components/AnimatedGridBackground";
 
 const queryClient = new QueryClient();
 
@@ -17,7 +18,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="flex flex-col min-h-screen">
+          <AnimatedGridBackground />
+          <div className="flex flex-col min-h-screen relative z-10">
             <Navbar />
             <main className="flex-1">
               <AnimatedRoutes />
