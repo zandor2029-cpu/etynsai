@@ -49,7 +49,7 @@ const tools = [
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-animated-gradient bg-orbs pt-20 md:pt-28 pb-16 overflow-hidden">
+    <div className="min-h-screen bg-animated-gradient pt-20 md:pt-28 pb-16 overflow-hidden">
       {/* Hero */}
       <section className="container mx-auto px-4 text-center mb-16 md:mb-24">
         <motion.div
@@ -58,7 +58,12 @@ const LandingPage = () => {
           className="max-w-3xl mx-auto"
         >
           <motion.div variants={fadeUp} custom={0} className="flex justify-center mb-6">
-            <EtynsIcon size={72} animated />
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <EtynsIcon size={72} animated />
+            </motion.div>
           </motion.div>
 
           <motion.h1
@@ -88,7 +93,7 @@ const LandingPage = () => {
             </Link>
             <Link
               to="/planos"
-              className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm uppercase tracking-wide border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all"
+              className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm uppercase tracking-wide border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:shadow-[0_0_20px_hsl(210_100%_60%/0.1)] transition-all duration-300"
             >
               <Crown className="w-4 h-4" />
               Ver Planos
@@ -123,22 +128,40 @@ const LandingPage = () => {
                 to={tool.link}
                 className="group block h-full"
               >
-                <div className="glass-card h-full p-6 md:p-8 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg relative overflow-hidden">
+                <motion.div 
+                  className="glass-card h-full p-6 md:p-8 relative overflow-hidden"
+                  whileHover={{ 
+                    y: -6,
+                    transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }
+                  }}
+                >
                   {/* Background glow */}
                   <div
-                    className="absolute -top-20 -right-20 w-60 h-60 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    className="absolute -top-20 -right-20 w-60 h-60 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
                     style={{ background: tool.bgGlow }}
                   />
+                  
+                  {/* Shimmer line effect on hover */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden rounded-xl">
+                    <div 
+                      className="absolute top-0 left-[-100%] w-[50%] h-[1px] group-hover:left-[150%] transition-all duration-1000 ease-in-out"
+                      style={{ background: 'linear-gradient(90deg, transparent, hsl(210 100% 60% / 0.6), transparent)' }}
+                    />
+                  </div>
 
                   {/* Icon & Title */}
                   <div className="relative z-10">
-                    <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${tool.color} mb-5`}>
+                    <motion.div 
+                      className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${tool.color} mb-5`}
+                      whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
+                      transition={{ duration: 0.4 }}
+                    >
                       {'customIconComponent' in tool && tool.customIconComponent ? (
                         <tool.customIconComponent className="w-7 h-7" />
                       ) : (
                         <tool.icon className="w-7 h-7 text-white" />
                       )}
-                    </div>
+                    </motion.div>
 
                     <h3 className="text-xl md:text-2xl font-display font-bold text-foreground mb-1">
                       {tool.title}
@@ -152,23 +175,30 @@ const LandingPage = () => {
 
                     {/* Features */}
                     <div className="space-y-2.5 mb-6">
-                      {tool.features.map((feat) => (
-                        <div key={feat.label} className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
+                      {tool.features.map((feat, fi) => (
+                        <motion.div 
+                          key={feat.label} 
+                          className="flex items-center gap-3"
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.3 + fi * 0.1 }}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors duration-300">
                             <feat.icon className="w-4 h-4 text-primary" />
                           </div>
                           <span className="text-sm text-foreground font-medium">{feat.label}</span>
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
 
                     {/* CTA */}
-                    <div className="flex items-center gap-2 text-primary font-semibold text-sm group-hover:gap-3 transition-all">
+                    <div className="flex items-center gap-2 text-primary font-semibold text-sm group-hover:gap-3 transition-all duration-300">
                       Explorar {tool.title.split(" ").slice(1).join(" ")}
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </Link>
             </motion.div>
           ))}
@@ -190,15 +220,21 @@ const LandingPage = () => {
               { value: "2", label: "Ferramentas IA" },
               { value: "720p", label: "Vídeos HD" },
               { value: "∞", label: "Possibilidades" },
-            ].map((stat) => (
-              <div key={stat.label}>
+            ].map((stat, i) => (
+              <motion.div 
+                key={stat.label}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.4 }}
+              >
                 <div className="text-2xl md:text-4xl font-display font-extrabold text-gradient-watermelon mb-1">
                   {stat.value}
                 </div>
                 <div className="text-xs md:text-sm text-muted-foreground font-medium">
                   {stat.label}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>
