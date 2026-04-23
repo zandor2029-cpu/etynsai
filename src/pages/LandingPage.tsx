@@ -209,8 +209,10 @@ const LandingPage = () => {
             ))}
           </div>
         </section>
+        </ThanosDissolve>
 
         {/* Stats */}
+        <ThanosDissolve direction="up" className="block">
         <section className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -244,6 +246,7 @@ const LandingPage = () => {
             </div>
           </motion.div>
         </section>
+        </ThanosDissolve>
       </div>
     </div>
   );
