@@ -203,7 +203,7 @@ const KlingMotionControl = () => {
             {/* Tool hero banner — Higgsfield style */}
             <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-card/95 shadow-xl shadow-primary/10 aspect-[16/7]">
               {/* Gradient backdrop simulating the Higgsfield hero collage */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-etyns-cyan/30 to-purple-500/30" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-etyns-cyan/30 to-primary/40" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,hsl(var(--primary)/0.5),transparent_60%),radial-gradient(circle_at_70%_70%,hsl(var(--etyns-cyan)/0.5),transparent_60%)]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
