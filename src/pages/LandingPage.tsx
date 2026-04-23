@@ -50,8 +50,30 @@ const tools = [
 const LandingPage = () => {
   return (
     <div className="relative min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
+      {/* Background video */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <video
+          src="/hero-bg.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Dark gradient overlay — vignette + top/bottom darkening */}
+        <div className="absolute inset-0 bg-background/55" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/40 to-background/90" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, transparent 0%, transparent 35%, hsl(var(--background) / 0.7) 90%, hsl(var(--background)) 100%)",
+          }}
+        />
+      </div>
+
       {/* Ambient glow — Control Motion style */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1]">
         <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-primary/8 blur-[160px]" />
         <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-etyns-cyan/8 blur-[160px]" />
         <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] rounded-full bg-etyns-purple/6 blur-[160px]" />
