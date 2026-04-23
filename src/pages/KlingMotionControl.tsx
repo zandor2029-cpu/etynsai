@@ -261,10 +261,6 @@ const KlingMotionControl = () => {
                           <X className="w-3.5 h-3.5" />
                         </span>
                       </div>
-                      <div className="absolute bottom-2 left-2 right-2 z-10 text-left">
-                        <p className="text-[10px] font-bold text-white leading-tight">Vídeo</p>
-                        <p className="text-[9px] text-white/70 truncate">{referenceVideo?.name}</p>
-                      </div>
                     </>
                   ) : (
                     <>
@@ -318,10 +314,6 @@ const KlingMotionControl = () => {
                         >
                           <X className="w-3.5 h-3.5" />
                         </span>
-                      </div>
-                      <div className="absolute bottom-2 left-2 right-2 z-10 text-left">
-                        <p className="text-[10px] font-bold text-white leading-tight">Personagem</p>
-                        <p className="text-[9px] text-white/70 truncate">{characterImage?.name}</p>
                       </div>
                     </>
                   ) : (
