@@ -166,152 +166,245 @@ const KlingMotionControl = () => {
     }
   };
 
-  return (
-    <div className="flex flex-col h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
 
-      {/* SUB TABS */}
-      <div className="flex items-center px-3 md:px-5 h-10 md:h-11 border-b border-border flex-shrink-0">
-        {SUB_TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveSubTab(tab)}
-            className={`h-full px-3 md:px-4 text-xs md:text-[13px] border-b-2 transition-all ${
-              activeSubTab === tab
-                ? "text-foreground font-semibold border-primary"
-                : "text-muted-foreground font-normal border-transparent hover:text-foreground/70"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+  return (
+    <div className="relative flex flex-col h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
+      {/* Ambient glow background */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-etyns-cyan/10 blur-[140px]" />
       </div>
 
-      {/* MAIN LAYOUT - stacked on mobile, 3-panel on desktop */}
-      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
-
-        {/* LEFT PANEL - Controls */}
-        <div className="lg:w-[280px] bg-card lg:border-r border-b lg:border-b-0 border-border flex flex-col overflow-hidden flex-shrink-0 max-h-[50vh] lg:max-h-none">
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-
-            {/* Tutorial card - hidden on mobile for space */}
-            <div className="hidden md:block rounded-xl overflow-hidden border border-border bg-muted">
-              <div className="flex items-stretch h-[88px]">
-                <div className="flex-1 p-3 flex flex-col justify-center">
-                  <div className="text-primary font-extrabold text-[13px] tracking-wide mb-1">MOTION CONTROL</div>
-                  <div className="text-muted-foreground text-[10.5px] leading-snug">Transforme imagens em vídeos com movimentos realistas</div>
-                </div>
-                <div className="w-[88px] bg-muted relative overflow-hidden">
-                  <div className="absolute top-1.5 right-1.5 bg-background/70 border border-border rounded px-1.5 py-0.5 text-[10px] text-muted-foreground flex items-center gap-1 backdrop-blur-sm">
-                    <Play className="w-[9px] h-[9px]" />
-                    Como funciona
-                  </div>
-                  <div className="w-full h-full bg-gradient-to-br from-muted to-background flex items-center justify-center">
-                    <Film className="w-9 h-9 text-muted-foreground/40" />
-                  </div>
-                </div>
-              </div>
+      {/* HEADER STRIP */}
+      <div className="relative z-10 flex items-center justify-between gap-3 px-4 md:px-8 h-14 border-b border-border/50 backdrop-blur-md bg-background/60 flex-shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-etyns-cyan flex items-center justify-center shadow-lg shadow-primary/30">
+              <Film className="w-4 h-4 text-white" />
             </div>
+            <div className="absolute inset-0 rounded-xl bg-primary/40 blur-md -z-10" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-sm md:text-[15px] font-bold tracking-tight truncate">Control Motion</h1>
+            <p className="text-[10.5px] md:text-[11px] text-muted-foreground truncate">Powered by Kling 2.1 · Image-to-Video AI</p>
+          </div>
+        </div>
 
-            {/* Mobile: compact row layout for upload + settings */}
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
-              {/* Upload area */}
-              <div className="bg-muted border border-dashed border-border rounded-xl p-3 sm:flex-1 lg:flex-none">
-                <div className="flex gap-2.5">
-                  {!characterPreview ? (
-                    <label className="flex-1 bg-background rounded-lg border border-dashed border-border flex flex-col items-center justify-center h-20 md:h-24 cursor-pointer hover:border-primary/40 transition-colors group">
-                      <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center mb-1.5 group-hover:bg-primary/10 transition-colors">
-                        <Upload className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </div>
-                      <div className="text-[10px] text-muted-foreground text-center leading-snug">Adicionar imagem<br/>para animar</div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] || null;
-                          handleFileSelect(file);
-                        }}
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 border border-border/50">
+            <Sparkles className="w-3 h-3 text-primary" />
+            <span className="text-[11px] font-medium">{resolution}</span>
+            <span className="text-[10px] text-muted-foreground">·</span>
+            <Zap className="w-3 h-3 text-etyns-cyan" />
+            <span className="text-[11px] font-medium text-etyns-cyan">{creditCost}cr</span>
+          </div>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border hover:border-primary/40 hover:bg-muted transition-all text-[11.5px] font-medium"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Configurar</span>
+          </button>
+        </div>
+      </div>
+
+      {/* CENTRAL STAGE */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center overflow-hidden p-4 md:p-8">
+        <div className="w-full max-w-[720px] flex flex-col items-center gap-6">
+
+          {/* Preview area */}
+          <div className="relative w-full aspect-[16/10] md:aspect-[16/9] rounded-2xl overflow-hidden bg-card/80 backdrop-blur-sm border border-border/60 shadow-2xl shadow-black/20">
+            {/* Subtle inner gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-muted/30 via-transparent to-transparent pointer-events-none" />
+
+            <AnimatePresence mode="wait">
+              {isGenerating ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-5 p-6"
+                >
+                  <WatermelonLoader text="Gerando seu vídeo…" />
+                  <div className="w-full max-w-xs">
+                    <div className="flex justify-between text-[11px] font-semibold mb-2">
+                      <span className="text-muted-foreground">{progressText}</span>
+                      <span className="text-primary">{progress}%</span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-gradient-to-r from-primary to-etyns-cyan rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 0.5 }}
                       />
-                    </label>
-                  ) : (
-                    <div className="flex-1 bg-background rounded-lg overflow-hidden relative h-20 md:h-24">
-                      <img src={characterPreview} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                </motion.div>
+              ) : generationError ? (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6"
+                >
+                  <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-destructive" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="font-bold text-sm mb-1">Erro na geração</h3>
+                    <p className="text-[12px] text-muted-foreground max-w-sm">{generationError}</p>
+                  </div>
+                  <button
+                    onClick={() => setGenerationError(null)}
+                    className="px-4 py-2 rounded-lg bg-muted hover:bg-muted/70 border border-border text-[12px] font-medium transition-colors"
+                  >
+                    Tentar novamente
+                  </button>
+                </motion.div>
+              ) : generatedVideo ? (
+                <motion.div
+                  key="result"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0"
+                >
+                  <video
+                    src={generatedVideo}
+                    className="w-full h-full object-contain bg-black"
+                    controls
+                    autoPlay
+                    loop
+                  />
+                  {isSaved && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="absolute top-3 left-3 flex items-center gap-1.5 bg-primary/90 backdrop-blur-sm rounded-full px-3 py-1 text-[11px] text-primary-foreground font-semibold shadow-lg"
+                    >
+                      <Check className="w-3 h-3" />
+                      Salvo no histórico
+                    </motion.div>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.4 }}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-4"
+                >
+                  {characterPreview ? (
+                    <div className="relative">
+                      <img src={characterPreview} alt="Imagem" className="max-h-[55%] max-w-[80%] rounded-lg shadow-xl object-contain" style={{ maxHeight: '260px' }} />
                       <button
                         onClick={handleClearImage}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-destructive/80 transition-colors"
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center hover:bg-destructive hover:border-destructive hover:text-white transition-all shadow-md"
                       >
-                        <X className="w-2.5 h-2.5 text-foreground" />
+                        <X className="w-3 h-3" />
                       </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-2xl bg-muted/60 border border-border/50 flex items-center justify-center">
+                      <Video className="w-7 h-7 text-muted-foreground/50" />
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* Model + Quality side-by-side on mobile */}
-              <div className="flex flex-row sm:flex-col lg:flex-col gap-2 sm:flex-1 lg:flex-none">
-                {/* Model selector */}
-                <div className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 md:py-2.5 cursor-pointer flex justify-between items-center hover:border-border/80 transition-colors">
-                  <div>
-                    <div className="text-[10px] text-muted-foreground mb-0.5">Modelo</div>
-                    <div className="text-[11px] md:text-[12.5px] text-foreground flex items-center gap-1.5">
-                      Control Motion
-                      <Info className="w-[13px] h-[13px] text-muted-foreground hidden sm:inline" />
-                    </div>
+                  <div className="text-center max-w-sm">
+                    <p className="text-[13px] font-semibold text-foreground/80">
+                      {characterPreview ? "Imagem pronta para animar" : "Nenhuma imagem carregada"}
+                    </p>
+                    <p className="text-[11.5px] text-muted-foreground mt-1">
+                      {characterPreview ? "Adicione uma descrição abaixo e clique em Gerar" : "Faça upload de uma imagem para começar"}
+                    </p>
                   </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* COMMAND BAR */}
+          <div className="w-full">
+            <div className="relative bg-card/90 backdrop-blur-md border border-border/60 rounded-2xl p-2 shadow-xl shadow-black/10">
+              <div className="flex items-end gap-2">
+                {/* Upload button */}
+                <label className={`relative shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer transition-all overflow-hidden ${
+                  characterPreview ? "border-primary/40 bg-primary/5" : "border-border hover:border-primary/40 hover:bg-muted"
+                }`}>
+                  {characterPreview ? (
+                    <img src={characterPreview} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Upload className="w-4 h-4 text-muted-foreground" />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                  />
+                </label>
+
+                {/* Prompt textarea */}
+                <div className="flex-1 relative">
+                  <textarea
+                    value={instructions}
+                    onChange={(e) => {
+                      setInstructions(e.target.value);
+                      if (showAssistant) { setShowAssistant(false); promptAssistant.clear(); }
+                    }}
+                    placeholder="Descreva o movimento… (ex: andar, acenar, dançar)"
+                    rows={1}
+                    className="w-full bg-transparent border-0 px-3 py-3.5 text-[13px] placeholder:text-muted-foreground/60 focus:outline-none resize-none max-h-[120px]"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (canGenerateVideo && !isGenerating) handleGenerate();
+                      }
+                    }}
+                  />
                 </div>
 
-                {/* Quality / Resolution */}
-                <div className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 md:py-2.5">
-                  <div className="text-[10px] text-muted-foreground mb-1.5 md:mb-2">Qualidade</div>
-                  <div className="flex gap-1.5">
-                    {(["480p", "720p"] as const).map((res) => (
-                      <button
-                        key={res}
-                        onClick={() => setResolution(res)}
-                        className={`flex-1 py-1 md:py-1.5 rounded-md text-[11px] md:text-[12px] font-medium transition-all ${
-                          resolution === res
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "bg-background text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {res}
-                        <span className="ml-1 text-[9px] md:text-[10px] opacity-70">({VIDEO_CREDIT_COSTS[res]}cr)</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Prompt / Instructions */}
-            <div className="bg-muted border border-border rounded-lg px-3 py-2.5">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                  <Clapperboard className="w-3 h-3" />
-                  Descrição do Movimento
-                </div>
+                {/* IA enhance */}
                 <button
                   onClick={handleEnhancePrompt}
                   disabled={instructions.trim().length < 3 || promptAssistant.isLoading}
-                  className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 border border-primary/30 text-primary hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  title="Melhorar prompt com IA"
+                  className="shrink-0 w-10 h-10 rounded-xl bg-muted hover:bg-muted/70 border border-border text-foreground/70 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all"
                 >
-                  <Wand2 className="w-2.5 h-2.5" />
-                  IA
+                  <Wand2 className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Generate button */}
+                <button
+                  onClick={handleGenerate}
+                  disabled={!canGenerateVideo || isGenerating}
+                  className="shrink-0 h-12 md:h-14 px-4 md:px-6 rounded-xl bg-gradient-to-r from-primary to-etyns-cyan disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold text-[12.5px] md:text-[13px] flex items-center gap-2 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  {isGenerating ? (
+                    <>
+                      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
+                        <Sparkles className="w-4 h-4" />
+                      </motion.div>
+                      <span className="hidden sm:inline">Gerando</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Gerar</span>
+                      <span className="text-[10.5px] opacity-80 font-semibold">{creditCost}cr</span>
+                    </>
+                  )}
                 </button>
               </div>
-              <textarea
-                value={instructions}
-                onChange={(e) => {
-                  setInstructions(e.target.value);
-                  if (showAssistant) { setShowAssistant(false); promptAssistant.clear(); }
-                }}
-                placeholder="Ex: andar para frente, acenar, dançar..."
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[12px] text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:border-primary/40 transition-colors"
-                rows={2}
-              />
+
               {showAssistant && (
-                <div className="mt-2">
+                <div className="mt-2 px-1">
                   <PromptAssistant
                     suggestions={promptAssistant.suggestions}
                     isLoading={promptAssistant.isLoading}
@@ -322,249 +415,147 @@ const KlingMotionControl = () => {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Generate button */}
-          <div className="p-3 border-t border-border flex-shrink-0">
-            <button
-              onClick={handleGenerate}
-              disabled={!canGenerateVideo || isGenerating}
-              className="w-full bg-primary hover:bg-etyns-blue-light disabled:opacity-40 disabled:cursor-not-allowed border-none rounded-xl py-3 md:py-3.5 text-xs md:text-sm font-bold text-white cursor-pointer flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-primary/20"
-            >
-              {isGenerating ? (
-                <>Gerando...</>
-              ) : (
-                <>
-                  Gerar Vídeo
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-[11px] md:text-[12px] opacity-80">{creditCost}</span>
-                </>
-              )}
-            </button>
-            {!canGenerateVideo && !isGenerating && (
-              <p className="text-center text-[10px] text-muted-foreground mt-2">
-                📎 Faça upload de uma imagem para começar
-              </p>
+            {/* Action row when result */}
+            {generatedVideo && !isGenerating && (
+              <div className="flex items-center justify-center gap-2 mt-3">
+                <a
+                  href={generatedVideo}
+                  download="video.mp4"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-card border border-border hover:border-primary/40 text-[12px] font-medium transition-all"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Baixar vídeo
+                </a>
+                <button
+                  onClick={() => { setGeneratedVideo(null); setGenerationError(null); }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-card border border-border hover:border-primary/40 text-[12px] font-medium transition-all"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Novo vídeo
+                </button>
+              </div>
             )}
+
             {!user && canGenerateVideo && (
-              <p className="text-center text-[10px] text-muted-foreground mt-2">
+              <p className="text-center text-[11px] text-muted-foreground mt-3">
                 🔐 Faça login para gerar vídeos
               </p>
             )}
           </div>
         </div>
+      </div>
 
-        {/* CENTER - Preview Area */}
-        <div className="flex-1 flex flex-col overflow-hidden min-h-[200px]">
-
-          {/* Center tabs */}
-          <div className="flex items-center px-3 md:px-4 h-10 md:h-11 border-b border-border flex-shrink-0 justify-between">
-            <div className="flex gap-1">
-              {["Histórico", "Galeria"].map((tab) => (
+      {/* SETTINGS SHEET */}
+      <AnimatePresence>
+        {showSettings && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSettings(false)}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 280 }}
+              className="fixed top-0 right-0 bottom-0 w-full sm:w-[360px] bg-card border-l border-border z-50 flex flex-col shadow-2xl"
+            >
+              <div className="flex items-center justify-between px-5 h-14 border-b border-border flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-primary" />
+                  <h3 className="font-bold text-sm">Configurações</h3>
+                </div>
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`flex items-center gap-1.5 px-2 md:px-3 py-1 text-xs md:text-[13px] rounded-md transition-colors ${
-                    activeTab === tab ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  onClick={() => setShowSettings(false)}
+                  className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
                 >
-                  {tab === "Histórico" ? <Clock className="w-[13px] h-[13px]" /> : <LayoutGrid className="w-[13px] h-[13px]" />}
-                  {tab}
+                  <X className="w-4 h-4" />
                 </button>
-              ))}
-            </div>
-            <div className="flex gap-2 items-center">
-              {/* Mobile: show info badges inline */}
-              <div className="flex lg:hidden items-center gap-1.5 mr-2">
-                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{resolution}</span>
-                <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded">{creditCost}cr</span>
               </div>
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-muted text-foreground" : "text-muted-foreground"}`}
-              >
-                <LayoutGrid className="w-[11px] h-[11px]" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-muted text-foreground" : "text-muted-foreground"}`}
-              >
-                <List className="w-[11px] h-[11px]" />
-              </button>
-            </div>
-          </div>
 
-          {/* Video preview area */}
-          <div className="flex-1 flex items-center justify-center bg-background relative p-4">
-            <AnimatePresence mode="wait">
-              {isGenerating ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0, scale: 0.9, filter: "blur(8px)" }}
-                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, scale: 1.05, filter: "blur(6px)" }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex flex-col items-center gap-4 md:gap-6"
-                >
-                  <WatermelonLoader text="Gerando seu vídeo…" />
-                  <div className="w-48 md:w-64">
-                    <div className="flex justify-between text-[11px] font-semibold mb-2">
-                      <span className="text-muted-foreground">Progresso</span>
-                      <span className="text-primary">{progress}%</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-etyns-blue to-etyns-cyan rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    </div>
-                    <p className="text-center text-[10px] text-muted-foreground mt-2">{progressText}</p>
-                  </div>
-                </motion.div>
-              ) : generationError ? (
-                <motion.div
-                  key="error"
-                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex flex-col items-center gap-3 md:gap-4 p-4 md:p-8"
-                >
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-                    <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-destructive" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-bold text-foreground text-sm md:text-base mb-1">Erro na geração</h3>
-                    <p className="text-xs md:text-[13px] text-muted-foreground max-w-sm">{generationError}</p>
-                  </div>
-                  <button
-                    onClick={() => setGenerationError(null)}
-                    className="px-4 py-2 rounded-lg bg-muted border border-border text-xs md:text-[13px] text-foreground hover:bg-muted/80 transition-colors"
-                  >
-                    Tentar novamente
-                  </button>
-                </motion.div>
-              ) : generatedVideo ? (
-                <motion.div
-                  key="result"
-                  initial={{ opacity: 0, scale: 0.85, y: 30 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative max-w-[400px] lg:max-w-[560px] w-full max-h-full rounded-lg overflow-hidden bg-card"
-                  style={{ aspectRatio: "9/16" }}
-                >
-                  <video
-                    src={generatedVideo}
-                    className="w-full h-full object-contain"
-                    controls
-                    autoPlay
-                    loop
-                  />
-                  <div className="absolute top-3 left-3 flex items-center gap-2">
-                    {isSaved && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-1 bg-primary/20 backdrop-blur-sm rounded-full px-2.5 py-1 text-[11px] text-primary font-medium"
+              <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                {/* Image upload */}
+                <div>
+                  <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                    Imagem de referência
+                  </label>
+                  {characterPreview ? (
+                    <div className="relative rounded-xl overflow-hidden border border-border h-40">
+                      <img src={characterPreview} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        onClick={handleClearImage}
+                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-destructive hover:text-white hover:border-destructive flex items-center justify-center transition-all"
                       >
-                        <Check className="w-3 h-3" />
-                        Salvo
-                      </motion.div>
-                    )}
-                  </div>
-                  {/* Mobile: download button overlay */}
-                  <div className="absolute bottom-3 right-3 lg:hidden flex gap-2">
-                    <a
-                      href={generatedVideo}
-                      download="video.mp4"
-                      className="bg-background/80 backdrop-blur-sm rounded-full p-2 text-foreground"
-                    >
-                      <Download className="w-4 h-4" />
-                    </a>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12, scale: 0.95 }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex flex-col items-center gap-3 md:gap-4 text-muted-foreground"
-                >
-                  <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-muted flex items-center justify-center">
-                    <Video className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground/40" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs md:text-[14px] font-medium text-foreground/60">Nenhum vídeo gerado</p>
-                    <p className="text-[11px] md:text-[12px] text-muted-foreground mt-1">Faça upload de uma imagem e clique em Gerar</p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-40 rounded-xl border-2 border-dashed border-border hover:border-primary/40 hover:bg-muted/30 cursor-pointer transition-all gap-2">
+                      <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-[12px] text-muted-foreground">Clique para selecionar</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                      />
+                    </label>
+                  )}
+                </div>
 
-        {/* RIGHT PANEL - Details (hidden on mobile) */}
-        <div className="hidden lg:flex w-[220px] bg-card border-l border-border flex-col flex-shrink-0">
-          {/* Action buttons */}
-          <div className="flex gap-1.5 p-2.5 border-b border-border">
-            <a
-              href={generatedVideo || "#"}
-              download={generatedVideo ? "video.mp4" : undefined}
-              className={`flex-1 bg-muted border border-border rounded-md py-1.5 text-[11.5px] flex items-center justify-center gap-1 transition-colors ${
-                generatedVideo ? "text-foreground hover:bg-muted/80 cursor-pointer" : "text-muted-foreground/40 pointer-events-none"
-              }`}
-            >
-              <Download className="w-3 h-3" />
-              Baixar
-            </a>
-            <button
-              onClick={() => { setGeneratedVideo(null); setGenerationError(null); }}
-              className="flex-1 bg-muted border border-border text-muted-foreground rounded-md py-1.5 text-[11.5px] flex items-center justify-center gap-1 hover:bg-muted/80 transition-colors"
-            >
-              <Video className="w-3 h-3" />
-              Novo
-            </button>
-          </div>
+                {/* Resolution */}
+                <div>
+                  <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                    Qualidade
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["480p", "720p"] as const).map((res) => (
+                      <button
+                        key={res}
+                        onClick={() => setResolution(res)}
+                        className={`relative px-3 py-3 rounded-xl border text-[12.5px] font-semibold transition-all ${
+                          resolution === res
+                            ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/20"
+                            : "border-border bg-muted/30 text-muted-foreground hover:border-border/80"
+                        }`}
+                      >
+                        <div>{res}</div>
+                        <div className="text-[10px] opacity-70 font-medium mt-0.5">{VIDEO_CREDIT_COSTS[res]} créditos</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-          {/* Prompt display */}
-          <div className="p-2.5 border-b border-border">
-            <p className="text-[12px] text-muted-foreground leading-relaxed">
-              {currentPrompt || instructions || (
-                <span className="italic text-muted-foreground/50">Nenhuma descrição de movimento definida</span>
-              )}
-            </p>
-          </div>
-
-          {/* Reference thumbnails */}
-          {characterPreview && (
-            <div className="p-2.5 border-b border-border">
-              <div className="text-[10px] text-muted-foreground mb-2">Imagem de referência</div>
-              <div className="flex gap-2">
-                <div className="w-[70px] h-[52px] rounded-md overflow-hidden border border-border">
-                  <img src={characterPreview} alt="Referência" className="w-full h-full object-cover" />
+                {/* Model info */}
+                <div className="rounded-xl border border-border bg-muted/30 p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary to-etyns-cyan flex items-center justify-center">
+                      <Sparkles className="w-3 h-3 text-white" />
+                    </div>
+                    <div className="text-[12px] font-bold">Kling 2.1</div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Modelo premium de Image-to-Video. Gera até 5s de vídeo realista a partir da sua imagem.
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Quality badge */}
-          <div className="p-2.5">
-            <div className="inline-flex items-center gap-1 bg-muted border border-border rounded px-2 py-1 text-[11px] text-muted-foreground">
-              <Sparkles className="w-[11px] h-[11px]" />
-              {resolution}
-            </div>
-            <div className="mt-2 inline-flex items-center gap-1 bg-primary/10 border border-primary/20 rounded px-2 py-1 text-[11px] text-primary">
-              <Zap className="w-[11px] h-[11px]" />
-              {creditCost} créditos
-            </div>
-          </div>
-        </div>
-      </div>
+              <div className="p-4 border-t border-border flex-shrink-0">
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="w-full py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-[13px] transition-all"
+                >
+                  Aplicar
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <NoCreditsModal
         isOpen={showNoCreditsModal}
