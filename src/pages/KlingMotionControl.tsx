@@ -348,19 +348,17 @@ const KlingMotionControl = () => {
 
             {/* Spec rows — Higgsfield style */}
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/40 bg-card/95 hover:border-border transition-colors cursor-pointer">
+              <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/40 bg-card/95">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Modelo</span>
-                  <span className="text-[13px] font-bold mt-0.5">Roop Face Swap</span>
+                  <span className="text-[13px] font-bold mt-0.5">Kling Motion 3.0</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
-              <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/40 bg-card/95 hover:border-border transition-colors cursor-pointer">
+              <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/40 bg-card/95">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Qualidade</span>
-                  <span className="text-[13px] font-bold mt-0.5">HD · 720p</span>
+                  <span className="text-[13px] font-bold mt-0.5">Full HD · 1080p</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
             </div>
 
