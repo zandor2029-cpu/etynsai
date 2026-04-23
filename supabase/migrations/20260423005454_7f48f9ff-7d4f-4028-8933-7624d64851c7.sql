@@ -1,0 +1,1 @@
+DELETE FROM public.renders WHERE type = 'image';
