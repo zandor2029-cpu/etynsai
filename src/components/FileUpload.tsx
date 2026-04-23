@@ -119,7 +119,7 @@ const FileUpload = ({ label, accept, onFileSelect, preview }: FileUploadProps) =
               {isDragging ? "Solte o arquivo aqui! 🎉" : "Clique ou arraste"}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              {accept === "image" ? "PNG, JPG, WEBP até 10MB" : "MP4, MOV, WEBM até 100MB"}
+              {accept === "image" ? "PNG, JPG, WEBP até 20MB" : "MP4, MOV, WEBM até 100MB"}
             </p>
           </div>
           <input

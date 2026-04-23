@@ -49,10 +49,10 @@ const ReferenceImageUpload = ({
         });
         return;
       }
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > 20 * 1024 * 1024) {
         toast({
           title: "Arquivo muito grande",
-          description: "Cada imagem deve ter no máximo 10MB.",
+          description: "Cada imagem deve ter no máximo 20MB.",
           variant: "destructive",
         });
         return;
@@ -216,7 +216,7 @@ const ReferenceImageUpload = ({
                   {dragActive ? "Solte aqui!" : "Arraste ou toque para adicionar"}
                 </span>
                 <span className="text-[10px] md:text-xs text-muted-foreground/70">
-                  JPG, PNG ou WebP • Máx 10MB
+                  JPG, PNG ou WebP • Máx 20MB
                 </span>
               </>
             )}
