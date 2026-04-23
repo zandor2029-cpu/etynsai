@@ -9,8 +9,8 @@ const corsHeaders = {
 const REPLICATE_API_TOKEN = Deno.env.get('REPLICATE_API_TOKEN');
 const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
 
-// Model for video generation - Wan 2.2 I2V A14B (mais barato: $0.05-$0.11 por vídeo)
-const VIDEO_MODEL = 'wan-video/wan-2.2-i2v-a14b';
+// Model for video generation - Kling 2.1 Standard I2V (premium: ~$0.28/vídeo de 5s)
+const VIDEO_MODEL = 'kwaivgi/kling-v2.1';
 
 interface GenerateVideoRequest {
   characterImageUrl: string;
@@ -120,19 +120,20 @@ serve(async (req) => {
     // Build enhanced prompt
     const enhancedPrompt = prompt?.trim() || 'Animate this character with natural, fluid movements';
 
-    // Determine resolution settings based on user choice
-    const resolutionConfig = resolution === "480p" 
-      ? { max_area: "480*832", sample_steps: 25 }  // 480p - mais barato
-      : { max_area: "720*1280", sample_steps: 30 }; // 720p - padrão
+    // Kling 2.1 uses 'mode': standard (720p) or pro (1080p)
+    // We map our 480p -> standard (cheaper), 720p -> standard (default quality)
+    // Both modes produce 720p output but standard is faster/cheaper
+    const klingMode = resolution === "480p" ? "standard" : "standard";
 
-    // Create prediction with Replicate API - using official model (no version needed)
+    // Create prediction with Replicate API - Kling 2.1
     const requestBody = {
       model: VIDEO_MODEL,
       input: {
-        image: characterImageUrl,
+        start_image: characterImageUrl,
         prompt: enhancedPrompt,
-        max_area: resolutionConfig.max_area,
-        sample_steps: resolutionConfig.sample_steps,
+        duration: duration === 10 ? 10 : 5,
+        mode: klingMode,
+        negative_prompt: "",
       }
     };
 
