@@ -1,21 +1,16 @@
 import { Check, Sparkles, Loader2, Crown } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { STRIPE_PLANS } from '@/config/plans';
-import GlassCard from '@/components/GlassCard';
-import WatermelonButton from '@/components/WatermelonButton';
 import AuthModal from '@/components/AuthModal';
-import { AnimatedSection, AnimatedBadge, AnimatedCard, StaggerContainer, StaggerItem } from '@/components/AnimatedSection';
 import { useToast } from '@/hooks/use-toast';
 
 const PlansPage = () => {
   const { user, subscription, profile } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubscribe = async (planName: string, priceId: string) => {
@@ -23,19 +18,13 @@ const PlansPage = () => {
       setShowAuthModal(true);
       return;
     }
-
     setLoadingPlan(planName);
-
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
       });
-
       if (error) throw error;
-
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
+      if (data?.url) window.open(data.url, '_blank');
     } catch (error) {
       console.error('Checkout error:', error);
       toast({
@@ -50,15 +39,10 @@ const PlansPage = () => {
 
   const handleManageSubscription = async () => {
     setLoadingPlan('manage');
-
     try {
       const { data, error } = await supabase.functions.invoke('customer-portal');
-
       if (error) throw error;
-
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
+      if (data?.url) window.open(data.url, '_blank');
     } catch (error) {
       console.error('Portal error:', error);
       toast({
@@ -74,112 +58,146 @@ const PlansPage = () => {
   const plans = Object.values(STRIPE_PLANS);
 
   return (
-    <div className="min-h-screen bg-animated-gradient bg-orbs pt-24 pb-12 px-4">
-      <div className="container mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <AnimatedBadge delay={0}>
-            <div className="inline-flex items-center gap-2 badge-rgb mb-4">
-              <Crown className="w-4 h-4" />
-              <span>Planos Premium</span>
-            </div>
-          </AnimatedBadge>
-          
-          <AnimatedSection delay={0.1}>
-            <h1 className="text-4xl md:text-6xl font-display font-bold mb-6">
-              <span className="text-gradient-rgb">Escolha seu Plano</span>
-            </h1>
-          </AnimatedSection>
-          
-          <AnimatedSection delay={0.2}>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Desbloqueie o poder completo da <span className="text-etyns-blue-light font-semibold">Etyns</span>
-            </p>
-          </AnimatedSection>
+    <div className="relative min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
+      {/* Ambient glow */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-primary/8 blur-[160px]" />
+        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-etyns-cyan/8 blur-[160px]" />
+      </div>
 
-          {profile && (
-            <AnimatedSection delay={0.3}>
-              <div className="mt-6 inline-flex items-center gap-3 px-4 py-2 glass-card rounded-full">
-                <span className="text-muted-foreground">Seu saldo:</span>
-                <span className="text-xl font-bold text-gradient-watermelon">{profile.credits} créditos</span>
-              </div>
-            </AnimatedSection>
-          )}
-        </div>
+      <div className="relative z-10 px-4 md:px-6 lg:px-8 py-6 md:py-10">
+        <div className="container mx-auto max-w-5xl">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-card/95 border border-border/60 mb-4"
+            >
+              <Crown className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Planos Premium</span>
+            </motion.div>
 
-        {/* Free tier info */}
-        <AnimatedSection delay={0.35}>
-          <div className="text-center mb-10">
-            <GlassCard className="inline-block px-6 py-3">
-              <p className="text-muted-foreground">
-                🎁 <span className="text-primary font-semibold">10 créditos grátis</span> ao criar sua conta!
-              </p>
-            </GlassCard>
-          </div>
-        </AnimatedSection>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="text-2xl md:text-4xl font-display font-extrabold mb-2 text-gradient-watermelon tracking-tight"
+            >
+              Escolha seu Plano
+            </motion.h1>
 
-        {/* Plans Grid */}
-        <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" staggerDelay={0.1} delay={0.4}>
-          {plans.map((plan) => {
-            const isCurrentPlan = subscription?.plan === plan.name;
-            const isPopular = plan.popular;
-            
-            return (
-              <StaggerItem
-                key={plan.name}
-                className={`relative ${isPopular ? 'md:-mt-4 md:mb-4' : ''}`}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="text-sm text-muted-foreground max-w-md mx-auto"
+            >
+              Desbloqueie o poder completo da Etyns
+            </motion.p>
+
+            {profile && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border/60 bg-card/95"
               >
-                {isPopular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <span className="badge-rgb px-4 py-1">
-                      <Sparkles className="w-3 h-3 mr-1 inline" />
-                      Mais Popular
-                    </span>
-                  </div>
-                )}
+                <span className="text-[11px] text-muted-foreground">Saldo:</span>
+                <span className="text-sm font-bold text-gradient-watermelon">{profile.credits} créditos</span>
+              </motion.div>
+            )}
+          </div>
 
-                <div className={`h-full ${isPopular ? 'rgb-border p-[2px] rounded-3xl' : ''}`}>
-                  <GlassCard 
-                    className={`h-full p-6 md:p-8 rounded-3xl ${isCurrentPlan ? 'border-2 border-primary' : ''}`}
+          {/* Free tier info */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+            className="text-center mb-6"
+          >
+            <div className="inline-block px-4 py-2 rounded-xl border border-border/60 bg-card/95">
+              <p className="text-[11px] text-muted-foreground">
+                🎁 <span className="text-primary font-bold">10 créditos grátis</span> ao criar sua conta
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Plans Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-8">
+            {plans.map((plan, idx) => {
+              const isCurrentPlan = subscription?.plan === plan.name;
+              const isPopular = plan.popular;
+
+              return (
+                <motion.div
+                  key={plan.name}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4 + idx * 0.08 }}
+                  className={`relative ${isPopular ? 'md:-mt-3 md:mb-3' : ''}`}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-primary text-primary-foreground shadow-lg shadow-primary/30">
+                        <Sparkles className="w-2.5 h-2.5" />
+                        Mais Popular
+                      </span>
+                    </div>
+                  )}
+
+                  <div
+                    className={`h-full p-5 rounded-xl border bg-card/95 shadow-lg transition-all flex flex-col ${
+                      isPopular
+                        ? 'border-primary/50 shadow-primary/15'
+                        : isCurrentPlan
+                        ? 'border-primary/40 shadow-primary/10'
+                        : 'border-border/60 shadow-primary/5'
+                    }`}
                   >
                     {isCurrentPlan && (
-                      <div className="absolute top-4 right-4">
-                        <span className="badge-watermelon text-xs">
-                          <Check className="w-3 h-3 mr-1 inline" />
+                      <div className="absolute top-2.5 right-2.5">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider bg-primary/15 border border-primary/30 text-primary">
+                          <Check className="w-2.5 h-2.5" />
                           Seu Plano
                         </span>
                       </div>
                     )}
 
                     {/* Plan Header */}
-                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-display font-bold text-foreground mb-1">
+                    <div className="text-center mb-4">
+                      <h3 className="text-base font-display font-bold text-foreground mb-0.5">
                         {plan.displayName}
                       </h3>
-                      <p className="text-muted-foreground text-sm">{plan.description}</p>
+                      <p className="text-[10px] text-muted-foreground">{plan.description}</p>
                     </div>
 
                     {/* Price */}
-                    <div className="text-center mb-6">
-                      <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-sm text-muted-foreground">R$</span>
-                        <span className={`text-4xl font-display font-bold ${isPopular ? 'text-gradient-watermelon' : 'text-foreground'}`}>
+                    <div className="text-center mb-4">
+                      <div className="flex items-baseline justify-center gap-0.5">
+                        <span className="text-[10px] text-muted-foreground">R$</span>
+                        <span
+                          className={`text-2xl font-display font-extrabold ${
+                            isPopular ? 'text-gradient-watermelon' : 'text-foreground'
+                          }`}
+                        >
                           {plan.price.toFixed(2).replace('.', ',')}
                         </span>
-                        <span className="text-muted-foreground">/mês</span>
+                        <span className="text-[10px] text-muted-foreground">/mês</span>
                       </div>
-                      <div className="mt-2">
-                        <span className="text-lg font-bold text-primary">{plan.credits}</span>
-                        <span className="text-muted-foreground"> créditos/mês</span>
+                      <div className="mt-1">
+                        <span className="text-sm font-bold text-primary">{plan.credits}</span>
+                        <span className="text-[10px] text-muted-foreground"> créditos/mês</span>
                       </div>
                     </div>
 
                     {/* Features */}
-                    <ul className="space-y-3 mb-8">
+                    <ul className="space-y-2 mb-5 flex-1">
                       {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                          <span className="text-muted-foreground">{feature}</span>
+                        <li key={i} className="flex items-start gap-2">
+                          <Check className="w-3 h-3 text-primary shrink-0 mt-0.5" />
+                          <span className="text-[11px] text-muted-foreground leading-snug">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -187,71 +205,72 @@ const PlansPage = () => {
                     {/* CTA */}
                     <div className="mt-auto">
                       {isCurrentPlan ? (
-                        <WatermelonButton
+                        <button
                           onClick={handleManageSubscription}
-                          loading={loadingPlan === 'manage'}
-                          variant="outline"
-                          size="lg"
-                          className="w-full"
+                          disabled={loadingPlan === 'manage'}
+                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider border border-border/60 bg-card hover:bg-muted/50 transition-all disabled:opacity-60"
                         >
                           {loadingPlan === 'manage' ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             'Gerenciar Assinatura'
                           )}
-                        </WatermelonButton>
+                        </button>
                       ) : (
-                        <WatermelonButton
+                        <button
                           onClick={() => handleSubscribe(plan.name, plan.priceId)}
-                          loading={loadingPlan === plan.name}
-                          variant={isPopular ? 'primary' : 'outline'}
-                          size="lg"
-                          className="w-full"
+                          disabled={loadingPlan === plan.name}
+                          className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all disabled:opacity-60 ${
+                            isPopular
+                              ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20'
+                              : 'border border-border/60 bg-card hover:bg-muted/50'
+                          }`}
                         >
                           {loadingPlan === plan.name ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             'Assinar Agora'
                           )}
-                        </WatermelonButton>
+                        </button>
                       )}
                     </div>
-                  </GlassCard>
-                </div>
-              </StaggerItem>
-            );
-          })}
-        </StaggerContainer>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
 
-        {/* Credit costs info */}
-        <AnimatedSection delay={0.7}>
-          <div className="text-center">
-            <GlassCard className="inline-block px-8 py-6">
-              <h4 className="font-display font-bold text-foreground mb-4">Como funcionam os créditos?</h4>
-              <div className="flex flex-wrap justify-center gap-8">
+          {/* Credit costs info */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.7 }}
+            className="text-center"
+          >
+            <div className="inline-block px-5 py-4 rounded-xl border border-border/60 bg-card/95">
+              <h4 className="text-xs font-display font-bold text-foreground mb-3 uppercase tracking-wider">
+                Como funcionam os créditos?
+              </h4>
+              <div className="flex flex-wrap justify-center gap-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">3</div>
-                  <div className="text-sm text-muted-foreground">créditos/imagem 4K</div>
+                  <div className="text-lg font-bold text-primary">3</div>
+                  <div className="text-[10px] text-muted-foreground">créditos/imagem 4K</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-etyns-purple">10</div>
-                  <div className="text-sm text-muted-foreground">créditos/vídeo motion</div>
+                  <div className="text-lg font-bold text-etyns-purple">15</div>
+                  <div className="text-[10px] text-muted-foreground">créditos/vídeo motion</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">∞</div>
-                  <div className="text-sm text-muted-foreground">créditos acumulam</div>
+                  <div className="text-lg font-bold text-foreground">∞</div>
+                  <div className="text-[10px] text-muted-foreground">créditos acumulam</div>
                 </div>
               </div>
-            </GlassCard>
-          </div>
-        </AnimatedSection>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
-        defaultMode="signup"
-      />
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultMode="signup" />
     </div>
   );
 };

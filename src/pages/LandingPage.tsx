@@ -5,20 +5,20 @@ import EtynsIcon from "@/components/EtynsIcon";
 import GoogleGIcon from "@/components/GoogleGIcon";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.15, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] },
+    transition: { delay: i * 0.1, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] },
   }),
 };
 
 const tools = [
   {
     title: "Nano Banana 2",
-    subtitle: "Geração de imagens em ultra resolução",
+    subtitle: "Imagens em ultra resolução",
     description:
-      "Crie imagens impressionantes em 4K com IA de última geração. Prompt inteligente, estilos artísticos e upscale automático para resultados profissionais.",
+      "Crie imagens impressionantes em 4K com IA de última geração. Prompt inteligente, estilos artísticos e upscale automático.",
     icon: Sparkles,
     customIconComponent: GoogleGIcon,
     color: "from-etyns-blue to-etyns-cyan",
@@ -26,7 +26,7 @@ const tools = [
     link: "/image",
     features: [
       { icon: Image, label: "Resolução 4K nativa" },
-      { icon: Wand2, label: "Assistente de prompts com IA" },
+      { icon: Wand2, label: "Assistente de prompts" },
       { icon: Zap, label: "Upscale inteligente" },
     ],
   },
@@ -34,13 +34,13 @@ const tools = [
     title: "Control Motion",
     subtitle: "Transforme imagens em vídeos",
     description:
-      "Anime suas imagens com controle preciso de movimento. Gere vídeos cinematográficos de alta qualidade a partir de qualquer imagem estática.",
+      "Anime suas imagens com controle preciso de movimento. Vídeos cinematográficos a partir de qualquer imagem estática.",
     icon: Video,
     color: "from-etyns-purple to-etyns-blue",
     bgGlow: "hsl(260 100% 65% / 0.15)",
     link: "/motion-control",
     features: [
-      { icon: Film, label: "Vídeos até 720p" },
+      { icon: Film, label: "Vídeos Full HD 1080p" },
       { icon: Video, label: "Controle de movimento" },
       { icon: Zap, label: "Processamento rápido" },
     ],
@@ -49,196 +49,176 @@ const tools = [
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-animated-gradient pt-20 md:pt-28 pb-16 overflow-hidden">
-      {/* Hero */}
-      <section className="container mx-auto px-4 text-center mb-16 md:mb-24">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          className="max-w-3xl mx-auto"
-        >
-          <motion.div variants={fadeUp} custom={0} className="flex justify-center mb-6">
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <EtynsIcon size={72} animated />
+    <div className="relative min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
+      {/* Ambient glow — Control Motion style */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-primary/8 blur-[160px]" />
+        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-etyns-cyan/8 blur-[160px]" />
+        <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] rounded-full bg-etyns-purple/6 blur-[160px]" />
+      </div>
+
+      <div className="relative z-10 px-4 md:px-6 lg:px-8 py-6 md:py-10">
+        {/* Hero */}
+        <section className="container mx-auto max-w-4xl text-center mb-10 md:mb-14">
+          <motion.div initial="hidden" animate="visible">
+            <motion.div variants={fadeUp} custom={0} className="flex justify-center mb-4">
+              <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
+                <EtynsIcon size={52} animated />
+              </motion.div>
             </motion.div>
-          </motion.div>
 
-          <motion.h1
-            variants={fadeUp}
-            custom={1}
-            className="text-4xl sm:text-5xl md:text-7xl font-display font-extrabold mb-4 text-gradient-watermelon leading-tight"
-          >
-            Etyns Studio
-          </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            custom={2}
-            className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
-          >
-            Estúdio criativo com IA. Gere imagens em 4K e anime-as em vídeos cinematográficos — tudo em um só lugar.
-          </motion.p>
-
-          <motion.div variants={fadeUp} custom={3} className="flex flex-wrap justify-center gap-3">
-            <Link
-              to="/image"
-              className="btn-watermelon flex items-center gap-2 px-6 py-3 text-base"
-            >
-              <Sparkles className="w-5 h-5" />
-              Começar a Criar
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              to="/planos"
-              className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm uppercase tracking-wide border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:shadow-[0_0_20px_hsl(210_100%_60%/0.1)] transition-all duration-300"
-            >
-              <Crown className="w-4 h-4" />
-              Ver Planos
-            </Link>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* Tools */}
-      <section className="container mx-auto px-4">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center text-2xl md:text-3xl font-display font-bold text-foreground mb-10"
-        >
-          Nossas Ferramentas
-        </motion.h2>
-
-        <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
-          {tools.map((tool, index) => (
-            <motion.div
-              key={tool.title}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-              custom={index}
+            <motion.h1
               variants={fadeUp}
+              custom={1}
+              className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold mb-3 text-gradient-watermelon leading-tight tracking-tight"
             >
+              Etyns Studio
+            </motion.h1>
+
+            <motion.p
+              variants={fadeUp}
+              custom={2}
+              className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto mb-6 leading-relaxed"
+            >
+              Estúdio criativo com IA. Gere imagens em 4K e anime-as em vídeos cinematográficos.
+            </motion.p>
+
+            <motion.div variants={fadeUp} custom={3} className="flex flex-wrap justify-center gap-2.5">
               <Link
-                to={tool.link}
-                className="group block h-full"
+                to="/image"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all"
               >
-                <motion.div 
-                  className="glass-card h-full p-6 md:p-8 relative overflow-hidden"
-                  whileHover={{ 
-                    y: -6,
-                    transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }
-                  }}
-                >
-                  {/* Background glow */}
-                  <div
-                    className="absolute -top-20 -right-20 w-60 h-60 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
-                    style={{ background: tool.bgGlow }}
-                  />
-                  
-                  {/* Shimmer line effect on hover */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden rounded-xl">
-                    <div 
-                      className="absolute top-0 left-[-100%] w-[50%] h-[1px] group-hover:left-[150%] transition-all duration-1000 ease-in-out"
-                      style={{ background: 'linear-gradient(90deg, transparent, hsl(210 100% 60% / 0.6), transparent)' }}
-                    />
-                  </div>
-
-                  {/* Icon & Title */}
-                  <div className="relative z-10">
-                    <motion.div 
-                      className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${tool.color} mb-5`}
-                      whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      {'customIconComponent' in tool && tool.customIconComponent ? (
-                        <tool.customIconComponent className="w-7 h-7" />
-                      ) : (
-                        <tool.icon className="w-7 h-7 text-white" />
-                      )}
-                    </motion.div>
-
-                    <h3 className="text-xl md:text-2xl font-display font-bold text-foreground mb-1">
-                      {tool.title}
-                    </h3>
-                    <p className="text-sm text-primary font-semibold uppercase tracking-wider mb-3">
-                      {tool.subtitle}
-                    </p>
-                    <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6">
-                      {tool.description}
-                    </p>
-
-                    {/* Features */}
-                    <div className="space-y-2.5 mb-6">
-                      {tool.features.map((feat, fi) => (
-                        <motion.div 
-                          key={feat.label} 
-                          className="flex items-center gap-3"
-                          initial={{ opacity: 0, x: -10 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: 0.3 + fi * 0.1 }}
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors duration-300">
-                            <feat.icon className="w-4 h-4 text-primary" />
-                          </div>
-                          <span className="text-sm text-foreground font-medium">{feat.label}</span>
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {/* CTA */}
-                    <div className="flex items-center gap-2 text-primary font-semibold text-sm group-hover:gap-3 transition-all duration-300">
-                      Explorar {tool.title.split(" ").slice(1).join(" ")}
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                    </div>
-                  </div>
-                </motion.div>
+                <Sparkles className="w-3.5 h-3.5" />
+                Começar a Criar
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+              <Link
+                to="/planos"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide border border-border/60 bg-card/95 text-foreground hover:border-primary/50 transition-all"
+              >
+                <Crown className="w-3.5 h-3.5" />
+                Ver Planos
               </Link>
             </motion.div>
-          ))}
-        </div>
-      </section>
+          </motion.div>
+        </section>
 
-      {/* Stats / Social Proof */}
-      <section className="container mx-auto px-4 mt-16 md:mt-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="glass-card max-w-4xl mx-auto p-8 md:p-12"
-        >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {[
-              { value: "4K", label: "Resolução máxima" },
-              { value: "2", label: "Ferramentas IA" },
-              { value: "720p", label: "Vídeos HD" },
-              { value: "∞", label: "Possibilidades" },
-            ].map((stat, i) => (
-              <motion.div 
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.4 }}
+        {/* Tools */}
+        <section className="container mx-auto max-w-5xl mb-10 md:mb-14">
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center text-lg md:text-xl font-display font-bold text-foreground mb-6"
+          >
+            Nossas Ferramentas
+          </motion.h2>
+
+          <div className="grid md:grid-cols-2 gap-3 md:gap-4">
+            {tools.map((tool, index) => (
+              <motion.div
+                key={tool.title}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                custom={index}
+                variants={fadeUp}
               >
-                <div className="text-2xl md:text-4xl font-display font-extrabold text-gradient-watermelon mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-xs md:text-sm text-muted-foreground font-medium">
-                  {stat.label}
-                </div>
+                <Link to={tool.link} className="group block h-full">
+                  <motion.div
+                    className="relative h-full p-4 md:p-5 rounded-xl border border-border/60 bg-card/95 shadow-lg shadow-primary/5 overflow-hidden transition-all hover:border-primary/40"
+                    whileHover={{ y: -3, transition: { duration: 0.25 } }}
+                  >
+                    {/* Background glow */}
+                    <div
+                      className="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                      style={{ background: tool.bgGlow }}
+                    />
+
+                    <div className="relative z-10">
+                      <motion.div
+                        className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${tool.color} mb-3 shadow-md`}
+                        whileHover={{ rotate: [0, -5, 5, 0], scale: 1.08 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        {'customIconComponent' in tool && tool.customIconComponent ? (
+                          <tool.customIconComponent className="w-5 h-5" />
+                        ) : (
+                          <tool.icon className="w-5 h-5 text-white" />
+                        )}
+                      </motion.div>
+
+                      <h3 className="text-base md:text-lg font-display font-bold text-foreground mb-0.5 leading-tight">
+                        {tool.title}
+                      </h3>
+                      <p className="text-[10px] text-primary font-semibold uppercase tracking-wider mb-2">
+                        {tool.subtitle}
+                      </p>
+                      <p className="text-muted-foreground text-xs leading-relaxed mb-4">
+                        {tool.description}
+                      </p>
+
+                      {/* Features */}
+                      <div className="space-y-1.5 mb-4">
+                        {tool.features.map((feat) => (
+                          <div key={feat.label} className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-lg bg-muted/40 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+                              <feat.icon className="w-3 h-3 text-primary" />
+                            </div>
+                            <span className="text-[11px] text-foreground font-medium">{feat.label}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* CTA */}
+                      <div className="flex items-center gap-1.5 text-primary font-semibold text-[11px] uppercase tracking-wider group-hover:gap-2.5 transition-all">
+                        Explorar
+                        <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
               </motion.div>
             ))}
           </div>
-        </motion.div>
-      </section>
+        </section>
+
+        {/* Stats */}
+        <section className="container mx-auto max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="rounded-xl border border-border/60 bg-card/95 shadow-lg shadow-primary/5 p-5 md:p-6"
+          >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              {[
+                { value: "4K", label: "Resolução máxima" },
+                { value: "2", label: "Ferramentas IA" },
+                { value: "1080p", label: "Vídeos Full HD" },
+                { value: "∞", label: "Possibilidades" },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08, duration: 0.35 }}
+                >
+                  <div className="text-xl md:text-2xl font-display font-extrabold text-gradient-watermelon mb-0.5">
+                    {stat.value}
+                  </div>
+                  <div className="text-[10px] md:text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+      </div>
     </div>
   );
 };
