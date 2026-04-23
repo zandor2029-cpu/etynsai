@@ -30,9 +30,7 @@ const KlingMotionControl = () => {
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [creditsDeducted, setCreditsDeducted] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState("Control Motion");
-  const [activeTab, setActiveTab] = useState("Histórico");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showSettings, setShowSettings] = useState(false);
 
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
