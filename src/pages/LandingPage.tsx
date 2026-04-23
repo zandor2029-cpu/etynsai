@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Video, ArrowRight, Zap, Wand2, Image, Film, Crown, ChevronRight, Sparkles } from "lucide-react";
 import EtynsIcon from "@/components/EtynsIcon";
 import GoogleGIcon from "@/components/GoogleGIcon";
+import ThanosDissolve from "@/components/ThanosDissolve";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
