@@ -198,21 +198,21 @@ const KlingMotionControl = () => {
       <div className="relative z-10 flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 p-4 md:p-6 lg:p-8 min-h-0">
 
         {/* === SIDEBAR (Higgsfield-style left panel) === */}
-        <aside className="w-full lg:w-[320px] xl:w-[340px] flex-shrink-0">
-          <div className="lg:sticky lg:top-24 flex flex-col gap-2.5">
+        <aside className="w-full lg:w-[260px] xl:w-[280px] flex-shrink-0">
+          <div className="lg:sticky lg:top-24 flex flex-col gap-2">
             {/* Tool hero banner — Higgsfield style */}
-            <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-card/95 shadow-xl shadow-primary/10 aspect-[16/7]">
+            <div className="relative rounded-xl overflow-hidden border border-border/60 bg-card/95 shadow-lg shadow-primary/10 aspect-[16/7]">
               {/* Gradient backdrop simulating the Higgsfield hero collage */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-etyns-cyan/30 to-primary/40" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,hsl(var(--primary)/0.5),transparent_60%),radial-gradient(circle_at_70%_70%,hsl(var(--etyns-cyan)/0.5),transparent_60%)]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
               {/* Title */}
-              <div className="absolute inset-0 flex flex-col justify-end p-4">
-                <h1 className="text-[18px] font-black tracking-tight uppercase text-etyns-cyan drop-shadow-[0_0_12px_hsl(var(--etyns-cyan)/0.6)] leading-tight">
+              <div className="absolute inset-0 flex flex-col justify-end p-3">
+                <h1 className="text-[14px] font-black tracking-tight uppercase text-etyns-cyan drop-shadow-[0_0_10px_hsl(var(--etyns-cyan)/0.6)] leading-tight">
                   Motion Control
                 </h1>
-                <p className="text-[11px] text-white/85 leading-tight mt-0.5 font-medium">
+                <p className="text-[9.5px] text-white/85 leading-tight mt-0.5 font-medium">
                   Controle o movimento com vídeos de referência
                 </p>
               </div>
@@ -220,21 +220,21 @@ const KlingMotionControl = () => {
               {/* "How it works" pill */}
               <button
                 type="button"
-                className="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[10px] font-semibold text-white hover:bg-black/80 transition-colors"
+                className="absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[9px] font-semibold text-white hover:bg-black/80 transition-colors"
               >
-                <Play className="w-2.5 h-2.5" />
+                <Play className="w-2 h-2" />
                 Como funciona
               </button>
             </div>
 
             {/* Two compact upload slots — Higgsfield style */}
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-2">
               {/* Slot 1 — Reference video */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => videoInputRef.current?.click()}
-                  className={`relative w-full aspect-square rounded-2xl border flex flex-col items-center justify-center gap-2 overflow-hidden transition-all group ${
+                  className={`relative w-full aspect-square rounded-xl border flex flex-col items-center justify-center gap-1.5 overflow-hidden transition-all group ${
                     referenceVideoPreview
                       ? "border-primary/60 bg-card/95"
                       : "border-border/40 bg-card/95 hover:border-primary/50 hover:bg-card"
@@ -248,7 +248,7 @@ const KlingMotionControl = () => {
                         muted loop autoPlay playsInline
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
-                      <div className="absolute top-2 right-2 z-10">
+                      <div className="absolute top-1.5 right-1.5 z-10">
                         <span
                           role="button"
                           tabIndex={0}
@@ -256,20 +256,20 @@ const KlingMotionControl = () => {
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); handleClearVideo(); }
                           }}
-                          className="w-7 h-7 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 hover:bg-destructive flex items-center justify-center text-white transition-all cursor-pointer"
+                          className="w-5 h-5 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 hover:bg-destructive flex items-center justify-center text-white transition-all cursor-pointer"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="w-2.5 h-2.5" />
                         </span>
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="w-11 h-11 rounded-full bg-muted/40 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                        <Video className="w-4 h-4 text-foreground/60 group-hover:text-primary transition-colors" />
+                      <div className="w-8 h-8 rounded-full bg-muted/40 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                        <Video className="w-3.5 h-3.5 text-foreground/60 group-hover:text-primary transition-colors" />
                       </div>
-                      <div className="text-center px-2">
-                        <p className="text-[11.5px] font-bold text-foreground leading-tight">Adicionar vídeo</p>
-                        <p className="text-[9.5px] text-muted-foreground leading-tight mt-1">Cópia do movimento<br/>3-30 segundos</p>
+                      <div className="text-center px-1.5">
+                        <p className="text-[10px] font-bold text-foreground leading-tight">Adicionar vídeo</p>
+                        <p className="text-[8.5px] text-muted-foreground leading-tight mt-0.5">3-30 segundos</p>
                       </div>
                     </>
                   )}
@@ -288,7 +288,7 @@ const KlingMotionControl = () => {
                 <button
                   type="button"
                   onClick={() => characterInputRef.current?.click()}
-                  className={`relative w-full aspect-square rounded-2xl border flex flex-col items-center justify-center gap-2 overflow-hidden transition-all group ${
+                  className={`relative w-full aspect-square rounded-xl border flex flex-col items-center justify-center gap-1.5 overflow-hidden transition-all group ${
                     characterPreview
                       ? "border-etyns-cyan/60 bg-card/95"
                       : "border-border/40 bg-card/95 hover:border-etyns-cyan/50 hover:bg-card"
@@ -302,7 +302,7 @@ const KlingMotionControl = () => {
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
-                      <div className="absolute top-2 right-2 z-10">
+                      <div className="absolute top-1.5 right-1.5 z-10">
                         <span
                           role="button"
                           tabIndex={0}
@@ -310,20 +310,20 @@ const KlingMotionControl = () => {
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); handleClearCharacter(); }
                           }}
-                          className="w-7 h-7 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 hover:bg-destructive flex items-center justify-center text-white transition-all cursor-pointer"
+                          className="w-5 h-5 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 hover:bg-destructive flex items-center justify-center text-white transition-all cursor-pointer"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="w-2.5 h-2.5" />
                         </span>
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="w-11 h-11 rounded-full bg-muted/40 flex items-center justify-center group-hover:bg-etyns-cyan/15 transition-colors">
-                        <User className="w-4 h-4 text-foreground/60 group-hover:text-etyns-cyan transition-colors" />
+                      <div className="w-8 h-8 rounded-full bg-muted/40 flex items-center justify-center group-hover:bg-etyns-cyan/15 transition-colors">
+                        <User className="w-3.5 h-3.5 text-foreground/60 group-hover:text-etyns-cyan transition-colors" />
                       </div>
-                      <div className="text-center px-2">
-                        <p className="text-[11.5px] font-bold text-foreground leading-tight">Adicionar personagem</p>
-                        <p className="text-[9.5px] text-muted-foreground leading-tight mt-1">Imagem com<br/>rosto e corpo</p>
+                      <div className="text-center px-1.5">
+                        <p className="text-[10px] font-bold text-foreground leading-tight">Personagem</p>
+                        <p className="text-[8.5px] text-muted-foreground leading-tight mt-0.5">Rosto e corpo</p>
                       </div>
                     </>
                   )}
@@ -339,25 +339,25 @@ const KlingMotionControl = () => {
             </div>
 
             {/* Spec rows — Higgsfield style */}
-            <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/40 bg-card/95">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/40 bg-card/95">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Modelo</span>
-                  <span className="text-[13px] font-bold mt-0.5">Kling Motion 3.0</span>
+                  <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">Modelo</span>
+                  <span className="text-[11px] font-bold mt-0.5">Kling Motion 3.0</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/40 bg-card/95">
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/40 bg-card/95">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Qualidade</span>
-                  <span className="text-[13px] font-bold mt-0.5">Full HD · 1080p</span>
+                  <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">Qualidade</span>
+                  <span className="text-[11px] font-bold mt-0.5">Full HD · 1080p</span>
                 </div>
               </div>
             </div>
 
             {/* Error inline */}
             {generationError && !isGenerating && (
-              <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-destructive/10 border border-destructive/30 text-[11.5px] text-destructive font-medium">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-1.5 px-2.5 py-2 rounded-lg bg-destructive/10 border border-destructive/30 text-[10px] text-destructive font-medium">
+                <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
                 <span className="leading-snug">{generationError}</span>
               </div>
             )}
@@ -366,15 +366,15 @@ const KlingMotionControl = () => {
             <button
               onClick={handleGenerate}
               disabled={!canGenerate || isGenerating}
-              className="relative w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 mt-1 rounded-2xl bg-etyns-cyan disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-background font-bold text-[14px] shadow-[0_0_30px_hsl(var(--etyns-cyan)/0.4)] hover:shadow-[0_0_40px_hsl(var(--etyns-cyan)/0.6)] hover:scale-[1.01] active:scale-[0.99] transition-all"
+              className="relative w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 mt-0.5 rounded-xl bg-etyns-cyan disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-background font-bold text-[12px] shadow-[0_0_24px_hsl(var(--etyns-cyan)/0.4)] hover:shadow-[0_0_32px_hsl(var(--etyns-cyan)/0.6)] hover:scale-[1.01] active:scale-[0.99] transition-all"
             >
               <span>Gerar</span>
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="text-[13px] font-bold">{creditCost}</span>
+              <Sparkles className="w-3 h-3" />
+              <span className="text-[11px] font-bold">{creditCost}</span>
             </button>
 
             {!canGenerate && !isGenerating && (
-              <p className="text-[11px] text-muted-foreground text-center -mt-1">
+              <p className="text-[9.5px] text-muted-foreground text-center -mt-0.5">
                 {!referenceVideo && !characterImage
                   ? "Adicione um vídeo e uma imagem para começar"
                   : !referenceVideo
@@ -383,7 +383,7 @@ const KlingMotionControl = () => {
               </p>
             )}
             {canGenerate && !user && !isGenerating && (
-              <p className="text-[11px] text-muted-foreground text-center -mt-1">🔐 Faça login para gerar vídeos</p>
+              <p className="text-[9.5px] text-muted-foreground text-center -mt-0.5">🔐 Faça login para gerar vídeos</p>
             )}
           </div>
         </aside>
