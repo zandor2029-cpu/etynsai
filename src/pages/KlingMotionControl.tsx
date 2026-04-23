@@ -15,7 +15,7 @@ import { generateVideo } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
 import { usePromptAssistant } from "@/hooks/usePromptAssistant";
 
-const SUB_TABS = ["Criar Vídeo", "Motion Control"];
+const SUB_TABS = ["Control Motion"];
 
 const KlingMotionControl = () => {
   const [characterImage, setCharacterImage] = useState<File | null>(null);
@@ -33,7 +33,7 @@ const KlingMotionControl = () => {
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [creditsDeducted, setCreditsDeducted] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState("Motion Control");
+  const [activeSubTab, setActiveSubTab] = useState("Control Motion");
   const [activeTab, setActiveTab] = useState("Histórico");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
