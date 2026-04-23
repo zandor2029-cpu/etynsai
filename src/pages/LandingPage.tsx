@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Video, ArrowRight, Zap, Wand2, Image, Film, Crown, ChevronRight, Sparkles } from "lucide-react";
 import EtynsIcon from "@/components/EtynsIcon";
 import GoogleGIcon from "@/components/GoogleGIcon";
+import ThanosDissolve from "@/components/ThanosDissolve";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -81,6 +82,7 @@ const LandingPage = () => {
 
       <div className="relative z-10 px-4 md:px-6 lg:px-8 py-6 md:py-10">
         {/* Hero */}
+        <ThanosDissolve direction="up" className="block">
         <section className="container mx-auto max-w-4xl text-center mb-10 md:mb-14">
           <motion.div initial="hidden" animate="visible">
             <motion.div variants={fadeUp} custom={0} className="flex justify-center mb-4">
@@ -124,8 +126,10 @@ const LandingPage = () => {
             </motion.div>
           </motion.div>
         </section>
+        </ThanosDissolve>
 
         {/* Tools */}
+        <ThanosDissolve direction="up" className="block">
         <section className="container mx-auto max-w-5xl mb-10 md:mb-14">
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
@@ -205,8 +209,10 @@ const LandingPage = () => {
             ))}
           </div>
         </section>
+        </ThanosDissolve>
 
         {/* Stats */}
+        <ThanosDissolve direction="up" className="block">
         <section className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -240,6 +246,7 @@ const LandingPage = () => {
             </div>
           </motion.div>
         </section>
+        </ThanosDissolve>
       </div>
     </div>
   );
