@@ -122,7 +122,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
+        model: 'google/gemini-3.1-flash-image-preview',
         messages,
         modalities: ['image', 'text'],
       }),
@@ -205,7 +205,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         imageUrl: finalImageUrl,
-        model: 'gemini-2.5-flash-image',
+        model: 'gemini-3.1-flash-image (Nano Banana 2)',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
