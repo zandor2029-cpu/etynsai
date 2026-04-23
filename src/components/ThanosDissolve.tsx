@@ -1,54 +1,45 @@
-import { ReactNode, useEffect, useRef, useState, useCallback } from "react";
-import html2canvas from "html2canvas";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 interface ThanosDissolveProps {
   children: ReactNode;
   className?: string;
-  /** Direction the particles drift when dissolving away on scroll */
+  /** Direction the element drifts when dissolving away */
   direction?: "up" | "down";
-  /** Disable on mobile for performance (default true) */
+  /** Disable on mobile / reduced-motion (default true) */
   disableOnMobile?: boolean;
+  /** Unique id seed for the SVG filter (auto-generated if omitted) */
+  filterId?: string;
 }
 
-type Particle = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  color: string;
-  alpha: number;
-  life: number;
-};
-
-const PARTICLE_STEP = 6; // sample every Nth pixel — lower = more particles, heavier
-const DISSOLVE_DURATION = 900; // ms
-
 /**
- * Wraps children with a "Thanos snap" dissolve effect triggered by viewport visibility.
- * - When element exits viewport: dissolves into particles drifting in `direction`.
- * - When element re-enters: rebuilds from particles.
+ * "Thanos snap" dissolve effect using SVG turbulence + displacement.
+ * - Element exits viewport: dissolves into drifting dust particles.
+ * - Element re-enters: rebuilds from dust back into solid form.
+ * Pure CSS/SVG — no canvas capture, very performant.
  */
 export const ThanosDissolve = ({
   children,
   className,
   direction = "up",
   disableOnMobile = true,
+  filterId,
 }: ThanosDissolveProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const displacementRef = useRef<SVGFEDisplacementMapElement>(null);
   const rafRef = useRef<number>();
-  const stateRef = useRef<"visible" | "dissolving" | "hidden" | "rebuilding">("visible");
+  const stateRef = useRef<"visible" | "hidden">("visible");
   const [isEnabled, setIsEnabled] = useState(true);
+  const [uid] = useState(
+    () => filterId ?? `thanos-${Math.random().toString(36).slice(2, 9)}`
+  );
 
   useEffect(() => {
-    if (disableOnMobile && typeof window !== "undefined") {
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const small = window.matchMedia("(max-width: 768px)").matches;
-      if (reduced || small) setIsEnabled(false);
-    }
+    if (!disableOnMobile) return;
+    if (typeof window === "undefined") return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const small = window.matchMedia("(max-width: 768px)").matches;
+    if (reduced || small) setIsEnabled(false);
   }, [disableOnMobile]);
 
   const stopAnim = () => {
@@ -56,149 +47,66 @@ export const ThanosDissolve = ({
     rafRef.current = undefined;
   };
 
-  const captureParticles = useCallback(async () => {
-    const content = contentRef.current;
-    const canvas = canvasRef.current;
-    if (!content || !canvas) return false;
-
-    try {
-      const snapshot = await html2canvas(content, {
-        backgroundColor: null,
-        scale: 1,
-        logging: false,
-        useCORS: true,
-      });
-      const w = snapshot.width;
-      const h = snapshot.height;
-      canvas.width = w;
-      canvas.height = h;
-      canvas.style.width = `${content.offsetWidth}px`;
-      canvas.style.height = `${content.offsetHeight}px`;
-
-      const sctx = snapshot.getContext("2d");
-      if (!sctx) return false;
-      const data = sctx.getImageData(0, 0, w, h).data;
-
-      const particles: Particle[] = [];
-      const drift = direction === "up" ? -1 : 1;
-
-      for (let y = 0; y < h; y += PARTICLE_STEP) {
-        for (let x = 0; x < w; x += PARTICLE_STEP) {
-          const i = (y * w + x) * 4;
-          const a = data[i + 3];
-          if (a < 20) continue;
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          // horizontal drift biased by x position (creates that swept-away curve)
-          const xBias = (x / w) * 1.2 + 0.3;
-          particles.push({
-            x,
-            y,
-            vx: (Math.random() * 1.5 + 0.5) * xBias,
-            vy: (Math.random() * 1.2 + 0.3) * drift - 0.4,
-            size: PARTICLE_STEP * (0.8 + Math.random() * 0.6),
-            color: `rgba(${r},${g},${b},`,
-            alpha: a / 255,
-            life: Math.random() * 0.4, // staggered start
-          });
-        }
-      }
-      particlesRef.current = particles;
-      return true;
-    } catch (e) {
-      console.warn("[ThanosDissolve] capture failed", e);
-      return false;
-    }
-  }, [direction]);
-
-  const animateDissolve = useCallback((reverse = false) => {
-    const canvas = canvasRef.current;
-    const content = contentRef.current;
-    if (!canvas || !content) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
+  const animate = (
+    from: number,
+    to: number,
+    duration: number,
+    onUpdate: (t: number, eased: number) => void,
+    onDone?: () => void
+  ) => {
+    stopAnim();
     const start = performance.now();
-    const total = DISSOLVE_DURATION;
-
     const tick = (now: number) => {
       const elapsed = now - start;
-      const t = Math.min(elapsed / total, 1);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const particles = particlesRef.current;
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        // each particle has its own life offset so they don't all start at once
-        const localT = reverse
-          ? Math.max(0, Math.min(1, (1 - t - p.life) / 0.6))
-          : Math.max(0, Math.min(1, (t - p.life) / 0.6));
-
-        const progress = reverse ? 1 - localT : localT;
-        const x = p.x + p.vx * progress * 60;
-        const y = p.y + p.vy * progress * 60;
-        const alpha = p.alpha * (1 - progress);
-        if (alpha <= 0.01) continue;
-        ctx.fillStyle = p.color + alpha + ")";
-        ctx.fillRect(x, y, p.size, p.size);
-      }
-
+      const t = Math.min(elapsed / duration, 1);
+      // easeInOutQuad
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      const value = from + (to - from) * eased;
+      onUpdate(value, eased);
       if (t < 1) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
-        stopAnim();
-        if (reverse) {
-          // rebuild done — show real content
-          canvas.style.opacity = "0";
-          content.style.opacity = "1";
-          stateRef.current = "visible";
-        } else {
-          // dissolve done — hide
-          canvas.style.opacity = "0";
-          stateRef.current = "hidden";
-        }
+        rafRef.current = undefined;
+        onDone?.();
       }
     };
-
     rafRef.current = requestAnimationFrame(tick);
-  }, []);
+  };
 
-  const triggerDissolve = useCallback(async () => {
-    if (stateRef.current === "dissolving" || stateRef.current === "hidden") return;
-    const content = contentRef.current;
-    const canvas = canvasRef.current;
-    if (!content || !canvas) return;
-    stateRef.current = "dissolving";
-    const ok = await captureParticles();
-    if (!ok) {
-      stateRef.current = "visible";
-      return;
-    }
-    content.style.opacity = "0";
-    canvas.style.opacity = "1";
-    stopAnim();
-    animateDissolve(false);
-  }, [animateDissolve, captureParticles]);
+  const dissolveOut = () => {
+    const el = innerRef.current;
+    const disp = displacementRef.current;
+    if (!el || !disp) return;
+    stateRef.current = "hidden";
+    const driftSign = direction === "up" ? -1 : 1;
+    animate(0, 1, 800, (_v, e) => {
+      // displacement scale grows -> particles scatter
+      disp.setAttribute("scale", String(e * 180));
+      el.style.opacity = String(1 - e);
+      el.style.filter = `blur(${e * 4}px)`;
+      el.style.transform = `translateY(${driftSign * e * 30}px) scale(${1 - e * 0.05})`;
+    });
+  };
 
-  const triggerRebuild = useCallback(async () => {
-    if (stateRef.current === "visible" || stateRef.current === "rebuilding") return;
-    const content = contentRef.current;
-    const canvas = canvasRef.current;
-    if (!content || !canvas) return;
-    stateRef.current = "rebuilding";
-    // capture current visual to rebuild from same particles
-    content.style.opacity = "0";
-    const ok = await captureParticles();
-    if (!ok) {
-      content.style.opacity = "1";
-      stateRef.current = "visible";
-      return;
-    }
-    canvas.style.opacity = "1";
-    stopAnim();
-    animateDissolve(true);
-  }, [animateDissolve, captureParticles]);
+  const dissolveIn = () => {
+    const el = innerRef.current;
+    const disp = displacementRef.current;
+    if (!el || !disp) return;
+    stateRef.current = "visible";
+    const driftSign = direction === "up" ? -1 : 1;
+    // start from dissolved state
+    animate(0, 1, 800, (_v, e) => {
+      disp.setAttribute("scale", String((1 - e) * 180));
+      el.style.opacity = String(e);
+      el.style.filter = `blur(${(1 - e) * 4}px)`;
+      el.style.transform = `translateY(${driftSign * (1 - e) * 30}px) scale(${0.95 + e * 0.05})`;
+    }, () => {
+      // reset
+      el.style.filter = "";
+      el.style.transform = "";
+      disp.setAttribute("scale", "0");
+    });
+  };
 
   useEffect(() => {
     if (!isEnabled) return;
@@ -208,21 +116,23 @@ export const ThanosDissolve = ({
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting && entry.intersectionRatio > 0.15) {
-            if (stateRef.current === "hidden") triggerRebuild();
-          } else if (entry.intersectionRatio < 0.05) {
-            if (stateRef.current === "visible") triggerDissolve();
+          const visible = entry.isIntersecting && entry.intersectionRatio > 0.1;
+          if (visible && stateRef.current === "hidden") {
+            dissolveIn();
+          } else if (!visible && entry.intersectionRatio < 0.05 && stateRef.current === "visible") {
+            dissolveOut();
           }
         }
       },
-      { threshold: [0, 0.05, 0.15, 0.3] }
+      { threshold: [0, 0.05, 0.1, 0.3] }
     );
     observer.observe(el);
     return () => {
       observer.disconnect();
       stopAnim();
     };
-  }, [isEnabled, triggerDissolve, triggerRebuild]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEnabled]);
 
   if (!isEnabled) {
     return <div className={className}>{children}</div>;
@@ -230,23 +140,43 @@ export const ThanosDissolve = ({
 
   return (
     <div ref={wrapperRef} className={className} style={{ position: "relative" }}>
+      {/* SVG filter definition (hidden) */}
+      <svg
+        width="0"
+        height="0"
+        style={{ position: "absolute", pointerEvents: "none" }}
+        aria-hidden
+      >
+        <defs>
+          <filter id={uid} x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.015"
+              numOctaves="2"
+              seed="3"
+              result="noise"
+            />
+            <feDisplacementMap
+              ref={displacementRef}
+              in="SourceGraphic"
+              in2="noise"
+              scale="0"
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
+          </filter>
+        </defs>
+      </svg>
+
       <div
-        ref={contentRef}
-        style={{ transition: "opacity 0.05s linear", willChange: "opacity" }}
+        ref={innerRef}
+        style={{
+          filter: `url(#${uid})`,
+          willChange: "opacity, filter, transform",
+        }}
       >
         {children}
       </div>
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          opacity: 0,
-          width: "100%",
-          height: "100%",
-        }}
-      />
     </div>
   );
 };
