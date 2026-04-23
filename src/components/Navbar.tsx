@@ -119,7 +119,6 @@ const Navbar = () => {
 
               {/* Right side - Auth & Credits (Desktop) */}
               <div className="hidden lg:flex items-center gap-3">
-                <ThemeToggle />
                 {user ? (
                   <>
                     <CreditDisplay compact />
