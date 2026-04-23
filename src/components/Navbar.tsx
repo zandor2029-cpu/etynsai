@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import EtynsIcon from "./EtynsIcon";
 import CreditDisplay from "./CreditDisplay";
 import AuthModal from "./AuthModal";
-import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 
