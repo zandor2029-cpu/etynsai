@@ -141,7 +141,7 @@ const KlingMotionControl = () => {
 
       if (result.success && result.videoUrl) {
         setGeneratedVideo(result.videoUrl);
-        const saveResult = await saveRender({ type: 'video', url: result.videoUrl, prompt: currentPrompt || 'Vídeo gerado com IA', model: 'wan-2.2-i2v-fast' });
+        const saveResult = await saveRender({ type: 'video', url: result.videoUrl, prompt: currentPrompt || 'Vídeo gerado com IA', model: 'kling-v2.1' });
         if (saveResult.success) setIsSaved(true);
         toast({ title: 'Vídeo gerado e salvo! 🎬', description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}` });
       } else {
