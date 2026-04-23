@@ -190,44 +190,54 @@ const KlingMotionControl = () => {
     <div className="relative flex flex-col min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-primary/10 blur-[140px]" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-etyns-cyan/10 blur-[140px]" />
-        <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full bg-primary/5 blur-[120px]" />
+        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-primary/8 blur-[160px]" />
+        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-etyns-cyan/8 blur-[160px]" />
       </div>
 
       {/* Two-column layout: sidebar + main */}
       <div className="relative z-10 flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 p-4 md:p-6 lg:p-8 min-h-0">
 
         {/* === SIDEBAR (Higgsfield-style left panel) === */}
-        <aside className="w-full lg:w-[340px] xl:w-[380px] flex-shrink-0">
-          <div className="lg:sticky lg:top-24 flex flex-col gap-3">
-            {/* Tool header card */}
-            <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-gradient-to-br from-primary/15 via-card/80 to-etyns-cyan/15 p-4 shadow-xl shadow-primary/10">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-etyns-cyan flex items-center justify-center shadow-lg shadow-primary/40">
-                    <Film className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="absolute inset-0 rounded-xl bg-primary/40 blur-md -z-10" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-[15px] font-bold tracking-tight uppercase">Control Motion</h1>
-                  <p className="text-[11px] text-muted-foreground leading-tight">Troque o rosto de qualquer vídeo</p>
-                </div>
+        <aside className="w-full lg:w-[320px] xl:w-[340px] flex-shrink-0">
+          <div className="lg:sticky lg:top-24 flex flex-col gap-2.5">
+            {/* Tool hero banner — Higgsfield style */}
+            <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-card/95 shadow-xl shadow-primary/10 aspect-[16/7]">
+              {/* Gradient backdrop simulating the Higgsfield hero collage */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-etyns-cyan/30 to-primary/40" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,hsl(var(--primary)/0.5),transparent_60%),radial-gradient(circle_at_70%_70%,hsl(var(--etyns-cyan)/0.5),transparent_60%)]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+              {/* Title */}
+              <div className="absolute inset-0 flex flex-col justify-end p-4">
+                <h1 className="text-[18px] font-black tracking-tight uppercase text-etyns-cyan drop-shadow-[0_0_12px_hsl(var(--etyns-cyan)/0.6)] leading-tight">
+                  Motion Control
+                </h1>
+                <p className="text-[11px] text-white/85 leading-tight mt-0.5 font-medium">
+                  Controle o movimento com vídeos de referência
+                </p>
               </div>
+
+              {/* "How it works" pill */}
+              <button
+                type="button"
+                className="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[10px] font-semibold text-white hover:bg-black/80 transition-colors"
+              >
+                <Play className="w-2.5 h-2.5" />
+                Como funciona
+              </button>
             </div>
 
             {/* Two compact upload slots — Higgsfield style */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               {/* Slot 1 — Reference video */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => videoInputRef.current?.click()}
-                  className={`relative w-full aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 overflow-hidden transition-all group ${
+                  className={`relative w-full aspect-square rounded-2xl border flex flex-col items-center justify-center gap-2 overflow-hidden transition-all group ${
                     referenceVideoPreview
-                      ? "border-primary/60 bg-primary/5"
-                      : "border-border/70 bg-card/40 hover:border-primary/50 hover:bg-card/70"
+                      ? "border-primary/60 bg-card/95"
+                      : "border-border/40 bg-card/95 hover:border-primary/50 hover:bg-card"
                   }`}
                 >
                   {referenceVideoPreview ? (
@@ -258,12 +268,12 @@ const KlingMotionControl = () => {
                     </>
                   ) : (
                     <>
-                      <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                        <Video className="w-4 h-4 text-foreground/70 group-hover:text-primary transition-colors" />
+                      <div className="w-11 h-11 rounded-full bg-muted/40 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                        <Video className="w-4 h-4 text-foreground/60 group-hover:text-primary transition-colors" />
                       </div>
                       <div className="text-center px-2">
                         <p className="text-[11.5px] font-bold text-foreground leading-tight">Adicionar vídeo</p>
-                        <p className="text-[9.5px] text-muted-foreground leading-tight mt-0.5">Cópia do movimento</p>
+                        <p className="text-[9.5px] text-muted-foreground leading-tight mt-1">Cópia do movimento<br/>3-30 segundos</p>
                       </div>
                     </>
                   )}
@@ -282,10 +292,10 @@ const KlingMotionControl = () => {
                 <button
                   type="button"
                   onClick={() => characterInputRef.current?.click()}
-                  className={`relative w-full aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 overflow-hidden transition-all group ${
+                  className={`relative w-full aspect-square rounded-2xl border flex flex-col items-center justify-center gap-2 overflow-hidden transition-all group ${
                     characterPreview
-                      ? "border-etyns-cyan/60 bg-etyns-cyan/5"
-                      : "border-border/70 bg-card/40 hover:border-etyns-cyan/50 hover:bg-card/70"
+                      ? "border-etyns-cyan/60 bg-card/95"
+                      : "border-border/40 bg-card/95 hover:border-etyns-cyan/50 hover:bg-card"
                   }`}
                 >
                   {characterPreview ? (
@@ -316,12 +326,12 @@ const KlingMotionControl = () => {
                     </>
                   ) : (
                     <>
-                      <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center group-hover:bg-etyns-cyan/15 transition-colors">
-                        <User className="w-4 h-4 text-foreground/70 group-hover:text-etyns-cyan transition-colors" />
+                      <div className="w-11 h-11 rounded-full bg-muted/40 flex items-center justify-center group-hover:bg-etyns-cyan/15 transition-colors">
+                        <User className="w-4 h-4 text-foreground/60 group-hover:text-etyns-cyan transition-colors" />
                       </div>
                       <div className="text-center px-2">
-                        <p className="text-[11.5px] font-bold text-foreground leading-tight">Personagem</p>
-                        <p className="text-[9.5px] text-muted-foreground leading-tight mt-0.5">Rosto e corpo</p>
+                        <p className="text-[11.5px] font-bold text-foreground leading-tight">Adicionar personagem</p>
+                        <p className="text-[9.5px] text-muted-foreground leading-tight mt-1">Imagem com<br/>rosto e corpo</p>
                       </div>
                     </>
                   )}
@@ -337,25 +347,20 @@ const KlingMotionControl = () => {
             </div>
 
             {/* Spec rows — Higgsfield style */}
-            <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden divide-y divide-border/40">
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/40 bg-card/95 hover:border-border transition-colors cursor-pointer">
+                <div className="flex flex-col">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Modelo</span>
+                  <span className="text-[13px] font-bold mt-0.5">Roop Face Swap</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[12px] font-bold">Roop Face Swap</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Qualidade</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[12px] font-bold">HD · 720p</span>
+              <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/40 bg-card/95 hover:border-border transition-colors cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Qualidade</span>
+                  <span className="text-[13px] font-bold mt-0.5">HD · 720p</span>
                 </div>
-              </div>
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Movimento</span>
-                <span className="text-[12px] font-bold">Preservado</span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
             </div>
 
@@ -367,18 +372,15 @@ const KlingMotionControl = () => {
               </div>
             )}
 
-            {/* Generate button — Higgsfield neon style */}
+            {/* Generate button — Higgsfield neon yellow style */}
             <button
               onClick={handleGenerate}
               disabled={!canGenerate || isGenerating}
-              className="relative w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-gradient-to-r from-primary to-etyns-cyan disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white font-bold text-[14px] shadow-xl shadow-primary/40 hover:shadow-primary/60 hover:scale-[1.01] active:scale-[0.99] transition-all"
+              className="relative w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 mt-1 rounded-2xl bg-etyns-cyan disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-background font-bold text-[14px] shadow-[0_0_30px_hsl(var(--etyns-cyan)/0.4)] hover:shadow-[0_0_40px_hsl(var(--etyns-cyan)/0.6)] hover:scale-[1.01] active:scale-[0.99] transition-all"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>Gerar vídeo</span>
-              <span className="ml-auto inline-flex items-center gap-1 text-[11.5px] font-semibold opacity-90">
-                <Zap className="w-3 h-3" />
-                {creditCost}
-              </span>
+              <span>Gerar</span>
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="text-[13px] font-bold">{creditCost}</span>
             </button>
 
             {!canGenerate && !isGenerating && (
