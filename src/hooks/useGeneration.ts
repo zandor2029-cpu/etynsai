@@ -128,3 +128,39 @@ export async function generateVideo(params: GenerateVideoParams): Promise<Genera
     };
   }
 }
+
+interface FaceSwapVideoParams {
+  characterImageUrl: string;
+  targetVideoUrl: string;
+}
+
+interface FaceSwapVideoResult {
+  success: boolean;
+  videoUrl?: string;
+  error?: string;
+}
+
+export async function faceSwapVideo(params: FaceSwapVideoParams): Promise<FaceSwapVideoResult> {
+  try {
+    const { data, error } = await supabase.functions.invoke('face-swap-video', {
+      body: params,
+    });
+
+    if (error) {
+      console.error('Face swap error:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (!data.success) {
+      return { success: false, error: data.error || 'Face swap failed' };
+    }
+
+    return { success: true, videoUrl: data.videoUrl };
+  } catch (error) {
+    console.error('Face swap error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
