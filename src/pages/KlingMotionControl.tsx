@@ -1,10 +1,9 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Video, Clapperboard, Play, Zap, AlertCircle, Check, Settings, Wand2, Upload, X, Clock, LayoutGrid, List, Info, Sparkles, ChevronDown, Film } from "lucide-react";
-import FileUpload from "@/components/FileUpload";
+import { Download, Video, Zap, AlertCircle, Check, Wand2, Upload, X, Sparkles, Film, SlidersHorizontal, RotateCcw, Image as ImageIcon } from "lucide-react";
 import NoCreditsModal from "@/components/NoCreditsModal";
 import AuthModal from "@/components/AuthModal";
-import VideoResolutionSelect, { VIDEO_CREDIT_COSTS } from "@/components/VideoResolutionSelect";
+import { VIDEO_CREDIT_COSTS } from "@/components/VideoResolutionSelect";
 import PromptAssistant from "@/components/PromptAssistant";
 import WatermelonLoader from "@/components/WatermelonLoader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,8 +13,6 @@ import { uploadFileForGeneration } from "@/hooks/useFileUpload";
 import { generateVideo } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
 import { usePromptAssistant } from "@/hooks/usePromptAssistant";
-
-const SUB_TABS = ["Control Motion"];
 
 const KlingMotionControl = () => {
   const [characterImage, setCharacterImage] = useState<File | null>(null);
