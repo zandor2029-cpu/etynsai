@@ -8,13 +8,31 @@ const corsHeaders = {
 
 interface UpscaleImageRequest {
   imageUrl: string;
-  scale?: number; // 2x or 4x
+  scale?: number;
 }
 
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[UPSCALE-IMAGE] ${step}${detailsStr}`);
 };
+
+const GEMINI_MODEL = 'gemini-2.5-flash-image-preview';
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+async function fetchImageAsInline(url: string): Promise<{ mimeType: string; data: string } | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const mimeType = res.headers.get('content-type') ?? 'image/jpeg';
+    const buf = new Uint8Array(await res.arrayBuffer());
+    let bin = '';
+    for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+    return { mimeType, data: btoa(bin) };
+  } catch (err) {
+    logStep('fetchImageAsInline failed', { error: String(err) });
+    return null;
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -24,11 +42,8 @@ serve(async (req) => {
   try {
     logStep('Function invoked');
 
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
+    if (!authHeader) throw new Error('Missing authorization header');
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -37,91 +52,78 @@ serve(async (req) => {
     );
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
-
+    if (authError || !user) throw new Error('Unauthorized');
     logStep('User authenticated', { userId: user.id });
 
-    // Parse request body
     const { imageUrl, scale = 2 } = await req.json() as UpscaleImageRequest;
+    if (!imageUrl) throw new Error('Image URL is required');
 
-    if (!imageUrl) {
-      throw new Error('Image URL is required');
-    }
-
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
+    if (!GOOGLE_GEMINI_API_KEY) throw new Error('GOOGLE_GEMINI_API_KEY not configured');
 
     logStep('Upscaling image', { imageUrl: imageUrl.substring(0, 100), scale });
 
-    // Build prompt for upscaling
-    const upscalePrompt = `Upscale and enhance this image to ${scale}x resolution. 
-Improve details, sharpness, and clarity while maintaining the original composition and style. 
-Apply high-quality super-resolution enhancement. 
+    const upscalePrompt = `Upscale and enhance this image to ${scale}x resolution.
+Improve details, sharpness, and clarity while maintaining the original composition and style.
+Apply high-quality super-resolution enhancement.
 Make textures clearer, edges sharper, and colors more vibrant.
 Keep the exact same content, just improve the quality and resolution.`;
 
-    // Call Lovable AI Gateway with image editing capability
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Carrega imagem como inline_data (Gemini nem sempre aceita URLs)
+    const inline = await fetchImageAsInline(imageUrl);
+    if (!inline) throw new Error('Não foi possível carregar a imagem original.');
+
+    const response = await fetch(`${GEMINI_API_URL}?key=${GOOGLE_GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: upscalePrompt },
-              { type: 'image_url', image_url: { url: imageUrl } }
-            ]
-          }
-        ],
-        modalities: ['image', 'text'],
+        contents: [{
+          role: 'user',
+          parts: [
+            { text: upscalePrompt },
+            { inline_data: { mime_type: inline.mimeType, data: inline.data } },
+          ],
+        }],
+        generationConfig: {
+          responseModalities: ['IMAGE', 'TEXT'],
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      logStep('Lovable AI error', { status: response.status, error: errorText });
-      
+      logStep('Gemini error', { status: response.status, error: errorText.substring(0, 200) });
       if (response.status === 429) {
         throw new Error('Limite de requisições excedido. Aguarde alguns segundos e tente novamente.');
       }
-      if (response.status === 402) {
-        throw new Error('Saldo insuficiente no workspace. Adicione créditos em Settings → Workspace → Usage.');
+      if (response.status === 402 || response.status === 403) {
+        throw new Error('Saldo Google Gemini insuficiente ou chave inválida.');
       }
       throw new Error(`Erro no upscale: ${response.status}`);
     }
 
     const data = await response.json();
-    logStep('Lovable AI response received', { hasChoices: !!data.choices });
+    logStep('Gemini response received');
 
-    // Extract the upscaled image from response
-    const choice = data.choices?.[0];
-    const message = choice?.message;
-    
     let upscaledImageUrl: string | null = null;
-    
-    if (message?.images && message.images.length > 0) {
-      upscaledImageUrl = message.images[0]?.image_url?.url;
+    const candidateParts = data?.candidates?.[0]?.content?.parts ?? [];
+    for (const part of candidateParts) {
+      const inlineOut = part?.inline_data ?? part?.inlineData;
+      if (inlineOut?.data) {
+        const mime = inlineOut.mime_type ?? inlineOut.mimeType ?? 'image/png';
+        upscaledImageUrl = `data:${mime};base64,${inlineOut.data}`;
+        break;
+      }
     }
 
     if (!upscaledImageUrl) {
-      logStep('No image in response', { message });
+      logStep('No image in response', { data });
       throw new Error('Não foi possível melhorar a imagem. Tente novamente.');
     }
 
     logStep('Image upscaled successfully');
 
-    // Upload to Supabase Storage for persistence
     let finalImageUrl = upscaledImageUrl;
-    
     if (upscaledImageUrl.startsWith('data:image')) {
       try {
         const base64Match = upscaledImageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
@@ -129,21 +131,19 @@ Keep the exact same content, just improve the quality and resolution.`;
           const imageType = base64Match[1];
           const base64Data = base64Match[2];
           const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-          
           const fileName = `upscale-${user.id}-${Date.now()}.${imageType}`;
-          
+
           const { data: uploadData, error: uploadError } = await supabaseClient.storage
             .from('generation-uploads')
             .upload(fileName, binaryData, {
               contentType: `image/${imageType}`,
               upsert: false,
             });
-          
+
           if (!uploadError && uploadData) {
             const { data: publicUrl } = supabaseClient.storage
               .from('generation-uploads')
               .getPublicUrl(fileName);
-            
             if (publicUrl?.publicUrl) {
               finalImageUrl = publicUrl.publicUrl;
               logStep('Image uploaded to storage', { url: finalImageUrl });
@@ -158,28 +158,14 @@ Keep the exact same content, just improve the quality and resolution.`;
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        imageUrl: finalImageUrl,
-        scale,
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      JSON.stringify({ success: true, imageUrl: finalImageUrl, scale }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
-
   } catch (error) {
     logStep('Error', { message: error instanceof Error ? error.message : 'Unknown error' });
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error instanceof Error ? error.message : 'Erro desconhecido',
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );
   }
 });

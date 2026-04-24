@@ -19,6 +19,27 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[GENERATE-IMAGE] ${step}${detailsStr}`);
 };
 
+// Modelo Gemini para geração de imagens (Nano Banana 2)
+// Chamado direto via API do Google — mais barato que via Lovable AI Gateway.
+const GEMINI_MODEL = 'gemini-2.5-flash-image-preview';
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+// Converte uma URL de imagem em base64 inline pra mandar pro Gemini
+async function fetchImageAsInline(url: string): Promise<{ mimeType: string; data: string } | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const mimeType = res.headers.get('content-type') ?? 'image/jpeg';
+    const buf = new Uint8Array(await res.arrayBuffer());
+    let bin = '';
+    for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+    return { mimeType, data: btoa(bin) };
+  } catch (err) {
+    logStep('fetchImageAsInline failed', { error: String(err) });
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -27,11 +48,8 @@ serve(async (req) => {
   try {
     logStep('Function invoked');
 
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
+    if (!authHeader) throw new Error('Missing authorization header');
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -40,27 +58,19 @@ serve(async (req) => {
     );
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
-
+    if (authError || !user) throw new Error('Unauthorized');
     logStep('User authenticated', { userId: user.id });
 
-    // Parse request body
-    const { prompt, negativePrompt, aspectRatio = '1:1', style = 'default', referenceImages } = await req.json() as GenerateImageRequest;
+    const { prompt, negativePrompt, aspectRatio = '1:1', style = 'default', referenceImages } =
+      await req.json() as GenerateImageRequest;
 
-    if (!prompt || prompt.trim() === '') {
-      throw new Error('Prompt is required');
-    }
+    if (!prompt || prompt.trim() === '') throw new Error('Prompt is required');
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
+    if (!GOOGLE_GEMINI_API_KEY) throw new Error('GOOGLE_GEMINI_API_KEY not configured');
 
-    // Build enhanced prompt based on style
+    // Constrói prompt enriquecido por estilo
     let enhancedPrompt = prompt.trim();
-    
     switch (style) {
       case 'flux-realism':
         enhancedPrompt += '. Ultra realistic, photorealistic, 8K resolution, high detail, professional photography, cinematic lighting.';
@@ -75,7 +85,6 @@ serve(async (req) => {
         enhancedPrompt += '. High quality, detailed, professional artwork.';
     }
 
-    // Add aspect ratio hint
     const aspectHints: Record<string, string> = {
       '1:1': 'Square composition.',
       '16:9': 'Wide cinematic composition, 16:9 aspect ratio.',
@@ -83,111 +92,99 @@ serve(async (req) => {
       '4:3': 'Classic 4:3 composition.',
       '3:4': 'Portrait 3:4 composition.',
     };
-    if (aspectHints[aspectRatio]) {
-      enhancedPrompt += ' ' + aspectHints[aspectRatio];
-    }
+    if (aspectHints[aspectRatio]) enhancedPrompt += ' ' + aspectHints[aspectRatio];
 
     if (negativePrompt && negativePrompt.trim()) {
       enhancedPrompt += ` Avoid: ${negativePrompt.trim()}.`;
     }
 
-    logStep('Generating image with Lovable AI', { prompt: enhancedPrompt.substring(0, 100), style, aspectRatio });
+    logStep('Generating image with Gemini direct', {
+      prompt: enhancedPrompt.substring(0, 100),
+      style,
+      aspectRatio,
+      hasRefs: !!referenceImages?.length,
+    });
 
-    // Build messages for the API
-    const messages: Array<{ role: string; content: string | Array<{ type: string; text?: string; image_url?: { url: string } }> }> = [];
+    // Monta as parts do request Gemini
+    const parts: Array<Record<string, unknown>> = [{ text: enhancedPrompt }];
 
-    // If we have reference images, include them
     if (referenceImages && referenceImages.length > 0) {
-      const contentParts: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
-        { type: 'text', text: `Use these reference images as inspiration. ${enhancedPrompt}` }
-      ];
-      
       for (const imgUrl of referenceImages.slice(0, 2)) {
-        contentParts.push({
-          type: 'image_url',
-          image_url: { url: imgUrl }
-        });
+        const inline = await fetchImageAsInline(imgUrl);
+        if (inline) {
+          parts.push({ inline_data: { mime_type: inline.mimeType, data: inline.data } });
+        }
       }
-      
-      messages.push({ role: 'user', content: contentParts });
-    } else {
-      messages.push({ role: 'user', content: enhancedPrompt });
     }
 
-    // Call Lovable AI Gateway with Gemini 2.5 Flash Image (cheapest image model)
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch(`${GEMINI_API_URL}?key=${GOOGLE_GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'google/gemini-3.1-flash-image-preview',
-        messages,
-        modalities: ['image', 'text'],
+        contents: [{ role: 'user', parts }],
+        generationConfig: {
+          responseModalities: ['IMAGE', 'TEXT'],
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      logStep('Lovable AI error', { status: response.status, error: errorText });
-      
+      logStep('Gemini error', { status: response.status, error: errorText.substring(0, 200) });
+
       if (response.status === 429) {
         throw new Error('Limite de requisições excedido. Aguarde alguns segundos e tente novamente.');
       }
-      if (response.status === 402) {
-        throw new Error('Saldo insuficiente no workspace. Adicione créditos em Settings → Workspace → Usage.');
+      if (response.status === 402 || response.status === 403) {
+        throw new Error('Saldo Google Gemini insuficiente ou chave inválida.');
       }
       throw new Error(`Erro na geração: ${response.status}`);
     }
 
     const data = await response.json();
-    logStep('Lovable AI response received', { hasChoices: !!data.choices });
+    logStep('Gemini response received');
 
-    // Extract the generated image from response
-    const choice = data.choices?.[0];
-    const message = choice?.message;
-    
+    // Extrai imagem do response Gemini
     let imageUrl: string | null = null;
-    
-    // Check for images in the response
-    if (message?.images && message.images.length > 0) {
-      imageUrl = message.images[0]?.image_url?.url;
+    const candidateParts = data?.candidates?.[0]?.content?.parts ?? [];
+    for (const part of candidateParts) {
+      const inline = part?.inline_data ?? part?.inlineData;
+      if (inline?.data) {
+        const mime = inline.mime_type ?? inline.mimeType ?? 'image/png';
+        imageUrl = `data:${mime};base64,${inline.data}`;
+        break;
+      }
     }
 
     if (!imageUrl) {
-      logStep('No image in response', { message });
+      logStep('No image in response', { data });
       throw new Error('A IA não conseguiu gerar uma imagem. Tente reformular o prompt.');
     }
 
     logStep('Image generated successfully');
 
-    // Upload base64 image to Supabase Storage for persistence
+    // Faz upload pro storage pra persistência
     let finalImageUrl = imageUrl;
-    
     if (imageUrl.startsWith('data:image')) {
       try {
-        // Extract base64 data
         const base64Match = imageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
         if (base64Match) {
           const imageType = base64Match[1];
           const base64Data = base64Match[2];
           const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-          
           const fileName = `gemini-${user.id}-${Date.now()}.${imageType}`;
-          
+
           const { data: uploadData, error: uploadError } = await supabaseClient.storage
             .from('generation-uploads')
             .upload(fileName, binaryData, {
               contentType: `image/${imageType}`,
               upsert: false,
             });
-          
+
           if (!uploadError && uploadData) {
             const { data: publicUrl } = supabaseClient.storage
               .from('generation-uploads')
               .getPublicUrl(fileName);
-            
             if (publicUrl?.publicUrl) {
               finalImageUrl = publicUrl.publicUrl;
               logStep('Image uploaded to storage', { url: finalImageUrl });
@@ -205,25 +202,15 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         imageUrl: finalImageUrl,
-        model: 'gemini-3.1-flash-image (Nano Banana 2)',
+        model: 'gemini-2.5-flash-image (Nano Banana 2 - direct)',
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
-
   } catch (error) {
     logStep('Error', { message: error instanceof Error ? error.message : 'Unknown error' });
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error instanceof Error ? error.message : 'Erro desconhecido',
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );
   }
 });
