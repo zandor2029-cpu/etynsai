@@ -14,12 +14,26 @@ import { uploadFileForGeneration } from "@/hooks/useFileUpload";
 import { faceSwapVideo } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
 
-// Custo fixo de créditos para face swap em vídeo
-export const FACE_SWAP_CREDIT_COST = 15;
-
-// Versões disponíveis do modelo Kling Motion (apenas seleção visual; o backend
-// continua usando o mesmo motor de face swap por enquanto).
+// Versões disponíveis do modelo Kling Motion Control
 type KlingVersion = "3.0" | "2.6-pro";
+type KlingMode = "std" | "pro";
+
+// Créditos por SEGUNDO de vídeo gerado, por versão+modo.
+// Calibrado pra cobrir ~2x o custo do Replicate (R$ 0,10/crédito).
+export const KLING_CREDITS_PER_SECOND: Record<KlingVersion, Record<KlingMode, number>> = {
+  "2.6-pro": { std: 7, pro: 14 },
+  "3.0":     { std: 11, pro: 21 },
+};
+
+// Custo mínimo (mesmo se a duração detectada for muito baixa)
+const MIN_CREDIT_COST = 15;
+
+export function calculateKlingCost(version: KlingVersion, mode: KlingMode, durationSeconds: number): number {
+  // Kling cobra por segundo; clampamos entre 3s e 10s pra estimativa de UI
+  const safeDuration = Math.max(3, Math.min(10, Math.ceil(durationSeconds || 5)));
+  const perSecond = KLING_CREDITS_PER_SECOND[version][mode];
+  return Math.max(MIN_CREDIT_COST, perSecond * safeDuration);
+}
 
 const KLING_VERSIONS: Array<{
   id: KlingVersion;
@@ -39,6 +53,11 @@ const KLING_VERSIONS: Array<{
     shortLabel: "2.6 Pro",
     tagline: "Estável · ótimo para retratos",
   },
+];
+
+const KLING_MODES: Array<{ id: KlingMode; label: string; tagline: string }> = [
+  { id: "std", label: "Standard", tagline: "720p · econômico" },
+  { id: "pro", label: "Pro",      tagline: "1080p · alta qualidade" },
 ];
 
 const KlingMotionControl = () => {
