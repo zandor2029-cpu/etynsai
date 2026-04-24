@@ -7,24 +7,33 @@ const corsHeaders = {
 };
 
 const REPLICATE_API_TOKEN = Deno.env.get('REPLICATE_API_TOKEN');
-const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
 
-// Modelo de face swap em vídeo (Replicate - arabyai-replicate/roop_face_swap)
-// Recebe uma imagem com o rosto/personagem e um vídeo alvo, devolve o vídeo
-// com o rosto trocado preservando movimento/iluminação.
-const FACE_SWAP_VERSION = '11b6bf0f4e14d808f655e87e5448233cceff10a45f659d71539cafb7163b2e84';
+// Modelos oficiais Kling Motion Control no Replicate.
+// São "official models" — usam o endpoint /models/{owner}/{name}/predictions
+// (sem version hash).
+const KLING_MODELS = {
+  "3.0": "kwaivgi/kling-v3-motion-control",
+  "2.6-pro": "kwaivgi/kling-v2.6-motion-control",
+} as const;
 
-interface FaceSwapRequest {
-  characterImageUrl: string; // imagem do personagem/rosto a inserir
-  targetVideoUrl: string;    // vídeo base onde o rosto será trocado
+type KlingVersion = keyof typeof KLING_MODELS;
+
+interface MotionControlRequest {
+  characterImageUrl: string; // imagem do personagem (visual)
+  targetVideoUrl: string;    // vídeo de referência (movimento)
+  klingVersion?: KlingVersion;
+  prompt?: string;
+  mode?: "std" | "pro";
+  characterOrientation?: "image" | "video";
+  keepOriginalSound?: boolean;
 }
 
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[FACE-SWAP-VIDEO] ${step}${detailsStr}`);
+  console.log(`[KLING-MOTION-CONTROL] ${step}${detailsStr}`);
 };
 
-async function pollForResult(predictionUrl: string, maxAttempts = 180): Promise<{ url: string } | null> {
+async function pollForResult(predictionUrl: string, maxAttempts = 240): Promise<{ url: string } | null> {
   for (let i = 0; i < maxAttempts; i++) {
     try {
       const response = await fetch(predictionUrl, {
@@ -91,31 +100,58 @@ serve(async (req) => {
 
     logStep('User authenticated', { userId: user.id });
 
-    const { characterImageUrl, targetVideoUrl } = await req.json() as FaceSwapRequest;
+    const body = await req.json() as MotionControlRequest;
+    const {
+      characterImageUrl,
+      targetVideoUrl,
+      klingVersion = "3.0",
+      prompt,
+      mode,
+      characterOrientation = "image",
+      keepOriginalSound = false,
+    } = body;
 
     if (!characterImageUrl) throw new Error('Imagem do personagem é obrigatória');
     if (!targetVideoUrl) throw new Error('Vídeo de referência é obrigatório');
 
-    logStep('Starting face swap', {
+    const modelSlug = KLING_MODELS[klingVersion];
+    if (!modelSlug) {
+      throw new Error(`Versão Kling inválida: ${klingVersion}`);
+    }
+
+    // Default mode: pro pra v3, std pra v2.6 (de acordo com defaults oficiais)
+    const finalMode = mode ?? (klingVersion === "3.0" ? "pro" : "std");
+
+    logStep('Starting Kling Motion Control', {
+      model: modelSlug,
+      version: klingVersion,
+      mode: finalMode,
       image: characterImageUrl.substring(0, 60),
       video: targetVideoUrl.substring(0, 60),
     });
 
-    const requestBody = {
-      version: FACE_SWAP_VERSION,
-      input: {
-        swap_image: characterImageUrl,
-        target_video: targetVideoUrl,
-      },
+    const input: Record<string, unknown> = {
+      image: characterImageUrl,
+      video: targetVideoUrl,
+      mode: finalMode,
+      character_orientation: characterOrientation,
+      keep_original_sound: keepOriginalSound,
     };
+    if (prompt && prompt.trim().length > 0) {
+      input.prompt = prompt.trim();
+    }
 
-    const createResponse = await fetch(REPLICATE_API_URL, {
+    // Endpoint de modelos oficiais (sem version hash)
+    const replicateUrl = `https://api.replicate.com/v1/models/${modelSlug}/predictions`;
+
+    const createResponse = await fetch(replicateUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${REPLICATE_API_TOKEN}`,
         'Content-Type': 'application/json',
+        'Prefer': 'wait=0',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({ input }),
     });
 
     if (!createResponse.ok) {
@@ -128,7 +164,10 @@ serve(async (req) => {
       if (createResponse.status === 402) {
         throw new Error('Créditos insuficientes no Replicate.');
       }
-      throw new Error(`Erro ao iniciar face swap. Código: ${createResponse.status}`);
+      if (createResponse.status === 422) {
+        throw new Error(`Entrada inválida para o Kling Motion Control. Verifique imagem (1:2.5 a 2.5:1, máx 10MB) e vídeo (3-30s, máx 100MB).`);
+      }
+      throw new Error(`Erro ao iniciar Kling Motion Control. Código: ${createResponse.status}`);
     }
 
     const prediction = await createResponse.json();
@@ -137,17 +176,18 @@ serve(async (req) => {
     const result = await pollForResult(prediction.urls.get);
 
     if (!result) {
-      throw new Error('Geração falhou ou expirou. Tente novamente com outro vídeo ou imagem.');
+      throw new Error('Geração falhou ou expirou. Tente novamente com outra imagem ou vídeo.');
     }
 
-    logStep('Face swap done', { videoUrl: result.url.substring(0, 60) });
+    logStep('Motion control done', { videoUrl: result.url.substring(0, 60) });
 
     return new Response(
       JSON.stringify({
         success: true,
         videoUrl: result.url,
         predictionId: prediction.id,
-        model: 'roop_face_swap',
+        model: modelSlug,
+        klingVersion,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
