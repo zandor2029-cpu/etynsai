@@ -92,12 +92,11 @@ const NanoBananaPro = () => {
   const [showNegativePrompt, setShowNegativePrompt] = useState(false);
   const [showRefImages, setShowRefImages] = useState(false);
 
-  const { user, profile, subscription, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
   const creditCost = getCreditCost('image');
   const currentCredits = profile?.credits ?? 0;
-  const isUltimate = subscription?.plan === 'ultimate';
 
   const promptValidation = usePromptValidation(prompt);
   const promptAssistant = usePromptAssistant();
@@ -159,7 +158,7 @@ const NanoBananaPro = () => {
     if (!prompt.trim()) return;
 
     if (!user) { setShowAuthModal(true); return; }
-    if (!isUltimate && !canAfford(currentCredits, 'image')) { setShowNoCreditsModal(true); return; }
+    if (!canAfford(currentCredits, 'image')) { setShowNoCreditsModal(true); return; }
 
     setIsGenerating(true);
     setGeneratedImage(null);
@@ -211,9 +210,7 @@ const NanoBananaPro = () => {
 
         toast({
           title: 'Imagem gerada e salva! ⚡',
-          description: wasSkipped
-            ? 'Imagens ilimitadas no plano Ultimate! 🚀'
-            : `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
+          description: `Foram utilizados ${creditCost} créditos. Saldo: ${creditResult.newBalance}`,
         });
       } else {
         throw new Error(result.error || 'Erro ao gerar imagem');
@@ -323,11 +320,7 @@ const NanoBananaPro = () => {
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Zap className="w-3 h-3 text-primary" />
-          {isUltimate ? (
-            <span className="text-primary font-semibold">Ilimitado</span>
-          ) : (
-            <span><span className="text-foreground font-semibold">{currentCredits}</span> créditos</span>
-          )}
+          <span><span className="text-foreground font-semibold">{currentCredits}</span> créditos</span>
         </div>
       </div>
 
@@ -647,7 +640,7 @@ const NanoBananaPro = () => {
               Gerar
               <Sparkles className="w-3 h-3" />
               <span className="text-[10px] opacity-80">
-                {isUltimate ? "∞" : `+${creditCost}`}
+                +{creditCost}
               </span>
             </WatermelonButton>
           </div>
