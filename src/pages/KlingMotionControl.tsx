@@ -17,6 +17,30 @@ import { saveRender } from "@/hooks/useRenders";
 // Custo fixo de créditos para face swap em vídeo
 export const FACE_SWAP_CREDIT_COST = 15;
 
+// Versões disponíveis do modelo Kling Motion (apenas seleção visual; o backend
+// continua usando o mesmo motor de face swap por enquanto).
+type KlingVersion = "3.0" | "2.6-pro";
+
+const KLING_VERSIONS: Array<{
+  id: KlingVersion;
+  label: string;
+  shortLabel: string;
+  tagline: string;
+}> = [
+  {
+    id: "3.0",
+    label: "Kling Motion 3.0",
+    shortLabel: "3.0",
+    tagline: "Mais novo · melhor fidelidade de movimento",
+  },
+  {
+    id: "2.6-pro",
+    label: "Kling 2.6 Pro",
+    shortLabel: "2.6 Pro",
+    tagline: "Estável · ótimo para retratos",
+  },
+];
+
 const KlingMotionControl = () => {
   // Imagem do personagem (rosto a inserir)
   const [characterImage, setCharacterImage] = useState<File | null>(null);
@@ -25,6 +49,9 @@ const KlingMotionControl = () => {
   // Vídeo de referência (alvo onde o rosto será trocado)
   const [referenceVideo, setReferenceVideo] = useState<File | null>(null);
   const [referenceVideoPreview, setReferenceVideoPreview] = useState<string | null>(null);
+
+  // Versão do modelo Kling escolhida pelo usuário
+  const [klingVersion, setKlingVersion] = useState<KlingVersion>("3.0");
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -141,11 +168,13 @@ const KlingMotionControl = () => {
 
       if (result.success && result.videoUrl) {
         setGeneratedVideo(result.videoUrl);
+        const selectedVersionLabel =
+          KLING_VERSIONS.find((v) => v.id === klingVersion)?.label ?? "Kling Motion";
         const saveResult = await saveRender({
           type: 'video',
           url: result.videoUrl,
-          prompt: 'Face swap em vídeo',
-          model: 'roop_face_swap',
+          prompt: `Face swap em vídeo · ${selectedVersionLabel}`,
+          model: selectedVersionLabel,
         });
         if (saveResult.success) setIsSaved(true);
         toast({
@@ -340,11 +369,40 @@ const KlingMotionControl = () => {
 
             {/* Spec rows — Higgsfield style */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/40 bg-card/95">
-                <div className="flex flex-col">
-                  <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">Modelo</span>
-                  <span className="text-[11px] font-bold mt-0.5">Kling Motion 3.0</span>
+              {/* Seletor de versão do Kling */}
+              <div className="flex flex-col gap-1.5 px-3 py-2 rounded-xl border border-border/40 bg-card/95">
+                <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Modelo
+                </span>
+                <div
+                  role="radiogroup"
+                  aria-label="Versão do modelo Kling"
+                  className="grid grid-cols-2 gap-1 p-0.5 rounded-lg bg-muted/40 border border-border/40"
+                >
+                  {KLING_VERSIONS.map((v) => {
+                    const selected = klingVersion === v.id;
+                    return (
+                      <button
+                        key={v.id}
+                        role="radio"
+                        aria-checked={selected}
+                        type="button"
+                        onClick={() => setKlingVersion(v.id)}
+                        disabled={isGenerating}
+                        className={`relative px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${
+                          selected
+                            ? "bg-etyns-cyan text-background shadow-[0_0_12px_hsl(var(--etyns-cyan)/0.4)]"
+                            : "text-muted-foreground hover:text-foreground hover:bg-card"
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {v.shortLabel}
+                      </button>
+                    );
+                  })}
                 </div>
+                <span className="text-[9px] text-muted-foreground leading-tight mt-0.5">
+                  {KLING_VERSIONS.find((v) => v.id === klingVersion)?.tagline}
+                </span>
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/40 bg-card/95">
                 <div className="flex flex-col">
