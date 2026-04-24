@@ -132,6 +132,11 @@ export async function generateVideo(params: GenerateVideoParams): Promise<Genera
 interface FaceSwapVideoParams {
   characterImageUrl: string;
   targetVideoUrl: string;
+  klingVersion?: "3.0" | "2.6-pro";
+  prompt?: string;
+  mode?: "std" | "pro";
+  characterOrientation?: "image" | "video";
+  keepOriginalSound?: boolean;
 }
 
 interface FaceSwapVideoResult {
