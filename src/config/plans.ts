@@ -65,3 +65,51 @@ export const CREDIT_COSTS = {
 } as const;
 
 export type PlanName = keyof typeof STRIPE_PLANS;
+
+// ============================================================================
+// SOURCE OF TRUTH — Valores canônicos esperados para preços e créditos.
+// Qualquer divergência entre estes valores e STRIPE_PLANS dispara erro nos
+// testes (src/config/plans.test.ts) e warn em runtime (validatePlans()).
+// Para alterar preços/créditos: atualize AMBOS os objetos e crie os novos
+// price_ids no Stripe Dashboard.
+// ============================================================================
+export const EXPECTED_PLAN_VALUES = {
+  basico:   { price: 49.90,  credits: 300 },
+  pro:      { price: 99.90,  credits: 700 },
+  ultimate: { price: 199.90, credits: 1500 },
+} as const satisfies Record<PlanName, { price: number; credits: number }>;
+
+/**
+ * Valida em runtime que STRIPE_PLANS está sincronizado com EXPECTED_PLAN_VALUES.
+ * Retorna lista de erros (vazia se tudo OK). Em dev, loga warnings no console.
+ */
+export function validatePlans(): string[] {
+  const errors: string[] = [];
+  (Object.keys(EXPECTED_PLAN_VALUES) as PlanName[]).forEach((key) => {
+    const expected = EXPECTED_PLAN_VALUES[key];
+    const actual = STRIPE_PLANS[key];
+    if (!actual) {
+      errors.push(`Plano "${key}" ausente em STRIPE_PLANS`);
+      return;
+    }
+    if (actual.price !== expected.price) {
+      errors.push(
+        `Plano "${key}": preço ${actual.price} ≠ esperado ${expected.price}`,
+      );
+    }
+    if (actual.credits !== expected.credits) {
+      errors.push(
+        `Plano "${key}": créditos ${actual.credits} ≠ esperado ${expected.credits}`,
+      );
+    }
+  });
+  return errors;
+}
+
+// Auto-check em dev: avisa imediatamente se algo divergir
+if (import.meta.env?.DEV) {
+  const errs = validatePlans();
+  if (errs.length > 0) {
+    console.error('[plans.ts] Configuração inconsistente:\n  - ' + errs.join('\n  - '));
+  }
+}
