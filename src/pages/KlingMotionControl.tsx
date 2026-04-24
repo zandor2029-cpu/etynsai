@@ -71,6 +71,9 @@ const KlingMotionControl = () => {
 
   // Versão do modelo Kling escolhida pelo usuário
   const [klingVersion, setKlingVersion] = useState<KlingVersion>("3.0");
+  const [klingMode, setKlingMode] = useState<KlingMode>("std");
+  // Duração detectada do vídeo (em segundos) — usada pra estimar custo
+  const [videoDuration, setVideoDuration] = useState<number>(5);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -87,7 +90,7 @@ const KlingMotionControl = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
-  const creditCost = FACE_SWAP_CREDIT_COST;
+  const creditCost = calculateKlingCost(klingVersion, klingMode, videoDuration);
   const currentCredits = profile?.credits ?? 0;
   const canGenerate = characterImage !== null && referenceVideo !== null;
 
@@ -112,7 +115,23 @@ const KlingMotionControl = () => {
     }
     setReferenceVideo(file);
     if (referenceVideoPreview) URL.revokeObjectURL(referenceVideoPreview);
-    setReferenceVideoPreview(file ? URL.createObjectURL(file) : null);
+    const newPreviewUrl = file ? URL.createObjectURL(file) : null;
+    setReferenceVideoPreview(newPreviewUrl);
+
+    // Detectar duração do vídeo pra calcular custo dinâmico
+    if (newPreviewUrl) {
+      const tempVideo = document.createElement("video");
+      tempVideo.preload = "metadata";
+      tempVideo.src = newPreviewUrl;
+      tempVideo.onloadedmetadata = () => {
+        const dur = tempVideo.duration;
+        if (Number.isFinite(dur) && dur > 0) {
+          setVideoDuration(dur);
+        }
+      };
+    } else {
+      setVideoDuration(5);
+    }
   }, [referenceVideoPreview, toast]);
 
   const handleClearCharacter = useCallback(() => {
