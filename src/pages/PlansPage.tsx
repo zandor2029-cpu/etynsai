@@ -1,9 +1,9 @@
-import { Check, Sparkles, Loader2, Crown } from 'lucide-react';
+import { Check, Sparkles, Loader2, Crown, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { STRIPE_PLANS } from '@/config/plans';
+import { STRIPE_PLANS, validatePlans } from '@/config/plans';
 import AuthModal from '@/components/AuthModal';
 import { useToast } from '@/hooks/use-toast';
 
@@ -13,7 +13,21 @@ const PlansPage = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { toast } = useToast();
 
+  // Trava de segurança: se a configuração de planos estiver dessincronizada
+  // com EXPECTED_PLAN_VALUES, bloqueia o checkout para evitar vender com
+  // preço/créditos errados.
+  const planErrors = validatePlans();
+  const checkoutBlocked = planErrors.length > 0;
+
   const handleSubscribe = async (planName: string, priceId: string) => {
+    if (checkoutBlocked) {
+      toast({
+        title: 'Checkout bloqueado',
+        description: 'Configuração de planos inconsistente. Corrija antes de vender.',
+        variant: 'destructive',
+      });
+      return;
+    }
     if (!user) {
       setShowAuthModal(true);
       return;
@@ -67,6 +81,35 @@ const PlansPage = () => {
 
       <div className="relative z-10 px-4 md:px-6 lg:px-8 py-6 md:py-10">
         <div className="container mx-auto max-w-5xl">
+          {/* Aviso crítico de configuração inconsistente */}
+          {checkoutBlocked && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl border-2 border-destructive bg-destructive/10"
+              role="alert"
+            >
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-destructive mb-1">
+                    ⚠️ Checkout bloqueado — configuração de planos inconsistente
+                  </h3>
+                  <p className="text-xs text-destructive/90 mb-2">
+                    Os valores em <code className="font-mono">STRIPE_PLANS</code> divergem de{' '}
+                    <code className="font-mono">EXPECTED_PLAN_VALUES</code>. Corrija{' '}
+                    <code className="font-mono">src/config/plans.ts</code> antes de aceitar pagamentos.
+                  </p>
+                  <ul className="text-xs text-destructive/90 list-disc list-inside space-y-0.5">
+                    {planErrors.map((err, i) => (
+                      <li key={i} className="font-mono">{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* Header */}
           <div className="text-center mb-8">
             <motion.div
@@ -219,7 +262,8 @@ const PlansPage = () => {
                       ) : (
                         <button
                           onClick={() => handleSubscribe(plan.name, plan.priceId)}
-                          disabled={loadingPlan === plan.name}
+                          disabled={loadingPlan === plan.name || checkoutBlocked}
+                          title={checkoutBlocked ? 'Checkout bloqueado: configuração inconsistente' : undefined}
                           className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all disabled:opacity-60 ${
                             isPopular
                               ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20'
@@ -228,6 +272,8 @@ const PlansPage = () => {
                         >
                           {loadingPlan === plan.name ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : checkoutBlocked ? (
+                            'Indisponível'
                           ) : (
                             'Assinar Agora'
                           )}
