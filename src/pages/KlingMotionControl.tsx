@@ -199,6 +199,7 @@ const KlingMotionControl = () => {
         characterImageUrl: imageUpload.url,
         targetVideoUrl: videoUpload.url,
         klingVersion,
+        mode: klingMode,
       });
 
       clearInterval(progressInterval);
@@ -443,10 +444,62 @@ const KlingMotionControl = () => {
                   {KLING_VERSIONS.find((v) => v.id === klingVersion)?.tagline}
                 </span>
               </div>
+
+              {/* Seletor de modo (std/pro) */}
+              <div className="flex flex-col gap-1.5 px-3 py-2 rounded-xl border border-border/40 bg-card/95">
+                <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Qualidade
+                </span>
+                <div
+                  role="radiogroup"
+                  aria-label="Modo de qualidade"
+                  className="grid grid-cols-2 gap-1 p-0.5 rounded-lg bg-muted/40 border border-border/40"
+                >
+                  {KLING_MODES.map((m) => {
+                    const selected = klingMode === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        role="radio"
+                        aria-checked={selected}
+                        type="button"
+                        onClick={() => setKlingMode(m.id)}
+                        disabled={isGenerating}
+                        className={`relative px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${
+                          selected
+                            ? "bg-etyns-cyan text-background shadow-[0_0_12px_hsl(var(--etyns-cyan)/0.4)]"
+                            : "text-muted-foreground hover:text-foreground hover:bg-card"
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <span className="text-[9px] text-muted-foreground leading-tight mt-0.5">
+                  {KLING_MODES.find((m) => m.id === klingMode)?.tagline}
+                </span>
+              </div>
+
+              {/* Estimativa de duração + custo */}
               <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/40 bg-card/95">
                 <div className="flex flex-col">
-                  <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">Qualidade</span>
-                  <span className="text-[11px] font-bold mt-0.5">Full HD · 1080p</span>
+                  <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Duração detectada
+                  </span>
+                  <span className="text-[11px] font-bold mt-0.5">
+                    {referenceVideo
+                      ? `~${Math.max(3, Math.min(10, Math.ceil(videoDuration)))}s`
+                      : "Envie um vídeo"}
+                  </span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Custo
+                  </span>
+                  <span className="text-[11px] font-bold mt-0.5 text-etyns-cyan">
+                    {creditCost} créditos
+                  </span>
                 </div>
               </div>
             </div>
