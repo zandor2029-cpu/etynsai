@@ -12,17 +12,9 @@ interface UseCreditsResult {
 
 // Check if user has Ultimate subscription (images are free)
 export async function checkUnlimitedImages(): Promise<boolean> {
-  try {
-    const { data, error } = await supabase.functions.invoke('check-subscription');
-    if (error) {
-      console.error('Error checking subscription:', error);
-      return false;
-    }
-    return data?.plan === 'ultimate';
-  } catch (error) {
-    console.error('Error checking unlimited images:', error);
-    return false;
-  }
+  // Imagens ilimitadas foi removido do plano Ultimate. Mantido por
+  // compatibilidade — sempre retorna false agora.
+  return false;
 }
 
 // Use credits with custom amount (for video resolution options)
