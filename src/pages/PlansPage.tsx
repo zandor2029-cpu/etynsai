@@ -262,7 +262,8 @@ const PlansPage = () => {
                       ) : (
                         <button
                           onClick={() => handleSubscribe(plan.name, plan.priceId)}
-                          disabled={loadingPlan === plan.name}
+                          disabled={loadingPlan === plan.name || checkoutBlocked}
+                          title={checkoutBlocked ? 'Checkout bloqueado: configuração inconsistente' : undefined}
                           className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all disabled:opacity-60 ${
                             isPopular
                               ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20'
@@ -271,6 +272,8 @@ const PlansPage = () => {
                         >
                           {loadingPlan === plan.name ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : checkoutBlocked ? (
+                            'Indisponível'
                           ) : (
                             'Assinar Agora'
                           )}
