@@ -17,6 +17,30 @@ import { saveRender } from "@/hooks/useRenders";
 // Custo fixo de créditos para face swap em vídeo
 export const FACE_SWAP_CREDIT_COST = 15;
 
+// Versões disponíveis do modelo Kling Motion (apenas seleção visual; o backend
+// continua usando o mesmo motor de face swap por enquanto).
+type KlingVersion = "3.0" | "2.6-pro";
+
+const KLING_VERSIONS: Array<{
+  id: KlingVersion;
+  label: string;
+  shortLabel: string;
+  tagline: string;
+}> = [
+  {
+    id: "3.0",
+    label: "Kling Motion 3.0",
+    shortLabel: "3.0",
+    tagline: "Mais novo · melhor fidelidade de movimento",
+  },
+  {
+    id: "2.6-pro",
+    label: "Kling 2.6 Pro",
+    shortLabel: "2.6 Pro",
+    tagline: "Estável · ótimo para retratos",
+  },
+];
+
 const KlingMotionControl = () => {
   // Imagem do personagem (rosto a inserir)
   const [characterImage, setCharacterImage] = useState<File | null>(null);
@@ -25,6 +49,9 @@ const KlingMotionControl = () => {
   // Vídeo de referência (alvo onde o rosto será trocado)
   const [referenceVideo, setReferenceVideo] = useState<File | null>(null);
   const [referenceVideoPreview, setReferenceVideoPreview] = useState<string | null>(null);
+
+  // Versão do modelo Kling escolhida pelo usuário
+  const [klingVersion, setKlingVersion] = useState<KlingVersion>("3.0");
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
