@@ -6,7 +6,7 @@ export const STRIPE_PLANS = {
     name: 'basico',
     displayName: 'Básico',
     description: 'Para criadores começando',
-    price: 49.00,
+    price: 49.90,
     credits: 300,
     priceId: 'price_1StEtHDRKf7UQFHVmH1l2ZT7', // TODO: substituir pelo novo price_id de R$ 49
     popular: false,
@@ -22,7 +22,7 @@ export const STRIPE_PLANS = {
     name: 'pro',
     displayName: 'Pro',
     description: 'Para criadores frequentes',
-    price: 99.00,
+    price: 99.90,
     credits: 700,
     priceId: 'price_1StEuaDRKf7UQFHVv2M4bBUI', // TODO: substituir pelo novo price_id de R$ 99
     popular: true,
@@ -39,7 +39,7 @@ export const STRIPE_PLANS = {
     name: 'ultimate',
     displayName: 'Ultimate',
     description: 'Para profissionais e agências',
-    price: 199.00,
+    price: 199.90,
     credits: 1500,
     priceId: 'price_1StEveDRKf7UQFHVzVIO4NEC', // TODO: substituir pelo novo price_id de R$ 199
     popular: false,
