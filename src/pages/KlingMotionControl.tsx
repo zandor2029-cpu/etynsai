@@ -14,12 +14,26 @@ import { uploadFileForGeneration } from "@/hooks/useFileUpload";
 import { faceSwapVideo } from "@/hooks/useGeneration";
 import { saveRender } from "@/hooks/useRenders";
 
-// Custo fixo de créditos para face swap em vídeo
-export const FACE_SWAP_CREDIT_COST = 15;
-
-// Versões disponíveis do modelo Kling Motion (apenas seleção visual; o backend
-// continua usando o mesmo motor de face swap por enquanto).
+// Versões disponíveis do modelo Kling Motion Control
 type KlingVersion = "3.0" | "2.6-pro";
+type KlingMode = "std" | "pro";
+
+// Créditos por SEGUNDO de vídeo gerado, por versão+modo.
+// Calibrado pra cobrir ~2x o custo do Replicate (R$ 0,10/crédito).
+export const KLING_CREDITS_PER_SECOND: Record<KlingVersion, Record<KlingMode, number>> = {
+  "2.6-pro": { std: 7, pro: 14 },
+  "3.0":     { std: 11, pro: 21 },
+};
+
+// Custo mínimo (mesmo se a duração detectada for muito baixa)
+const MIN_CREDIT_COST = 15;
+
+export function calculateKlingCost(version: KlingVersion, mode: KlingMode, durationSeconds: number): number {
+  // Kling cobra por segundo; clampamos entre 3s e 10s pra estimativa de UI
+  const safeDuration = Math.max(3, Math.min(10, Math.ceil(durationSeconds || 5)));
+  const perSecond = KLING_CREDITS_PER_SECOND[version][mode];
+  return Math.max(MIN_CREDIT_COST, perSecond * safeDuration);
+}
 
 const KLING_VERSIONS: Array<{
   id: KlingVersion;
@@ -41,6 +55,11 @@ const KLING_VERSIONS: Array<{
   },
 ];
 
+const KLING_MODES: Array<{ id: KlingMode; label: string; tagline: string }> = [
+  { id: "std", label: "Standard", tagline: "720p · econômico" },
+  { id: "pro", label: "Pro",      tagline: "1080p · alta qualidade" },
+];
+
 const KlingMotionControl = () => {
   // Imagem do personagem (rosto a inserir)
   const [characterImage, setCharacterImage] = useState<File | null>(null);
@@ -52,6 +71,9 @@ const KlingMotionControl = () => {
 
   // Versão do modelo Kling escolhida pelo usuário
   const [klingVersion, setKlingVersion] = useState<KlingVersion>("3.0");
+  const [klingMode, setKlingMode] = useState<KlingMode>("std");
+  // Duração detectada do vídeo (em segundos) — usada pra estimar custo
+  const [videoDuration, setVideoDuration] = useState<number>(5);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -68,7 +90,7 @@ const KlingMotionControl = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
-  const creditCost = FACE_SWAP_CREDIT_COST;
+  const creditCost = calculateKlingCost(klingVersion, klingMode, videoDuration);
   const currentCredits = profile?.credits ?? 0;
   const canGenerate = characterImage !== null && referenceVideo !== null;
 
@@ -93,7 +115,23 @@ const KlingMotionControl = () => {
     }
     setReferenceVideo(file);
     if (referenceVideoPreview) URL.revokeObjectURL(referenceVideoPreview);
-    setReferenceVideoPreview(file ? URL.createObjectURL(file) : null);
+    const newPreviewUrl = file ? URL.createObjectURL(file) : null;
+    setReferenceVideoPreview(newPreviewUrl);
+
+    // Detectar duração do vídeo pra calcular custo dinâmico
+    if (newPreviewUrl) {
+      const tempVideo = document.createElement("video");
+      tempVideo.preload = "metadata";
+      tempVideo.src = newPreviewUrl;
+      tempVideo.onloadedmetadata = () => {
+        const dur = tempVideo.duration;
+        if (Number.isFinite(dur) && dur > 0) {
+          setVideoDuration(dur);
+        }
+      };
+    } else {
+      setVideoDuration(5);
+    }
   }, [referenceVideoPreview, toast]);
 
   const handleClearCharacter = useCallback(() => {
@@ -161,6 +199,7 @@ const KlingMotionControl = () => {
         characterImageUrl: imageUpload.url,
         targetVideoUrl: videoUpload.url,
         klingVersion,
+        mode: klingMode,
       });
 
       clearInterval(progressInterval);
@@ -405,10 +444,62 @@ const KlingMotionControl = () => {
                   {KLING_VERSIONS.find((v) => v.id === klingVersion)?.tagline}
                 </span>
               </div>
+
+              {/* Seletor de modo (std/pro) */}
+              <div className="flex flex-col gap-1.5 px-3 py-2 rounded-xl border border-border/40 bg-card/95">
+                <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Qualidade
+                </span>
+                <div
+                  role="radiogroup"
+                  aria-label="Modo de qualidade"
+                  className="grid grid-cols-2 gap-1 p-0.5 rounded-lg bg-muted/40 border border-border/40"
+                >
+                  {KLING_MODES.map((m) => {
+                    const selected = klingMode === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        role="radio"
+                        aria-checked={selected}
+                        type="button"
+                        onClick={() => setKlingMode(m.id)}
+                        disabled={isGenerating}
+                        className={`relative px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${
+                          selected
+                            ? "bg-etyns-cyan text-background shadow-[0_0_12px_hsl(var(--etyns-cyan)/0.4)]"
+                            : "text-muted-foreground hover:text-foreground hover:bg-card"
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <span className="text-[9px] text-muted-foreground leading-tight mt-0.5">
+                  {KLING_MODES.find((m) => m.id === klingMode)?.tagline}
+                </span>
+              </div>
+
+              {/* Estimativa de duração + custo */}
               <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/40 bg-card/95">
                 <div className="flex flex-col">
-                  <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">Qualidade</span>
-                  <span className="text-[11px] font-bold mt-0.5">Full HD · 1080p</span>
+                  <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Duração detectada
+                  </span>
+                  <span className="text-[11px] font-bold mt-0.5">
+                    {referenceVideo
+                      ? `~${Math.max(3, Math.min(10, Math.ceil(videoDuration)))}s`
+                      : "Envie um vídeo"}
+                  </span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Custo
+                  </span>
+                  <span className="text-[11px] font-bold mt-0.5 text-etyns-cyan">
+                    {creditCost} créditos
+                  </span>
                 </div>
               </div>
             </div>
