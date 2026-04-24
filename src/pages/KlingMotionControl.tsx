@@ -168,11 +168,13 @@ const KlingMotionControl = () => {
 
       if (result.success && result.videoUrl) {
         setGeneratedVideo(result.videoUrl);
+        const selectedVersionLabel =
+          KLING_VERSIONS.find((v) => v.id === klingVersion)?.label ?? "Kling Motion";
         const saveResult = await saveRender({
           type: 'video',
           url: result.videoUrl,
-          prompt: 'Face swap em vídeo',
-          model: 'roop_face_swap',
+          prompt: `Face swap em vídeo · ${selectedVersionLabel}`,
+          model: selectedVersionLabel,
         });
         if (saveResult.success) setIsSaved(true);
         toast({
