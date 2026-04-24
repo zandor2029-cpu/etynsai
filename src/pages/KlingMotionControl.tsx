@@ -160,6 +160,7 @@ const KlingMotionControl = () => {
       const result = await faceSwapVideo({
         characterImageUrl: imageUpload.url,
         targetVideoUrl: videoUpload.url,
+        klingVersion,
       });
 
       clearInterval(progressInterval);
@@ -173,7 +174,7 @@ const KlingMotionControl = () => {
         const saveResult = await saveRender({
           type: 'video',
           url: result.videoUrl,
-          prompt: `Face swap em vídeo · ${selectedVersionLabel}`,
+          prompt: `Motion Control · ${selectedVersionLabel}`,
           model: selectedVersionLabel,
         });
         if (saveResult.success) setIsSaved(true);
