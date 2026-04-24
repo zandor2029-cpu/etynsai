@@ -242,7 +242,7 @@ const NanoBananaPro = () => {
   const handleUpscale = async () => {
     if (!generatedImage || isUpscaling || isUpscaled) return;
     if (!user) { setShowAuthModal(true); return; }
-    if (!isUltimate && !canAfford(currentCredits, 'image')) { setShowNoCreditsModal(true); return; }
+    if (!canAfford(currentCredits, 'image')) { setShowNoCreditsModal(true); return; }
 
     setIsUpscaling(true);
     let creditsWereDeducted = false;
