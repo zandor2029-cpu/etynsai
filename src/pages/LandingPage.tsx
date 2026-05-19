@@ -87,7 +87,7 @@ const productCards: ProductCard[] = [
   {
     title: "Meus Renders",
     subtitle: "Galeria pessoal de todas as suas criações",
-    link: "/renders",
+    link: "/meus-renders",
     gradient: "from-emerald-500/30 via-cyan-500/20 to-blue-600/30",
     icon: ImageIcon,
   },
@@ -417,7 +417,7 @@ const LandingPage = () => {
               </p>
             </div>
             <Link
-              to="/renders"
+              to="/meus-renders"
               className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white transition-colors"
             >
               Ver galeria
@@ -532,4 +532,8 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
+
+
+
 

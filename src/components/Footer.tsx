@@ -12,7 +12,7 @@ const Footer = () => {
       links: [
         { label: "Nano Banana 2", to: "/image", icon: Sparkles },
         { label: "Control Motion", to: "/motion-control", icon: Video },
-        { label: "Meus Renders", to: "/renders", icon: FileText },
+        { label: "Meus Renders", to: "/meus-renders", icon: FileText },
       ],
     },
     {
@@ -136,4 +136,8 @@ const Footer = () => {
 };
 
 export default Footer;
+
+
+
+
 
