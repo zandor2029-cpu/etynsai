@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FolderOpen, Image as ImageIcon, Video, Filter, TrendingUp, Loader2, User } from "lucide-react";
+import { FolderOpen, Image, Video, Filter, TrendingUp, Loader2 } from "lucide-react";
 import RenderCard from "@/components/RenderCard";
 import AuthModal from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,7 +17,7 @@ const MeusRenders = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const { user, profile, subscription } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -32,12 +32,17 @@ const MeusRenders = () => {
     setIsLoading(false);
   };
 
-  const filteredRenders = renders.filter((r) => filter === "all" ? true : r.type === filter);
+  const filteredRenders = renders.filter((render) => {
+    if (filter === "all") return true;
+    return render.type === filter;
+  });
 
   const formatDate = (dateString: string) => {
     try {
       return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: ptBR });
-    } catch { return dateString; }
+    } catch {
+      return dateString;
+    }
   };
 
   const handleOpen = (id: string) => {
@@ -60,7 +65,11 @@ const MeusRenders = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } catch {
-        toast({ title: "Erro ao baixar", description: "Não foi possível baixar o arquivo.", variant: "destructive" });
+        toast({
+          title: "Erro ao baixar",
+          description: "Não foi possível baixar o arquivo.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -71,48 +80,52 @@ const MeusRenders = () => {
       setRenders((prev) => prev.filter((r) => r.id !== id));
       toast({ title: "Render deletado", description: "O render foi removido da sua galeria." });
     } else {
-      toast({ title: "Erro", description: result.error || "Não foi possível deletar o render.", variant: "destructive" });
+      toast({
+        title: "Erro",
+        description: result.error || "Não foi possível deletar o render.",
+        variant: "destructive",
+      });
     }
   };
 
   const filterButtons: { value: FilterType; label: string; icon: React.ElementType }[] = [
     { value: "all", label: "Todos", icon: Filter },
-    { value: "image", label: "Imagens", icon: ImageIcon },
+    { value: "image", label: "Imagens", icon: Image },
     { value: "video", label: "Vídeos", icon: Video },
   ];
 
   // Ambient glow shared
   const Glow = () => (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      <div className="absolute top-0 left-1/3 w-[800px] h-[600px] rounded-full bg-blue-600/10 blur-[180px]" />
-      <div className="absolute bottom-0 right-1/3 w-[700px] h-[500px] rounded-full bg-purple-600/8 blur-[180px]" />
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-primary/8 blur-[160px]" />
+      <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-etyns-cyan/8 blur-[160px]" />
     </div>
   );
 
   if (!user) {
     return (
-      <div className="relative min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-[#0a0a0a] text-white overflow-hidden">
+      <div className="relative min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
         <Glow />
-        <div className="relative z-10 px-4 md:px-6 py-12 md:py-20">
+        <div className="relative z-10 px-4 md:px-6 lg:px-8 py-6 md:py-10">
           <div className="container mx-auto max-w-3xl">
-            <div className="p-10 text-center rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-sm">
+            <div className="p-10 text-center rounded-xl border border-border/60 bg-card/95 shadow-lg shadow-primary/5">
               <motion.div
-                className="inline-flex w-16 h-16 rounded-2xl bg-white/5 border border-white/10 items-center justify-center mb-5"
+                className="inline-flex p-3 rounded-2xl bg-muted/40 mb-4"
                 initial={{ scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.15, duration: 0.4 }}
+                transition={{ delay: 0.15, duration: 0.35 }}
               >
-                <FolderOpen className="w-8 h-8 text-white/60" />
+                <FolderOpen className="w-10 h-10 text-muted-foreground" />
               </motion.div>
-              <h3 className="text-xl md:text-2xl font-display font-extrabold uppercase tracking-tight text-white mb-3">
-                Faça login para ver suas criações
+              <h3 className="text-lg font-display font-bold mb-2 text-gradient-watermelon">
+                Faça login para ver seus renders
               </h3>
-              <p className="text-sm text-white/60 max-w-md mx-auto mb-6">
-                Entre na sua conta para acessar sua galeria pessoal.
+              <p className="text-xs text-muted-foreground max-w-md mx-auto mb-4">
+                Entre na sua conta para acessar sua galeria de criações.
               </p>
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider bg-white text-black hover:bg-white/90 transition-all hover:scale-[1.03]"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all"
               >
                 Entrar
               </button>
@@ -124,130 +137,60 @@ const MeusRenders = () => {
     );
   }
 
-  // Avatar inicial baseado no email
-  const initial = (user.email || "U").charAt(0).toUpperCase();
-  const totalImages = renders.filter((r) => r.type === "image").length;
-  const totalVideos = renders.filter((r) => r.type === "video").length;
-
   return (
-    <div className="relative min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-[#0a0a0a] text-white overflow-hidden">
+    <div className="relative min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
       <Glow />
-      <div className="relative z-10 px-4 md:px-6 py-8 md:py-10">
-        <div className="container mx-auto max-w-7xl">
-
-          {/* PROFILE HEADER (Higgsfield-style banner) */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative overflow-hidden rounded-2xl border border-white/10 mb-8"
-          >
-            {/* Banner gradient bg */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-700 via-purple-700 to-cyan-700" />
+      <div className="relative z-10 px-4 md:px-6 lg:px-8 py-6 md:py-10">
+        <div className="container mx-auto max-w-6xl">
+          {/* Header */}
+          <div className="text-center mb-8">
             <motion.div
-              className="absolute inset-0 bg-gradient-to-tr from-cyan-700 via-blue-700 to-purple-700"
-              animate={{ opacity: [0, 0.6, 0] }}
-              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <div
-              className="absolute inset-0 opacity-30 mix-blend-overlay"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(0,0,0,0.4) 0%, transparent 50%)',
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/95 via-[#0a0a0a]/40 to-transparent" />
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-card/95 border border-border/60 mb-4"
+            >
+              <FolderOpen className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                Galeria de Criações
+              </span>
+            </motion.div>
 
-            <div className="relative px-5 md:px-10 py-8 md:py-10">
-              <div className="flex flex-col md:flex-row items-start md:items-end gap-5 md:gap-8">
-                {/* Avatar */}
-                <div className="shrink-0">
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-white/10 backdrop-blur-md border-2 border-white/30 flex items-center justify-center text-4xl md:text-5xl font-display font-extrabold text-white shadow-2xl">
-                    {initial}
-                  </div>
-                </div>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="text-2xl md:text-4xl font-display font-extrabold mb-2 text-gradient-watermelon tracking-tight"
+            >
+              Meus Renders
+            </motion.h1>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] md:text-xs font-extrabold uppercase tracking-[0.3em] text-white/70 mb-2">
-                    Perfil
-                  </p>
-                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-display font-extrabold uppercase tracking-tight text-white leading-none mb-2 truncate">
-                    {user.email?.split("@")[0] || "Criador"}
-                  </h1>
-                  <p className="text-sm text-white/70 truncate">{user.email}</p>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="text-sm text-muted-foreground max-w-md mx-auto"
+            >
+              Histórico de todas as suas criações com inteligência artificial.
+            </motion.p>
+          </div>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-2 md:gap-3">
-                    {profile && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                        <span className="text-[10px] text-white/80 uppercase tracking-wider font-bold">Créditos</span>
-                        <span className="text-sm font-extrabold text-white">{profile.credits}</span>
-                      </div>
-                    )}
-                    {subscription?.plan && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/30 backdrop-blur-sm border border-orange-400/40">
-                        <span className="text-[10px] font-extrabold text-orange-200 uppercase tracking-wider">{subscription.plan}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* STATS ROW */}
+          {/* Filter Buttons */}
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15 }}
-            className="grid grid-cols-3 gap-3 md:gap-4 mb-8"
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="flex justify-center mb-6"
           >
-            {[
-              { icon: TrendingUp, value: renders.length, label: "Total", color: "text-blue-400" },
-              { icon: ImageIcon, value: totalImages, label: "Imagens", color: "text-cyan-400" },
-              { icon: Video, value: totalVideos, label: "Vídeos", color: "text-purple-400" },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-xl border border-white/10 bg-white/[0.02] backdrop-blur-sm p-4 md:p-5"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                    <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                  </div>
-                  <div>
-                    <p className="text-2xl md:text-3xl font-display font-extrabold text-white leading-none">
-                      {stat.value}
-                    </p>
-                    <p className="text-[10px] text-white/50 uppercase tracking-wider font-bold mt-1">
-                      {stat.label}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </motion.div>
-
-          {/* SECTION TITLE + FILTERS */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-            <div>
-              <p className="text-[10px] md:text-xs font-extrabold uppercase tracking-[0.2em] text-white/50 mb-2">
-                Galeria
-              </p>
-              <h2 className="text-2xl md:text-4xl font-display font-extrabold uppercase tracking-tight text-white leading-none">
-                Minhas criações
-              </h2>
-            </div>
-
-            {/* Filter chips */}
-            <div className="inline-flex p-1 gap-1 rounded-full border border-white/10 bg-white/[0.02] backdrop-blur-sm self-start md:self-auto">
+            <div className="inline-flex p-1 gap-1 rounded-xl border border-border/60 bg-card/95">
               {filterButtons.map((btn) => (
                 <button
                   key={btn.value}
                   onClick={() => setFilter(btn.value)}
-                  className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-[10px] md:text-[11px] font-extrabold uppercase tracking-wider transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all ${
                     filter === btn.value
-                      ? "bg-white text-black"
-                      : "text-white/60 hover:text-white hover:bg-white/5"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                   }`}
                 >
                   <btn.icon className="w-3 h-3" />
@@ -255,12 +198,55 @@ const MeusRenders = () => {
                 </button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/* Loading */}
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+            className="grid grid-cols-3 gap-2 md:gap-3 mb-6"
+          >
+            {[
+              { icon: TrendingUp, value: renders.length, label: "Total", color: "text-primary", bg: "bg-primary/15" },
+              {
+                icon: Image,
+                value: renders.filter((r) => r.type === "image").length,
+                label: "Imagens",
+                color: "text-etyns-blue-light",
+                bg: "bg-etyns-blue/15",
+              },
+              {
+                icon: Video,
+                value: renders.filter((r) => r.type === "video").length,
+                label: "Vídeos",
+                color: "text-etyns-purple",
+                bg: "bg-etyns-purple/15",
+              },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="p-3 rounded-xl border border-border/60 bg-card/95 shadow-sm flex items-center gap-2.5"
+              >
+                <div className={`p-1.5 rounded-lg ${stat.bg} shrink-0`}>
+                  <stat.icon className={`w-3.5 h-3.5 ${stat.color}`} />
+                </div>
+                <div className="min-w-0">
+                  <p className={`text-base md:text-lg font-display font-extrabold ${stat.color} leading-tight`}>
+                    {stat.value}
+                  </p>
+                  <p className="text-[9.5px] text-muted-foreground font-medium uppercase tracking-wider leading-tight">
+                    {stat.label}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* Loading State */}
           {isLoading && (
-            <div className="flex justify-center py-20">
-              <Loader2 className="w-7 h-7 animate-spin text-white/60" />
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
           )}
 
@@ -269,8 +255,8 @@ const MeusRenders = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4"
+              transition={{ duration: 0.4, delay: 0.45 }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4"
             >
               {filteredRenders.map((render) => (
                 <RenderCard
@@ -288,23 +274,23 @@ const MeusRenders = () => {
             </motion.div>
           )}
 
-          {/* Empty */}
+          {/* Empty State */}
           {!isLoading && filteredRenders.length === 0 && (
-            <div className="p-12 text-center rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-sm">
+            <div className="p-10 text-center rounded-xl border border-border/60 bg-card/95 shadow-lg shadow-primary/5">
               <motion.div
-                className="inline-flex w-16 h-16 rounded-2xl bg-white/5 border border-white/10 items-center justify-center mb-5"
+                className="inline-flex p-3 rounded-2xl bg-muted/40 mb-4"
                 initial={{ scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.15, duration: 0.4 }}
+                transition={{ delay: 0.15, duration: 0.35 }}
               >
-                <FolderOpen className="w-8 h-8 text-white/60" />
+                <FolderOpen className="w-10 h-10 text-muted-foreground" />
               </motion.div>
-              <h3 className="text-xl md:text-2xl font-display font-extrabold uppercase tracking-tight text-white mb-3">
+              <h3 className="text-lg font-display font-bold mb-2 text-gradient-watermelon">
                 Nenhum render encontrado
               </h3>
-              <p className="text-sm text-white/60 max-w-md mx-auto">
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
                 {filter === "all"
-                  ? "Comece a criar suas imagens e vídeos com IA."
+                  ? "Comece a criar suas imagens e vídeos com IA!"
                   : `Você ainda não criou nenhum ${filter === "image" ? "imagem" : "vídeo"}.`}
               </p>
             </div>
@@ -316,5 +302,3 @@ const MeusRenders = () => {
 };
 
 export default MeusRenders;
-
-

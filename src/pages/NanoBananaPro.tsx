@@ -25,7 +25,7 @@ function GalleryCard({ render, onView, onUse }: { render: Render; onView: (r: Re
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative rounded-lg overflow-hidden cursor-pointer bg-[#111] border border-white/10 hover:border-white/30 transition-colors aspect-square"
+      className="relative rounded-lg overflow-hidden cursor-pointer bg-card border border-border/50 aspect-square"
     >
       {render.type === 'image' ? (
         <img src={render.url} alt={render.prompt || ''} className="w-full h-full object-cover" loading="lazy" />
@@ -57,12 +57,12 @@ function GalleryCard({ render, onView, onUse }: { render: Render; onView: (r: Re
 
 // Placeholder card
 function PlaceholderCard({ index }: { index: number }) {
-  const gradients = ["from-[#0f0f0f] to-[#1a1a1a]", "from-[#1a1a1a] to-[#0f0f0f]", "from-[#111] via-[#1a1a1a] to-[#111]"];
+  const gradients = ["from-card to-muted", "from-muted to-card", "from-card via-muted to-card"];
   return (
-    <div className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-white/5 flex items-center justify-center aspect-square`}>
+    <div className={`relative rounded-lg overflow-hidden bg-gradient-to-br ${gradients[index % 3]} border border-border/30 flex items-center justify-center aspect-square`}>
       <div className="text-center p-2">
-        <ImageIcon className="w-6 h-6 text-white/20 mx-auto mb-1" />
-        <p className="text-[9px] text-white/30 leading-tight uppercase tracking-wider">Suas imagens aqui</p>
+        <ImageIcon className="w-6 h-6 text-muted-foreground/30 mx-auto mb-1" />
+        <p className="text-[9px] text-muted-foreground/40 leading-tight">Suas imagens aparecerão aqui</p>
       </div>
     </div>
   );
@@ -294,25 +294,10 @@ const NanoBananaPro = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0a0a] text-white pt-16">
-
-      {/* Page header — Higgsfield-style */}
-      <div className="border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm flex-shrink-0">
-        <div className="px-4 md:px-6 py-5 md:py-6">
-          <p className="text-[10px] md:text-xs font-extrabold uppercase tracking-[0.3em] text-white/50 mb-1.5">
-            Imagem · IA
-          </p>
-          <h1 className="text-2xl md:text-4xl font-display font-extrabold uppercase tracking-tight text-white leading-none">
-            Nano Banana 2
-          </h1>
-          <p className="text-xs md:text-sm text-white/60 mt-2 max-w-2xl">
-            Imagens em ultra resolução 4K. Prompts inteligentes, estilos artísticos e upscale automático.
-          </p>
-        </div>
-      </div>
+    <div className="flex flex-col min-h-screen bg-background text-foreground pt-16">
 
       {/* HISTORY / COMMUNITY TABS */}
-      <div className="flex items-center justify-between px-4 h-12 bg-[#0a0a0a] border-b border-white/10 flex-shrink-0 sticky top-16 z-10">
+      <div className="flex items-center justify-between px-4 h-11 bg-background border-b border-border flex-shrink-0 sticky top-16 z-10">
         <div className="flex gap-1">
           {[
             { id: "history" as const, label: "Histórico", icon: FolderOpen },
@@ -321,10 +306,10 @@ const NanoBananaPro = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-extrabold uppercase tracking-wider transition-colors ${
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? "text-white bg-white/10"
-                  : "text-white/50 hover:text-white"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground/70"
               }`}
             >
               <tab.icon className="w-3.5 h-3.5" />
@@ -333,9 +318,9 @@ const NanoBananaPro = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-white/60">
-          <Zap className="w-3 h-3 text-orange-400" />
-          <span><span className="text-white font-bold">{currentCredits}</span> créditos</span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Zap className="w-3 h-3 text-primary" />
+          <span><span className="text-foreground font-semibold">{currentCredits}</span> créditos</span>
         </div>
       </div>
 
@@ -669,9 +654,3 @@ const NanoBananaPro = () => {
 };
 
 export default NanoBananaPro;
-
-
-
-
-
-
