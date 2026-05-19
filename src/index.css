@@ -617,6 +617,15 @@
 }
 
 @layer utilities {
+  /* Hide horizontal scrollbar (used for category chip rows) */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   @keyframes gradient-text {
     0%, 100% { background-position: 0% center; }
     50% { background-position: 100% center; }
@@ -810,3 +819,4 @@
   .delay-600 { animation-delay: 600ms; }
   .delay-700 { animation-delay: 700ms; }
 }
+
