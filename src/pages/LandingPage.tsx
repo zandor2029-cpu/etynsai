@@ -96,7 +96,7 @@ const LandingPage = () => {
               custom={1}
               className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold mb-3 text-gradient-watermelon leading-tight tracking-tight"
             >
-              Etyns Studio
+              ETYNS
             </motion.h1>
 
             <motion.p
