@@ -617,6 +617,36 @@
 }
 
 @layer utilities {
+  /* Higgsfield-style helpers */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s cubic-bezier(0.25, 0.1, 0.25, 1),
+                transform 0.7s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  .reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .parallax-slow { will-change: transform; }
+  .hover-play video { transition: opacity 0.4s; }
+  .hover-play:hover video { opacity: 1; }
+
+  .snap-x-mandatory {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .snap-x-mandatory > * { scroll-snap-align: start; }
+
   @keyframes gradient-text {
     0%, 100% { background-position: 0% center; }
     50% { background-position: 100% center; }
@@ -810,3 +840,4 @@
   .delay-600 { animation-delay: 600ms; }
   .delay-700 { animation-delay: 700ms; }
 }
+

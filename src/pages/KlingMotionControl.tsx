@@ -256,11 +256,26 @@ const KlingMotionControl = () => {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-background text-foreground overflow-hidden">
+    <div className="relative flex flex-col min-h-screen pt-[calc(3.5rem+4px)] md:pt-[calc(5rem+4px)] bg-[#0a0a0a] text-white overflow-hidden">
+      {/* Page header — Higgsfield-style */}
+      <div className="border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm">
+        <div className="px-4 md:px-6 py-5 md:py-6">
+          <p className="text-[10px] md:text-xs font-extrabold uppercase tracking-[0.3em] text-white/50 mb-1.5">
+            Vídeo · IA
+          </p>
+          <h1 className="text-2xl md:text-4xl font-display font-extrabold uppercase tracking-tight text-white leading-none">
+            Control Motion
+          </h1>
+          <p className="text-xs md:text-sm text-white/60 mt-2 max-w-2xl">
+            Anime suas imagens em vídeos cinematográficos. Controle preciso de movimento com vídeo de referência.
+          </p>
+        </div>
+      </div>
+
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-primary/8 blur-[160px]" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-etyns-cyan/8 blur-[160px]" />
+        <div className="absolute top-0 left-1/3 w-[800px] h-[600px] rounded-full bg-purple-600/10 blur-[180px]" />
+        <div className="absolute bottom-0 right-1/3 w-[700px] h-[500px] rounded-full bg-blue-600/8 blur-[180px]" />
       </div>
 
       {/* Two-column layout: sidebar + main */}
